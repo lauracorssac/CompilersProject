@@ -9,7 +9,7 @@ NEWLINE "\n"
 CLOSECOMMENT "*/"
 BEGINCOMMENT "/*"
 DIGIT [0-9]
-INTEGER [+-]?{DIGIT}+
+INTEGER {DIGIT}+
 
 %%
 
@@ -39,6 +39,7 @@ INTEGER [+-]?{DIGIT}+
 "^" {return (int)'^';}
 "." {return (int)'.';}
 "$" {return (int)'$';}
+"?" {return (int)'?';}
 
  /*    reserved words    */
 
