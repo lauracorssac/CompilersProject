@@ -2,7 +2,7 @@
 #include <stdio.h>
 int yylex(void);
 int yyerror (char const *s);
-extern int yylineno;
+extern int get_line_number(void);
 %}
 
 %start programa
@@ -89,7 +89,6 @@ opNivel4: TK_OC_LE | TK_OC_GE | TK_OC_EQ | TK_OC_NE | '<' | '>';
  /* bitwise and, bitwise or */
 opNivel5: '&' | '|';
 
-
  /* and, or */ 
 opNivel6: TK_OC_AND | TK_OC_OR; 
 
@@ -100,26 +99,22 @@ opNivel6: TK_OC_AND | TK_OC_OR;
 
  */
 
-expressao: E1 | expressao opNivel6 E1;
-
+expressao: E0 | expressao '?' E0 ':' E0;
+E0: E1 | E0 opNivel6 E1; 
 E1: E2 | E1 opNivel5 E2;
 E2: E3 | E2 opNivel4 E3;
 E3: E4 | E3 opNivel3 E4;
 E4: E5 | E4 opNivel2 E5;
 E5: E6 | E5 opNivel1 E6;
 E6: operando | '(' expressao ')'; 
-E6: '-' operando %prec NEG;
-E6: '+' operando %prec PLUS;
-E6: '*' operando %prec POINTER;
-E6: '&' operando %prec ADDRESS;
-E6: '#' operando %prec HASHTAG;
-E6: '!' operando %prec INVERTBOOL;
-E6: '?' operando %prec EVALBOOL;
-/*
-E6: operando '#' %prec HASHTAGRIGHT;
-E6: operando '*' %prec STARRIGHT;
-E6: operando '&' %prec AMPERSANDRIGHT;
-*/
+E6: '-' E6 %prec NEG;
+E6: '+' E6 %prec PLUS;
+E6: '*' E6 %prec POINTER;
+E6: '&' E6 %prec ADDRESS;
+E6: '#' E6 %prec HASHTAG;
+E6: '!' E6 %prec INVERTBOOL;
+E6: '?' E6 %prec EVALBOOL;
+
 programa : global | funcao | programa global | programa funcao;
 
  /*    def var global    
@@ -185,7 +180,7 @@ L6: ',' L5 | ';';
  */
 
 att: TK_IDENTIFICADOR A1
-A1: '=' A2 | indexador '=' A2;
+A1: '=' A2 | '[' expressao ']' '=' A2;
 A2: expressao;
 
 
@@ -211,13 +206,6 @@ chamada: TK_IDENTIFICADOR '(' C1 ')' | TK_IDENTIFICADOR '(' ')';
 C1: expressao | expressao C2;
 C2: ',' C1;
 
- /* 
-	chamada: TK_IDENTIFICADOR '(' C1;
-	C1: ')' ';' | expressao C2;
-	C2: ')' ';' | ',' C3;
-	C3: expressao C2;
- */
-
  /*    def shift    
 
 	inicial: shift
@@ -226,7 +214,7 @@ C2: ',' C1;
  */
 
 shift: TK_IDENTIFICADOR S1;
-S1: indexador opShift S2 | opShift S2;
+S1: '[' expressao ']' opShift S2 | opShift S2;
 S2: TK_LIT_INT ';';
 
 /*    def retorno break e continue    
@@ -272,7 +260,7 @@ for: TK_PR_FOR '(' att ':' expressao ':' att ')' bloco;
 
 int yyerror(char const *s) {
 
-	printf("\nErro sintatico na linha %d\n", yylineno);
+	printf("\nErro sintatico na linha %d\n", get_line_number());
 	return 1;
 }
 
