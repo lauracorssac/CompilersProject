@@ -4,22 +4,20 @@ main:
 	gcc -c lex.yy.c parser.tab.c main.c
 	gcc -o etapa2 lex.yy.o parser.tab.o main.o -lfl
 clean:
-	rm lex.yy.c parser.tab.c
-	rm *.o
-	rm *.h
-	rm etapa2 etapa2.tgz
+	rm -f lex.yy.c parser.tab.c lex.yy.c
+	rm -f *.o
+	rm -f *.h
+	rm -f *.output
+	rm -f etapa2.tgz
+	rm -f -r etapa2
 deliver:
-	tar cvzf etapa2.tgz .
+	rm -f -r etapa2
+	mkdir etapa2
+	cp parser.y etapa2
+	cp scanner.l etapa2
+	cp Makefile etapa2
+	cp main.c etapa2
+	tar cvzf etapa2.tgz etapa2
 exec:
 	make main
 	./etapa2
-sintatico:
-	flex scanner.l
-	gcc -c lex.yy.c
-	gcc -c mainSin.c
-	gcc lex.yy.o mainSin.o -o sin -lfl
-execsin:
-	make sintatico
-	./sin
-	
-	
