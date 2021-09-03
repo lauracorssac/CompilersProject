@@ -1,10 +1,12 @@
 %{
 #include <stdio.h>
+#define YYDEBUG 1
 int yylex(void);
 int yyerror (char const *s);
 extern int get_line_number(void);
 %}
 
+%define parse.error verbose
 %start programa
 
 %token TK_PR_INT
