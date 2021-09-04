@@ -98,31 +98,31 @@ unarios: '-' | '+' | '*' | '&' | '#' | '!' | '?';
  /*    def expressao    
 	
 	inicial: expressao
-	final: E9
+	final: E10
 
  */
 
-expressao: EX | expressao '?' EX ':' EX;
-EX: E0 | EX opNivel9 E0;
-E0: E1 | E0 opNivel8 E1;
-E1: E2 | E1 opNivel7 E2;
-E2: E3 | E2 opNivel6 E3; 
-E3: E4 | E3 opNivel5 E4;
-E4: E5 | E4 opNivel4 E5;
-E5: E6 | E5 opNivel3 E6;
-E6: E7 | E6 opNivel2 E7;
-E7: E8 | E7 opNivel1 E8;
-E8: E9 | unarios E9;
-E9: operando | '(' expressao ')'; 
+expressao: E0 | expressao '?' E0 ':' E0;
+E0: E1 | E0 opNivel9 E1;
+E1: E2 | E1 opNivel8 E2;
+E2: E3 | E2 opNivel7 E3;
+E3: E4 | E3 opNivel6 E4; 
+E4: E5 | E4 opNivel5 E5;
+E5: E6 | E5 opNivel4 E6;
+E6: E7 | E6 opNivel3 E7;
+E7: E8 | E7 opNivel2 E8;
+E8: E9 | E8 opNivel1 E9;
+E9: E10 | unarios E10;
+E10: operando | '(' expressao ')'; 
 
 /*
-E8: '-' E9;
-E8: '+' E9;
-E8: '*' E9;
-E8: '&' E9;
-E8: '#' E9;
-E8: '!' E9;
-E8: '?' E9;
+E9: '-' E10;
+E9: '+' E10;
+E9: '*' E10;
+E9: '&' E10;
+E9: '#' E10;
+E9: '!' E10;
+E9: '?' E10;
 */
 
 programa : global | funcao | programa global | programa funcao;
