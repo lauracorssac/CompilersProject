@@ -102,7 +102,6 @@ unarios: '-' | '+' | '*' | '&' | '#' | '!' | '?';
 
  */
 
-
 expressao: EX | expressao '?' EX ':' EX;
 EX: E0 | EX opNivel9 E0;
 E0: E1 | E0 opNivel8 E1;
