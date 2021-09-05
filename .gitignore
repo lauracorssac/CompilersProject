@@ -1,1 +1,10 @@
 *.DS_Store
+*.o
+*.tab.h
+*.output
+*.tgz
+lex.yy.c 
+parser.tab.c 
+etapa2/etapa2
+etapa1/etapa1
+

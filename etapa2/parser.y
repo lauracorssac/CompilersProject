@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#define YYDEBUG 1
 int yylex(void);
 int yyerror (char const *s);
 extern int get_line_number(void);
@@ -51,32 +52,21 @@ extern int get_line_number(void);
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%left NEG
-%left POINTER
-%left ADDRESS
-%left PLUS
-%left HASHTAG
-%left INVERTBOOL
-%left EVALBOOL
-
-%right HASHTAGRIGHT
-%right STARRIGHT
-%right AMPERSANDRIGHT
-
 %%
 tipo : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
 literal: TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_FALSE | TK_LIT_TRUE | TK_LIT_CHAR | TK_LIT_STRING;
 literalNum: TK_LIT_INT | TK_LIT_FLOAT;
 literalBool: TK_LIT_TRUE | TK_LIT_FALSE;
 
-simples: bloco ';' | local | att ';' | io | shift | rbc | if | while | for | chamada ';'; 
+simples: bloco ';' | local | att ';' | io | shift | rbc | if ';'| while ';' | for ';' | chamada ';'; 
 indexador: '[' TK_LIT_INT ']';
 
-operando: literalNum | TK_IDENTIFICADOR | TK_IDENTIFICADOR indexador | chamada | literalBool; 
+operando: literalNum | TK_IDENTIFICADOR | TK_IDENTIFICADOR '[' expressao ']' | chamada | literalBool; 
 opShift: TK_OC_SL | TK_OC_SR;
 
  /*    def operadores binarios    
 	
+	ordem decrescente de precedencia
 	opNivelX: quanto menor o X, maior a precedencia do operador
  */
 opNivel1: '^';
@@ -84,38 +74,58 @@ opNivel2: '*' | '/' | '%';
 opNivel3: '+' | '-';
 
  /* relacionais */
-opNivel4: TK_OC_LE | TK_OC_GE | TK_OC_EQ | TK_OC_NE | '<' | '>';
+opNivel4: TK_OC_LE | TK_OC_GE | '<' | '>';
 
- /* bitwise and, bitwise or */
-opNivel5: '&' | '|';
+/* equalidade */
+opNivel5: TK_OC_EQ | TK_OC_NE;
 
- /* and, or */ 
-opNivel6: TK_OC_AND | TK_OC_OR; 
+ /* bitwise and */
+opNivel6: '&'; 
+
+/* bitwise or */
+opNivel7: '|';
+
+ /* logical and */ 
+opNivel8: TK_OC_AND;
+
+ /* logical or */
+opNivel9: TK_OC_OR;
+
+ /* operadores unarios */
+unarios: '-' | '+' | '*' | '&' | '#' | '!' | '?';
 
  /*    def expressao    
 	
 	inicial: expressao
-	final: E6
+	final: E10
 
  */
 
 expressao: E0 | expressao '?' E0 ':' E0;
-E0: E1 | E0 opNivel6 E1; 
-E1: E2 | E1 opNivel5 E2;
-E2: E3 | E2 opNivel4 E3;
-E3: E4 | E3 opNivel3 E4;
-E4: E5 | E4 opNivel2 E5;
-E5: E6 | E5 opNivel1 E6;
-E6: operando | '(' expressao ')'; 
-E6: '-' E6 %prec NEG;
-E6: '+' E6 %prec PLUS;
-E6: '*' E6 %prec POINTER;
-E6: '&' E6 %prec ADDRESS;
-E6: '#' E6 %prec HASHTAG;
-E6: '!' E6 %prec INVERTBOOL;
-E6: '?' E6 %prec EVALBOOL;
+E0: E1 | E0 opNivel9 E1;
+E1: E2 | E1 opNivel8 E2;
+E2: E3 | E2 opNivel7 E3;
+E3: E4 | E3 opNivel6 E4; 
+E4: E5 | E4 opNivel5 E5;
+E5: E6 | E5 opNivel4 E6;
+E6: E7 | E6 opNivel3 E7;
+E7: E8 | E7 opNivel2 E8;
+E8: E9 | E8 opNivel1 E9;
+E9: E10 | unarios E10;
+E10: operando | '(' expressao ')'; 
 
-programa : global | funcao | programa global | programa funcao;
+/*
+E9: '-' E10;
+E9: '+' E10;
+E9: '*' E10;
+E9: '&' E10;
+E9: '#' E10;
+E9: '!' E10;
+E9: '?' E10;
+*/
+
+programa : | P1;
+P1: global | funcao | P1 global | P1 funcao;
 
  /*    def var global    
 	
