@@ -6,7 +6,6 @@ int yyerror (char const *s);
 extern int get_line_number(void);
 %}
 
-%define parse.error verbose
 %start programa
 
 %token TK_PR_INT
@@ -59,10 +58,10 @@ literal: TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_FALSE | TK_LIT_TRUE | TK_LIT_CHAR | 
 literalNum: TK_LIT_INT | TK_LIT_FLOAT;
 literalBool: TK_LIT_TRUE | TK_LIT_FALSE;
 
-simples: bloco ';' | local | att ';' | io | shift | rbc | if | while | for | chamada ';'; 
+simples: bloco ';' | local | att ';' | io | shift | rbc | if ';'| while ';' | for ';' | chamada ';'; 
 indexador: '[' TK_LIT_INT ']';
 
-operando: literalNum | TK_IDENTIFICADOR | TK_IDENTIFICADOR indexador | chamada | literalBool; 
+operando: literalNum | TK_IDENTIFICADOR | TK_IDENTIFICADOR '[' expressao ']' | chamada | literalBool; 
 opShift: TK_OC_SL | TK_OC_SR;
 
  /*    def operadores binarios    
@@ -125,7 +124,8 @@ E9: '!' E10;
 E9: '?' E10;
 */
 
-programa : global | funcao | programa global | programa funcao;
+programa : | P1;
+P1: global | funcao | P1 global | P1 funcao;
 
  /*    def var global    
 	
