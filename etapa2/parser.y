@@ -58,7 +58,7 @@ literal: TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_FALSE | TK_LIT_TRUE | TK_LIT_CHAR | 
 literalNum: TK_LIT_INT | TK_LIT_FLOAT;
 literalBool: TK_LIT_TRUE | TK_LIT_FALSE;
 
-simples: bloco ';' | local | att ';' | io | shift | rbc | if ';'| while ';' | for ';' | chamada ';'; 
+simples: bloco ';' | local | att ';' | io | shift | rbc | if | while | for | chamada ';'; 
 indexador: '[' TK_LIT_INT ']';
 
 operando: literalNum | TK_IDENTIFICADOR | TK_IDENTIFICADOR '[' expressao ']' | chamada | literalBool; 
