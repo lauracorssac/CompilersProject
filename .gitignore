@@ -7,4 +7,4 @@ lex.yy.c
 parser.tab.c 
 etapa2/etapa2
 etapa1/etapa1
-
+*/.vscode/*
