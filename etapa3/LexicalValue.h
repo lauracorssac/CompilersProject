@@ -1,0 +1,54 @@
+#ifndef LEXICALVALUE_H
+#define LEXICALVALUE_H
+
+// typedef struct Teste
+// {
+//     int oi;
+// }Teste;
+
+typedef union
+{
+    char * charSequenceValue;
+    int integerValue;
+    float floatValue;
+    int boolValue;
+    char charValue;
+
+}LiteralTokenValue;
+
+typedef enum { 
+    charSequenceType = 0,
+    integerType = 1,
+    floatType = 2,
+    boolType = 3,
+    charType = 4
+} LiteralTokenType;
+
+typedef enum { 
+    specialCharType = 0,
+    composedOperatorType = 1,
+    identifierType = 2,
+    literalType = 3,
+} TokenType;
+
+typedef struct {
+    
+    LiteralTokenValue value;
+    LiteralTokenType type;
+
+} LiteralTokenValueAndType;
+
+typedef struct LexicalValue 
+{
+    int lineNumber; // a
+    TokenType tokenType; //b
+    LiteralTokenValueAndType literalTokenValueAndType; //c
+    // for non-literal tokens literalTokenValueAndType always assumes:
+    // LiteralTokenType: charSequenceType
+    // LiteralTokenValue: char * 
+    
+} LexicalValue;
+
+void print_lexical_value(LexicalValue lexicalValue);
+
+#endif
