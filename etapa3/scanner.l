@@ -38,7 +38,6 @@ INTEGER {DIGIT}+
 "=" {
 
     char *mychar = strdup(yytext);
-    puts(mychar);
 
     LiteralTokenType litType = charSequenceType;
     LiteralTokenValue litValue;
@@ -94,41 +93,70 @@ INTEGER {DIGIT}+
 
  /*    operators    */
 
-"<=" {return TK_OC_LE;}
-">=" {return TK_OC_GE;}
-"==" {return TK_OC_EQ;}
-"!=" {return TK_OC_NE;}
-"&&" {return TK_OC_AND;}
-"||" {return TK_OC_OR;}
-">>" {return TK_OC_SL;}
-"<<" {return TK_OC_SR;}
+"<=" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_LE;
+}
+">=" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_GE;
+}
+"==" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_EQ;
+}
+"!=" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_NE;
+}
+"&&" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_AND;
+}
+"||" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_OR;
+}
+">>" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_SL;
+}
+"<<" {
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, composedOperatorType);
+    return TK_OC_SR;
+}
 
  /*    literals    */
 
-{INTEGER} {return TK_LIT_INT;}
-{INTEGER}"."{DIGIT}+([eE][-+]?{DIGIT}+)? {return TK_LIT_FLOAT;}
+{INTEGER} {
+    yylval.lexicalValue = lexicalValueFromLiteralToken(line_counter, yytext, integerType);
+    return TK_LIT_INT;
+}
 
-"false" {return TK_LIT_FALSE;}
-"true" {return TK_LIT_TRUE;}
+{INTEGER}"."{DIGIT}+([eE][-+]?{DIGIT}+)? {
+    yylval.lexicalValue = lexicalValueFromLiteralToken(line_counter, yytext, floatType);
+    return TK_LIT_FLOAT;
+}
 
-\'[^'\n]\' {return TK_LIT_CHAR;} /* allows all characters but the new line and ' */
- /* allows all chars but new line and " */
+"false" {
+    yylval.lexicalValue = lexicalValueFromLiteralToken(line_counter, yytext, boolType);
+    return TK_LIT_FALSE;
+}
+
+"true" {
+    yylval.lexicalValue = lexicalValueFromLiteralToken(line_counter, yytext, boolType);
+    return TK_LIT_TRUE;
+}
+
+ /* char: allows all characters but the new line and ' */
+\'[^'\n]\' {
+    yylval.lexicalValue = lexicalValueFromLiteralToken(line_counter, yytext, charType);
+    return TK_LIT_CHAR;
+} 
+ 
+ /* string: allows all chars but new line and " */
 \"[^"\n]+\" { 
-    char *mystr = strdup(yytext);
-    mystr++; /* removing first item */
-    mystr[strlen(mystr) - 1] = '\0';  /* removing last item */
-    puts(mystr);
-
-    LiteralTokenType litType = charSequenceType;
-    LiteralTokenValue litValue;
-    litValue.charSequenceValue = mystr;
-    LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
-    TokenType tokenType = literalType;
-    LexicalValue lexicalValue = { line_counter, tokenType, literalTokenValueAndType };
-    
-    LexicalValue *valor_lexico = malloc(sizeof(LexicalValue)); 
-    *valor_lexico = lexicalValue;
-    yylval.lexicalValue = valor_lexico;
+    yylval.lexicalValue = lexicalValueFromLiteralToken(line_counter, yytext, charSequenceType);
     return TK_LIT_STRING;
 }
 
@@ -136,21 +164,7 @@ INTEGER {DIGIT}+
 
 [A-Za-z_][0-9A-Za-z_]* {
 
-    char *mystr = strdup(yytext);
-    puts(mystr);
-
-    LiteralTokenType litType = charSequenceType;
-    LiteralTokenValue litValue;
-    litValue.charSequenceValue = mystr;
-    LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
-    TokenType tokenType = identifierType;
-    LexicalValue lexicalValue = { line_counter, tokenType, literalTokenValueAndType };
-    
-    LexicalValue *valor_lexico = malloc(sizeof(LexicalValue)); 
-    *valor_lexico = lexicalValue;
-    yylval.lexicalValue = valor_lexico;
-
-
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, identifierType);
     return TK_IDENTIFICADOR;
 }
 
