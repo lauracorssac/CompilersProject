@@ -95,7 +95,6 @@ void exporta(void *arvore) {
 
     AST *tree_root = (AST *) arvore;
     printAdresses(tree_root);
-    puts("oi");
     printValues(tree_root);
 
     //printf("%p, %p", print_literal_value(tree->value), print_literal_value(child->value));
