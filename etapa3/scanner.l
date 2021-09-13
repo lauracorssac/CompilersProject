@@ -4,6 +4,7 @@
 #include <string.h> 
 #include "parser.tab.h"
 #include "LexicalValue.h"
+#include "AST.h"
 int line_counter = 1;
 %}
 
@@ -34,7 +35,24 @@ INTEGER {DIGIT}+
 "/" {return (int)'/';}
 "<" {return (int)'<';}
 ">" {return (int)'>';}
-"=" {return (int)'=';}
+"=" {
+
+    char *mychar = strdup(yytext);
+    puts(mychar);
+
+    LiteralTokenType litType = charSequenceType;
+    LiteralTokenValue litValue;
+    litValue.charSequenceValue = mychar;
+    LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
+    TokenType tokenType = specialCharType;
+    LexicalValue lexicalValue = { line_counter, tokenType, literalTokenValueAndType };
+    
+    LexicalValue *valor_lexico = malloc(sizeof(LexicalValue)); 
+    *valor_lexico = lexicalValue;
+    yylval.lexicalValue = valor_lexico;
+
+    return EQUAL_CHAR;
+}
 "!" {return (int)'!';}
 "&" {return (int)'&';}
 "%" {return (int)'%';}
@@ -116,7 +134,25 @@ INTEGER {DIGIT}+
 
  /*    identifiers    */
 
-[A-Za-z_][0-9A-Za-z_]* {return TK_IDENTIFICADOR;}
+[A-Za-z_][0-9A-Za-z_]* {
+
+    char *mystr = strdup(yytext);
+    puts(mystr);
+
+    LiteralTokenType litType = charSequenceType;
+    LiteralTokenValue litValue;
+    litValue.charSequenceValue = mystr;
+    LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
+    TokenType tokenType = identifierType;
+    LexicalValue lexicalValue = { line_counter, tokenType, literalTokenValueAndType };
+    
+    LexicalValue *valor_lexico = malloc(sizeof(LexicalValue)); 
+    *valor_lexico = lexicalValue;
+    yylval.lexicalValue = valor_lexico;
+
+
+    return TK_IDENTIFICADOR;
+}
 
  /*    line counting    */
 

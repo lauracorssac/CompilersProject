@@ -1,16 +1,18 @@
 %{
 #include "LexicalValue.h"
 #include <stdio.h>
+#include "AST.h"
 
 #define YYDEBUG 1
 int yylex(void);
 int yyerror (char const *s);
 extern int get_line_number(void);
-//extern void print_lexical_value(LexicalValue lexicalValue);
+extern void *arvore;
 %}
 
 %union {
 	struct LexicalValue *lexicalValue;
+	struct AST *node;
 }
 
 %start programa
@@ -56,8 +58,14 @@ extern int get_line_number(void);
 %token TK_LIT_TRUE
 %token TK_LIT_CHAR
 %token<lexicalValue> TK_LIT_STRING
-%token TK_IDENTIFICADOR
+%token<lexicalValue> TK_IDENTIFICADOR
 %token TOKEN_ERRO
+
+%type<node> A2 
+%type<node> att
+%type<node> expressao
+
+%token<lexicalValue> EQUAL_CHAR
 
 %%
 tipo : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
@@ -109,7 +117,8 @@ unarios: '-' | '+' | '*' | '&' | '#' | '!' | '?';
 
  */
 
-expressao: E0 | expressao '?' E0 ':' E0;
+expressao: E0 { $$ = NULL;}
+| expressao '?' E0 ':' E0 { $$ = NULL; };
 E0: E1 | E0 opNivel9 E1;
 E1: E2 | E1 opNivel8 E2;
 E2: E3 | E2 opNivel7 E3;
@@ -121,16 +130,6 @@ E7: E8 | E7 opNivel2 E8;
 E8: E9 | E8 opNivel1 E9;
 E9: E10 | unarios E10;
 E10: operando | '(' expressao ')'; 
-
-/*
-E9: '-' E10;
-E9: '+' E10;
-E9: '*' E10;
-E9: '&' E10;
-E9: '#' E10;
-E9: '!' E10;
-E9: '?' E10;
-*/
 
 programa : | P1;
 P1: global | funcao | P1 global | P1 funcao;
@@ -197,9 +196,25 @@ L6: ',' L5 | ';';
 
  */
 
-att: TK_IDENTIFICADOR A1
-A1: '=' A2 | '[' expressao ']' '=' A2;
-A2: expressao;
+att: 
+TK_IDENTIFICADOR EQUAL_CHAR A2 { 
+	AST *newNode1 = createNode(*$1); 
+	AST *newNode2 = createNode(*$2); 
+
+	newNode2->child = newNode1;
+	newNode1->sister = $3;
+
+	$$ =  newNode2;
+	arvore = (void*)$$;
+
+}
+| TK_IDENTIFICADOR '[' expressao ']' '=' A2 { $$ = NULL; };
+// A1:  | { 
+// 	AST *newNode1 = create_node($1); 
+// 	newNode1->child = A2;
+// }
+// '[' expressao ']' '=' A2;
+A2: expressao { $$ = $1; };
 
 
  /*    def IO    

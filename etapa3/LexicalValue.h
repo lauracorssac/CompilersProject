@@ -50,5 +50,6 @@ typedef struct LexicalValue
 } LexicalValue;
 
 void print_lexical_value(LexicalValue lexicalValue);
+void print_literal_value(LiteralTokenValueAndType literalTokenValueAndType);
 
 #endif

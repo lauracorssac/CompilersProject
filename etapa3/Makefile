@@ -3,8 +3,8 @@ main:
 	rm -f -r etapa3.tgz
 	bison -d parser.y
 	flex scanner.l
-	gcc -c lex.yy.c parser.tab.c LexicalValue.c main.c
-	gcc -o etapa3 lex.yy.o parser.tab.o main.o LexicalValue.o -ll
+	gcc -c lex.yy.c parser.tab.c LexicalValue.c main.c AST.c
+	gcc -o etapa3 lex.yy.o parser.tab.o main.o LexicalValue.o AST.o -ll
 clean:
 	rm -f lex.yy.c parser.tab.c lex.yy.c
 	rm -f *.o
