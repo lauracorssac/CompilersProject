@@ -138,8 +138,8 @@ simples: bloco ';' { $$ = $1; }
 | shift { $$ = NULL; }
 | rbc { $$ = $1; }
 | if ';' { $$ = NULL; }
-| while ';' { $$ = NULL; }
-| for ';' { $$ = NULL; }
+| while ';' { $$ = $1; }
+| for ';' { $$ = $1; }
 | chamada ';' { $$ = NULL; }; 
 
 indexador: '[' TK_LIT_INT ']';
@@ -275,8 +275,12 @@ F7: tipo F5 { $$ = $2; }
 bloco: '{' B1 { $$ = $2;};
 B1: '}' { $$ = NULL; }
 | simples B1 { 
-	appendChild($1, $2);
-	$$ = $1;
+	if ($1 != NULL){
+		appendChild($1, $2);
+		$$ = $1;
+	} else {
+		$$ = $2;
+	}
 };
 
  /*    def var local    
@@ -413,11 +417,11 @@ rbc: TK_PR_RETURN expressao ';' {
 	AST *rootNode = createNodeNoLexicalValue(returnType);
 	appendChild(rootNode, $2);
 	$$ = rootNode;
-};
-rbc: TK_PR_CONTINUE ';' {
+}
+| TK_PR_CONTINUE ';' {
 	$$ = createNodeNoLexicalValue(continueType);
-};
-rbc: TK_PR_BREAK ';' {	$$ = createNodeNoLexicalValue(breakType);};
+}
+| TK_PR_BREAK ';' {	$$ = createNodeNoLexicalValue(breakType);};
 
  /*    def if    
 
@@ -436,7 +440,12 @@ I1: TK_PR_ELSE bloco;
 
  */
 
-while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco;
+while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco {
+	AST *rootNode = createNodeNoLexicalValue(whileType);
+	appendChild(rootNode, $3);
+	appendChild(rootNode, $6);
+	$$ = rootNode;
+};
 
  /*    def for    
 
@@ -445,7 +454,14 @@ while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco;
 
  */
 
-for: TK_PR_FOR '(' att ':' expressao ':' att ')' bloco;
+for: TK_PR_FOR '(' att ':' expressao ':' att ')' bloco {
+	AST *rootNode = createNodeNoLexicalValue(forType);
+	appendChild(rootNode, $3);
+	appendChild(rootNode, $5);
+	appendChild(rootNode, $7);
+	appendChild(rootNode, $9);
+	$$ = rootNode;
+};
 
 %%
 

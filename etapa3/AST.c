@@ -31,6 +31,8 @@ AST* createNodeNoLexicalValue(NodeType type) {
 
 void appendChild(AST *rootNode, AST *newChild) {
 
+    if (rootNode == NULL) { return; }
+
     AST *firstChild = rootNode->child;
     AST *firstChildPrev = rootNode->child;
 
@@ -47,6 +49,8 @@ void appendChild(AST *rootNode, AST *newChild) {
 }
 
 void prependChild(AST *rootNode, AST *newChild) {
+
+    if (rootNode == NULL) { return; }
 
     AST *firstChild = rootNode->child;
     
