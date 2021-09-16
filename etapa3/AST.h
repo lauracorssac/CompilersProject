@@ -43,6 +43,7 @@ typedef struct AST {
 AST* createNodeNoLexicalValue(NodeType type);
 AST* createNode(LexicalValue *value);
 void exporta(void *arvore);
+void libera(void *arvore);
 void printNodeType(NodeType nodeType);
 void appendChild(AST *rootNode, AST *newChild);
 void prependChild(AST *rootNode, AST *newChild);

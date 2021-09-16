@@ -135,9 +135,28 @@ void exporta(void *arvore) {
     printAdresses(tree_root);
     printValues(tree_root);
 
-    //printf("%p, %p", print_literal_value(tree->value), print_literal_value(child->value));
+}
+
+void libera(void *arvore) {
+
+    AST *tree_root = (AST *) arvore;
+    if (tree_root == NULL) { return; } 
+    if (tree_root->child == NULL) { 
+        free(tree_root->value);
+        free(tree_root);
+        return; 
+    }
+
+    AST *first_child = tree_root->child;
+    
+    while (first_child != NULL ) {
+        AST *first_sister = first_child->sister;
+        libera(first_child);
+        first_child = first_sister;
+    }
 
 }
+
 
 void printNodeType(NodeType nodeType) {
 
