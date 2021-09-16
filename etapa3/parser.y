@@ -115,7 +115,6 @@ extern void *arvore;
 
 %type<node> programa
 
-%token<lexicalValue> EQUAL_CHAR
 
 %%
 tipo : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
@@ -137,7 +136,7 @@ simples: bloco ';' { $$ = $1; }
 | att ';' { $$ = $1; }
 | io { $$ = $1; }
 | shift { $$ = NULL; }
-| rbc { $$ = NULL; }
+| rbc { $$ = $1; }
 | if ';' { $$ = NULL; }
 | while ';' { $$ = NULL; }
 | for ';' { $$ = NULL; }
@@ -322,22 +321,31 @@ L6: ',' L5 { $$ = NULL; }
  */
 
 att: 
-TK_IDENTIFICADOR EQUAL_CHAR A2 { 
-	AST *newNode1 = createNode($1); 
-	AST *newNode2 = createNode($2); 
+TK_IDENTIFICADOR '=' A2 { 
+	
+	AST *rootNode = createNodeNoLexicalValue(attributionType); 
+	AST *identNode = createNode($1);
+	
+	appendChild(rootNode, identNode);
+	appendChild(rootNode, $3);
 
-	newNode2->child = newNode1;
-	newNode1->sister = $3;
-
-	$$ =  newNode2;
+	$$ =  rootNode;
 
 }
-| TK_IDENTIFICADOR '[' expressao ']' EQUAL_CHAR A2 { $$ = NULL; };
-// A1:  | { 
-// 	AST *newNode1 = create_node($1); 
-// 	newNode1->child = A2;
-// }
-// '[' expressao ']' '=' A2;
+| TK_IDENTIFICADOR '[' expressao ']' '=' A2 { 
+
+	AST *rootNode = createNodeNoLexicalValue(attributionType); 
+	AST *indexerNode = createNodeNoLexicalValue(indexerType);
+	AST *identNode = createNode($1);
+	
+	appendChild(rootNode, indexerNode);
+	appendChild(indexerNode, identNode);
+	appendChild(indexerNode, $3);
+	appendChild(rootNode, $6);
+
+	$$ = rootNode;
+
+};
 A2: expressao { $$ = $1; };
 
 
@@ -401,9 +409,15 @@ S2: TK_LIT_INT ';';
 
  */
 
-rbc: TK_PR_RETURN expressao ';';
-rbc: TK_PR_CONTINUE ';';
-rbc: TK_PR_BREAK ';'
+rbc: TK_PR_RETURN expressao ';' { 
+	AST *rootNode = createNodeNoLexicalValue(returnType);
+	appendChild(rootNode, $2);
+	$$ = rootNode;
+};
+rbc: TK_PR_CONTINUE ';' {
+	$$ = createNodeNoLexicalValue(continueType);
+};
+rbc: TK_PR_BREAK ';' {	$$ = createNodeNoLexicalValue(breakType);};
 
  /*    def if    
 

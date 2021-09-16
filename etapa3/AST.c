@@ -127,6 +127,12 @@ void printNodeType(NodeType nodeType) {
         case returnType:
             printf("%s","return");
             break;
+        case breakType:
+            printf("%s","break");
+            break;
+        case continueType:
+            printf("%s","continue");
+            break;
         case outputType:
             printf("%s","output");
             break;

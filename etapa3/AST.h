@@ -9,6 +9,8 @@ typedef enum {
     whileType,
     forType,
     returnType,
+    breakType,
+    continueType,
     outputType,
     inputType,
     indexerType,

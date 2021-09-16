@@ -35,23 +35,7 @@ INTEGER {DIGIT}+
 "/" {return (int)'/';}
 "<" {return (int)'<';}
 ">" {return (int)'>';}
-"=" {
-
-    char *mychar = strdup(yytext);
-
-    LiteralTokenType litType = charSequenceType;
-    LiteralTokenValue litValue;
-    litValue.charSequenceValue = mychar;
-    LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
-    TokenType tokenType = specialCharType;
-    LexicalValue lexicalValue = { line_counter, tokenType, literalTokenValueAndType };
-    
-    LexicalValue *valor_lexico = malloc(sizeof(LexicalValue)); 
-    *valor_lexico = lexicalValue;
-    yylval.lexicalValue = valor_lexico;
-
-    return EQUAL_CHAR;
-}
+"=" {return (int)'=';}
 "!" {return (int)'!';}
 "&" {return (int)'&';}
 "%" {return (int)'%';}
