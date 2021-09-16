@@ -103,8 +103,10 @@ extern void *arvore;
 %type<node> F6
 %type<node> F7
 
+%type<node> entrada
+%type<node> saida
+
 %type<node> programa
-%type<node> P1
 
 %token<lexicalValue> EQUAL_CHAR
 
@@ -123,10 +125,10 @@ literalNum: TK_LIT_INT { $$ = createNode($1); }
 literalBool: TK_LIT_TRUE { $$ = createNode($1); }
 | TK_LIT_FALSE { $$ = createNode($1); };
 
-simples: bloco ';' { $$ = NULL; }
+simples: bloco ';' { $$ = $1; }
 | local { $$ = NULL; }
 | att ';' { $$ = $1; }
-| io { $$ = NULL; }
+| io { $$ = $1; }
 | shift { $$ = NULL; }
 | rbc { $$ = NULL; }
 | if ';' { $$ = NULL; }
@@ -206,12 +208,18 @@ E9: E10 { $$ = $1; }
 E10: operando { $$ = $1; }
 | '(' expressao ')' { $$ = NULL; };
 
-programa : { $$ = NULL; arvore = (void*)$$; }
-| P1 { $$ = $1; arvore = (void*)$$; };
-P1: global { $$ = NULL; }
-| funcao { $$ = $1; }
-| P1 global { $$ = NULL; }
-| P1 funcao { $$ = NULL; };
+programa : programa global { $$ = $1; }
+| programa funcao { 
+	if ($1 == NULL) {
+		arvore = (void*)$2;
+		$$ = $2;
+	} else {
+		appendChild($1, $2);
+	}
+	$$ = $2;
+}
+| { $$ = NULL };
+
 
  /*    def var global    
 	
@@ -238,17 +246,17 @@ funcao: TK_PR_STATIC F1 { $$ = $2; }
 F1: tipo F2 { $$ = $2; };
 F2: TK_IDENTIFICADOR F3 { 
 	AST *rootNode = createNode($1);
-	rootNode->child = $2;
+	appendChild(rootNode, $2);
 	$$ = rootNode;
 };
 F3: '(' F4 { $$ = $2; };
-F4: ')' bloco { $$ = $2; };
-| tipo F5 { $$ = $2; };
+F4: ')' bloco { $$ = $2; }
+| tipo F5 { $$ = $2; }
 | TK_PR_CONST tipo F5 { $$ = $3; };
 F5: TK_IDENTIFICADOR F6 { $$ = $2; };
-F6: ')' bloco { $$ = $2; };
-| ',' F7 { $$ = $2; };
-F7: tipo F5 { $$ = $2; };
+F6: ')' bloco {  $$ = $2; }
+| ',' F7  { $$ = $2; };
+F7: tipo F5 { $$ = $2; }
 | TK_PR_CONST tipo F5 { $$ = $3; };
 
  /*    def bloco    
@@ -272,13 +280,20 @@ B1: '}' { $$ = NULL; }
 
  */
 
-local: L1 | TK_PR_STATIC L1 | TK_PR_CONST L1 | TK_PR_STATIC TK_PR_CONST L1;
+local: L1 
+| TK_PR_STATIC L1 
+| TK_PR_CONST L1 
+| TK_PR_STATIC TK_PR_CONST L1;
 L1: tipo L2;
 L2: TK_IDENTIFICADOR L3;
-L3: ';' | TK_OC_LE L4 | ',' L5;
-L4: TK_IDENTIFICADOR ';' | literal ';' ;
+L3: ';' 
+| TK_OC_LE L4 
+| ',' L5;
+L4: TK_IDENTIFICADOR ';' 
+| literal ';' ;
 L5: TK_IDENTIFICADOR L6;
-L6: ',' L5 | ';';
+L6: ',' L5 
+| ';';
 
  /*    def atribuicao    
 
@@ -314,9 +329,28 @@ A2: expressao { $$ = $1; };
 
  */
 
-io: entrada | saida;
-entrada: TK_PR_INPUT TK_IDENTIFICADOR ';'
-saida: TK_PR_OUTPUT TK_IDENTIFICADOR ';' | TK_PR_OUTPUT literal ';'
+io: entrada { $$ = $1; }
+| saida { $$ = $1; };
+
+entrada: TK_PR_INPUT TK_IDENTIFICADOR ';' { 
+	AST *inputNode = createNodeNoLexicalValue(inputType);
+	AST *identifier =  createNode($2);
+	appendChild(inputNode, identifier);
+	$$ = inputNode;
+};
+
+saida: TK_PR_OUTPUT TK_IDENTIFICADOR ';' { 
+	AST *outputNode = createNodeNoLexicalValue(outputType);
+	AST *identifier =  createNode($2);
+	appendChild(outputNode, identifier);
+	$$ = outputNode;
+}
+
+| TK_PR_OUTPUT literal ';' {
+	AST *outputNode = createNodeNoLexicalValue(outputType);
+	appendChild(outputNode, $2);
+	$$ = outputNode;
+};
 
  /*    def chamada funcao    
 

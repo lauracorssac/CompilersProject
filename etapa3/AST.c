@@ -77,8 +77,10 @@ void printValues(AST *tree) {
 
     printf("%p [label=\"", tree);
     if (tree->value != NULL) {
+        
         print_literal_value(tree->value->literalTokenValueAndType);
     } else {
+        
         printNodeType(tree->nodeType);
     }
     printf("\"];\n");
