@@ -1,8 +1,8 @@
- /*
+/*
 
 	LAURA BRAGANTE CORSSAC - 00274694
 
- */
+*/
 
 %{
 #include "LexicalValue.h"
@@ -134,6 +134,8 @@ extern void *arvore;
 %type<node> S2
 %type<node> A2
 
+%type<node> chamada1
+
 %type<node> programa
 
 
@@ -161,7 +163,7 @@ simples: bloco ';' { $$ = $1; }
 | if ';' { $$ = $1; }
 | while ';' { $$ = $1; }
 | for ';' { $$ = $1; }
-| chamada ';' { $$ = NULL; }; 
+| chamada ';' { $$ = $1; }; 
 
 indexador: '[' TK_LIT_INT ']';
 
@@ -174,7 +176,7 @@ operando: literalNum { $$ = $1; }
 	appendChild(rootNode, $3);
 	$$ = rootNode;
 } 
-| chamada { $$ = NULL; }
+| chamada { $$ = $1; }
 | literalBool { $$ = $1; }; 
 
 opShift: TK_OC_SL { $$ = createNode($1); }
@@ -472,14 +474,23 @@ saida: TK_PR_OUTPUT TK_IDENTIFICADOR ';' {
  /*    def chamada funcao    
 
 	inicial: chamada
-	terminais: C1 C2
+	terminais: chamada1
 
  */
 
-chamada: TK_IDENTIFICADOR '(' C1 ')'
-| TK_IDENTIFICADOR '(' ')';
-C1: expressao | expressao C2;
-C2: ',' C1;
+chamada: TK_IDENTIFICADOR '(' chamada1 ')' { 
+	AST *rootNode = createNodeWithLexicalTypeAndValue(functionCallType, $1);
+	appendChild(rootNode, $3);
+	$$ = rootNode;
+}
+| TK_IDENTIFICADOR '(' ')' {
+	$$ = createNodeWithLexicalTypeAndValue(functionCallType, $1);
+};
+chamada1: expressao { $$ = $1; }
+| expressao ',' chamada1 {
+	appendChild($1, $3);
+	$$ = $1;
+};
 
  /*    def shift    
 

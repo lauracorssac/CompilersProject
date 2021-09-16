@@ -1,8 +1,8 @@
- /*
+/*
 
 	LAURA BRAGANTE CORSSAC - 00274694
 
- */
+*/
 
 #ifndef AST_H
 #define AST_H
@@ -11,7 +11,8 @@
 
 typedef enum {
 
-    functionType = 0,
+    noType = 0,
+    functionType,
     whileType,
     forType,
     ifType,
@@ -23,7 +24,8 @@ typedef enum {
     indexerType,
     attributionType,
     initializerType,
-    ternaryType
+    ternaryType,
+    functionCallType
 
 } NodeType;
 
@@ -44,5 +46,6 @@ void exporta(void *arvore);
 void printNodeType(NodeType nodeType);
 void appendChild(AST *rootNode, AST *newChild);
 void prependChild(AST *rootNode, AST *newChild);
+AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value);
 
 #endif

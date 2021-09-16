@@ -1,8 +1,8 @@
- /*
+/*
 
 	LAURA BRAGANTE CORSSAC - 00274694
 
- */
+*/
 
 #ifndef LEXICALVALUE_H
 #define LEXICALVALUE_H

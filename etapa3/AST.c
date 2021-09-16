@@ -1,8 +1,8 @@
- /*
+/*
 
 	LAURA BRAGANTE CORSSAC - 00274694
 
- */
+*/
 
 #include "AST.h"
 #include "LexicalValue.h"
@@ -16,6 +16,7 @@ AST* createNode(LexicalValue *value) {
     newNode.child = NULL;
     newNode.sister = NULL;
     newNode.value = value;
+    newNode.nodeType = noType;
 
     *newNodePointer = newNode;
     return newNodePointer;
@@ -34,6 +35,21 @@ AST* createNodeNoLexicalValue(NodeType type) {
     *newNodePointer = newNode;
     return newNodePointer;
 }
+
+AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value) {
+    
+    AST *newNodePointer = malloc(sizeof(AST));
+
+    AST newNode;
+    newNode.nodeType = type;
+    newNode.value = value;
+    newNode.child = NULL;
+    newNode.sister = NULL;
+    
+    *newNodePointer = newNode;
+    return newNodePointer;
+}
+
 
 void appendChild(AST *rootNode, AST *newChild) {
 
@@ -95,13 +111,14 @@ void printValues(AST *tree) {
     AST *child = tree->child;
 
     printf("%p [label=\"", tree);
+
+    if (tree->nodeType != noType) {
+        printNodeType(tree->nodeType);
+    }
     if (tree->value != NULL) {
         
         print_literal_value(tree->value->literalTokenValueAndType);
-    } else {
-        
-        printNodeType(tree->nodeType);
-    }
+    } 
     printf("\"];\n");
 
     while (first_child != NULL)
@@ -153,7 +170,7 @@ void printNodeType(NodeType nodeType) {
             printf("%s","input");
             break;
         case ternaryType:
-            printf("%s","ternary");
+            printf("%s","?:");
             break;
         case indexerType:
             printf("%s","[]");
@@ -163,6 +180,9 @@ void printNodeType(NodeType nodeType) {
             break;
         case initializerType:
             printf("%s","<=");
+            break;
+        case functionCallType:
+            printf("call ");
             break;
         default:
             break;
