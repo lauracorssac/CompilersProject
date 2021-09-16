@@ -1,3 +1,9 @@
+ /*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+ */
+
 #include "AST.h"
 #include "LexicalValue.h"
 #include <stdio.h>
@@ -145,6 +151,9 @@ void printNodeType(NodeType nodeType) {
             break;
         case inputType:
             printf("%s","input");
+            break;
+        case ternaryType:
+            printf("%s","ternary");
             break;
         case indexerType:
             printf("%s","[]");

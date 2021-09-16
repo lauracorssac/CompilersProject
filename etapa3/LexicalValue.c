@@ -1,3 +1,9 @@
+ /*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,18 +18,6 @@ void print_lexical_value(LexicalValue lexicalValue) {
     printf("Literal Token Type = %d\n", litTokenType);
 
     printf("LiteralTokenValue = ");
-
-    // if (litTokenType == charSequenceType) {
-    //     puts(lexicalValue.literalTokenValueAndType.value.charSequenceValue);
-    // } else if (litTokenType == integerType) {
-    //     printf("%d\n", lexicalValue.literalTokenValueAndType.value.integerValue);
-    // } else if (litTokenType == floatType) {
-    //     printf("%f\n", lexicalValue.literalTokenValueAndType.value.floatValue);
-    // } else if (litTokenType == boolType) {
-    //     printf("%d\n", lexicalValue.literalTokenValueAndType.value.boolValue);
-    // } else if (litTokenType == charType) {
-    //      printf("%c\n", lexicalValue.literalTokenValueAndType.value.charValue);
-    // } 
 
     print_literal_value(lexicalValue.literalTokenValueAndType);
     printf("\n");
@@ -85,6 +79,7 @@ LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, Token
 
     LiteralTokenValue litValue;
     litValue.charSequenceValue = strdup(text);
+
     LiteralTokenType litType = charSequenceType;
     LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
     

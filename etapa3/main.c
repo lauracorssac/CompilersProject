@@ -1,7 +1,9 @@
-/*
-  Função principal para realização da E3.
-  Não modifique este arquivo.
-*/
+ /*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+ */
+
 #include <stdio.h>
 extern int yyparse(void);
 extern int yylex_destroy(void);

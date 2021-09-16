@@ -1,3 +1,9 @@
+ /*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+ */
+
 %{
 #include "LexicalValue.h"
 #include <stdio.h>
@@ -61,11 +67,14 @@ extern void *arvore;
 %token<lexicalValue> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+%token<lexicalValue> ',' ';' ':' '(' ')' '[' ']' '{' '}' '=' '.' '$' '+' '-' '*' '/' '%' '^' '&' '|' '<' '>' '!' '?' '#'
+
 %type<node> literal
 %type<node> literalNum
 %type<node> literalBool
 %type<node> operando
 %type<node> expressao
+%type<node> unarios 
 
 %type<node> att
 %type<node> bloco
@@ -83,6 +92,16 @@ extern void *arvore;
 %type<node> entrada
 %type<node> saida
 %type<node> opShift
+
+%type<node> opNivel1
+%type<node> opNivel2
+%type<node> opNivel3
+%type<node> opNivel4
+%type<node> opNivel5
+%type<node> opNivel6
+%type<node> opNivel7
+%type<node> opNivel8
+%type<node> opNivel9
 
 %type<node> E0
 %type<node> E1
@@ -148,7 +167,13 @@ indexador: '[' TK_LIT_INT ']';
 
 operando: literalNum { $$ = $1; }
 | TK_IDENTIFICADOR { $$ = createNode($1); }
-| TK_IDENTIFICADOR '[' expressao ']' { $$ = NULL; } 
+| TK_IDENTIFICADOR '[' expressao ']' { 
+	AST *rootNode = createNodeNoLexicalValue(indexerType);
+	AST *identNode = createNode($1);
+	appendChild(rootNode, identNode);
+	appendChild(rootNode, $3);
+	$$ = rootNode;
+} 
 | chamada { $$ = NULL; }
 | literalBool { $$ = $1; }; 
 
@@ -160,30 +185,43 @@ opShift: TK_OC_SL { $$ = createNode($1); }
 	ordem decrescente de precedencia
 	opNivelX: quanto menor o X, maior a precedencia do operador
  */
-opNivel1: '^';
-opNivel2: '*' | '/' | '%';
-opNivel3: '+' | '-';
+opNivel1: '^' { $$ = createNode($1)};
+opNivel2: '*' { $$ = createNode($1)};
+| '/' { $$ = createNode($1)};
+| '%' { $$ = createNode($1)};;
+opNivel3: '+' { $$ = createNode($1)};
+| '-' { $$ = createNode($1)};;
 
  /* relacionais */
-opNivel4: TK_OC_LE | TK_OC_GE | '<' | '>';
+opNivel4: TK_OC_LE { $$ = createNode($1)}
+| TK_OC_GE { $$ = createNode($1)}
+| '<' { $$ = createNode($1)}
+| '>' { $$ = createNode($1)};
 
 /* equalidade */
-opNivel5: TK_OC_EQ | TK_OC_NE;
+opNivel5: TK_OC_EQ { $$ = createNode($1)}
+| TK_OC_NE { $$ = createNode($1)};
 
  /* bitwise and */
-opNivel6: '&'; 
+opNivel6: '&' { $$ = createNode($1)};
 
 /* bitwise or */
-opNivel7: '|';
+opNivel7: '|' { $$ = createNode($1)};
 
  /* logical and */ 
-opNivel8: TK_OC_AND;
+opNivel8: TK_OC_AND { $$ = createNode($1)};
 
  /* logical or */
-opNivel9: TK_OC_OR;
+opNivel9: TK_OC_OR { $$ = createNode($1)};
 
  /* operadores unarios */
-unarios: '-' | '+' | '*' | '&' | '#' | '!' | '?';
+unarios: '-' { $$ = createNode($1); }
+| '+' { $$ = createNode($1); }
+| '*' { $$ = createNode($1); }
+| '&' { $$ = createNode($1); }
+| '#' { $$ = createNode($1); }
+| '!' { $$ = createNode($1); }
+| '?' { $$ = createNode($1); };
 
  /*    def expressao    
 	
@@ -193,29 +231,74 @@ unarios: '-' | '+' | '*' | '&' | '#' | '!' | '?';
  */
 
 expressao: E0 { $$ = $1; }
-| expressao '?' E0 ':' E0 { $$ = NULL; };
+| expressao '?' E0 ':' E0 {
+	AST *rootNode = createNodeNoLexicalValue(ternaryType);
+	appendChild(rootNode, $1);
+	appendChild(rootNode, $3);
+	appendChild(rootNode, $5);
+	$$ = rootNode;
+};
 E0: E1 { $$ = $1; }
-| E0 opNivel9 E1 { $$ = NULL; };
+| E0 opNivel9 E1 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
 E1: E2 { $$ = $1; }
-| E1 opNivel8 E2 { $$ = NULL; };
+| E1 opNivel8 E2 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
 E2: E3 { $$ = $1; }
-| E2 opNivel7 E3 { $$ = NULL; };
+| E2 opNivel7 E3 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
 E3: E4 { $$ = $1; }
-| E3 opNivel6 E4 { $$ = NULL; };
+| E3 opNivel6 E4 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2; 
+};
 E4: E5 { $$ = $1; }
-| E4 opNivel5 E5 { $$ = NULL; };
+| E4 opNivel5 E5 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
 E5: E6 { $$ = $1; }
-| E5 opNivel4 E6 { $$ = NULL; };
+| E5 opNivel4 E6 {
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
 E6: E7 { $$ = $1; }
-| E6 opNivel3 E7 { $$ = NULL; };
+| E6 opNivel3 E7 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
 E7: E8 { $$ = $1; }
-| E7 opNivel2 E8 { $$ = NULL; };
+| E7 opNivel2 E8 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
 E8: E9 { $$ = $1; }
-| E8 opNivel1 E9 { $$ = NULL; };
+| E8 opNivel1 E9 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+ };
 E9: E10 { $$ = $1; }
-| unarios E10 { $$ = NULL; };
+| unarios E10 { 
+	appendChild($1, $2);
+	$$ = $1;
+};
 E10: operando { $$ = $1; }
-| '(' expressao ')' { $$ = NULL; };
+| '(' expressao ')' { $$ = $2; };
 
 programa : programa global { $$ = $1; }
 | programa funcao { 

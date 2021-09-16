@@ -1,3 +1,9 @@
+ /*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+ */
+
 #ifndef AST_H
 #define AST_H
 
@@ -16,7 +22,8 @@ typedef enum {
     inputType,
     indexerType,
     attributionType,
-    initializerType
+    initializerType,
+    ternaryType
 
 } NodeType;
 

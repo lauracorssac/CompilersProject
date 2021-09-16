@@ -1,3 +1,9 @@
+ /*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+ */
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,31 +25,10 @@ INTEGER {DIGIT}+
 
  /*    special characters    */
 
-"," {return (int)',';} 
-";" {return (int)';';}
-":" {return (int)':';}
-"(" {return (int)'(';}
-")" {return (int)')';}
-"[" {return (int)'[';}
-"]" {return (int)']';}
-"{" {return (int)'{';}
-"}" {return (int)'}';}
-"+" {return (int)'+';}
-"-" {return (int)'-';}
-"|" {return (int)'|';}
-"*" {return (int)'*';}
-"/" {return (int)'/';}
-"<" {return (int)'<';}
-">" {return (int)'>';}
-"=" {return (int)'=';}
-"!" {return (int)'!';}
-"&" {return (int)'&';}
-"%" {return (int)'%';}
-"#" {return (int)'#';}
-"^" {return (int)'^';}
-"." {return (int)'.';}
-"$" {return (int)'$';}
-"?" {return (int)'?';}
+[\,\;\:\(\)\[\]\{\}\=\.\$\+\-\*\/\%\^\&\|\<\>\!\?\#] { 
+    yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, specialCharType);
+    return yytext[0]; 
+}
 
  /*    reserved words    */
 
