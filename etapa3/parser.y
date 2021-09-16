@@ -103,6 +103,13 @@ extern void *arvore;
 %type<node> F6
 %type<node> F7
 
+%type<node> L1
+%type<node> L2
+%type<node> L3
+%type<node> L4
+%type<node> L5
+%type<node> L6
+
 %type<node> entrada
 %type<node> saida
 
@@ -126,7 +133,7 @@ literalBool: TK_LIT_TRUE { $$ = createNode($1); }
 | TK_LIT_FALSE { $$ = createNode($1); };
 
 simples: bloco ';' { $$ = $1; }
-| local { $$ = NULL; }
+| local { $$ = $1; }
 | att ';' { $$ = $1; }
 | io { $$ = $1; }
 | shift { $$ = NULL; }
@@ -280,20 +287,32 @@ B1: '}' { $$ = NULL; }
 
  */
 
-local: L1 
-| TK_PR_STATIC L1 
-| TK_PR_CONST L1 
-| TK_PR_STATIC TK_PR_CONST L1;
-L1: tipo L2;
-L2: TK_IDENTIFICADOR L3;
-L3: ';' 
-| TK_OC_LE L4 
-| ',' L5;
-L4: TK_IDENTIFICADOR ';' 
-| literal ';' ;
-L5: TK_IDENTIFICADOR L6;
-L6: ',' L5 
-| ';';
+local: L1 { $$ = $1; }
+| TK_PR_STATIC L1 { $$ = $2; }
+| TK_PR_CONST L1 { $$ = $2; }
+| TK_PR_STATIC TK_PR_CONST L1 { $$ = $3; };
+L1: tipo L2 { $$ = $2; };
+L2: TK_IDENTIFICADOR L3 { 
+	if ($2 == NULL) {
+		$$ = NULL;
+	} else {
+		AST *node = createNode($1);
+		prependChild($2, node);
+		$$ = $2;
+	}
+};
+L3: ';' { $$ = NULL; }
+| TK_OC_LE L4 { 
+	AST *root = createNodeNoLexicalValue(initializerType);
+	appendChild(root, $2);
+	$$ = root;
+}
+| ',' L5 { $$ = NULL; };
+L4: TK_IDENTIFICADOR ';' { $$ = createNode($1); }
+| literal ';' { $$ = $1; };
+L5: TK_IDENTIFICADOR L6 { $$ = NULL; };
+L6: ',' L5 { $$ = NULL; }
+| ';' { $$ = NULL; };
 
  /*    def atribuicao    
 

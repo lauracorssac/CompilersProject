@@ -46,6 +46,15 @@ void appendChild(AST *rootNode, AST *newChild) {
 
 }
 
+void prependChild(AST *rootNode, AST *newChild) {
+
+    AST *firstChild = rootNode->child;
+    
+    newChild->sister = firstChild;
+    rootNode->child = newChild;
+
+}
+
 void printAdresses(AST *tree) {
 
     if (tree == NULL) { return; }
@@ -123,6 +132,15 @@ void printNodeType(NodeType nodeType) {
             break;
         case inputType:
             printf("%s","input");
+            break;
+        case indexerType:
+            printf("%s","[]");
+            break;
+        case attributionType:
+            printf("%s","=");
+            break;
+        case initializerType:
+            printf("%s","<=");
             break;
         default:
             break;

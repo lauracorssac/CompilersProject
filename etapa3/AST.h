@@ -11,6 +11,9 @@ typedef enum {
     returnType,
     outputType,
     inputType,
+    indexerType,
+    attributionType,
+    initializerType
 
 } NodeType;
 
@@ -30,5 +33,6 @@ AST* createNode(LexicalValue *value);
 void exporta(void *arvore);
 void printNodeType(NodeType nodeType);
 void appendChild(AST *rootNode, AST *newChild);
+void prependChild(AST *rootNode, AST *newChild);
 
 #endif
