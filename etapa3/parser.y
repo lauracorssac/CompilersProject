@@ -61,15 +61,29 @@ extern void *arvore;
 %token<lexicalValue> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%type<node> att
-%type<node> A2 
-
 %type<node> literal
 %type<node> literalNum
 %type<node> literalBool
-
 %type<node> operando
 %type<node> expressao
+
+%type<node> att
+%type<node> bloco
+%type<node> B1
+%type<node> simples
+%type<node> local
+%type<node> io
+%type<node> shift
+%type<node> rbc
+%type<node> if
+%type<node> while
+%type<node> for
+%type<node> chamada
+%type<node> funcao
+%type<node> entrada
+%type<node> saida
+%type<node> opShift
+
 %type<node> E0
 %type<node> E1
 %type<node> E2
@@ -82,19 +96,6 @@ extern void *arvore;
 %type<node> E9
 %type<node> E10
 
-%type<node> bloco
-%type<node> B1
-%type<node> simples
-%type<node> local
-%type<node> io
-%type<node> shift
-%type<node> rbc
-%type<node> if
-%type<node> while
-%type<node> for
-%type<node> chamada
-
-%type<node> funcao
 %type<node> F1
 %type<node> F2
 %type<node> F3
@@ -110,8 +111,9 @@ extern void *arvore;
 %type<node> L5
 %type<node> L6
 
-%type<node> entrada
-%type<node> saida
+%type<node> I1
+%type<node> S2
+%type<node> A2
 
 %type<node> programa
 
@@ -135,9 +137,9 @@ simples: bloco ';' { $$ = $1; }
 | local { $$ = $1; }
 | att ';' { $$ = $1; }
 | io { $$ = $1; }
-| shift { $$ = NULL; }
+| shift { $$ = $1; }
 | rbc { $$ = $1; }
-| if ';' { $$ = NULL; }
+| if ';' { $$ = $1; }
 | while ';' { $$ = $1; }
 | for ';' { $$ = $1; }
 | chamada ';' { $$ = NULL; }; 
@@ -150,7 +152,8 @@ operando: literalNum { $$ = $1; }
 | chamada { $$ = NULL; }
 | literalBool { $$ = $1; }; 
 
-opShift: TK_OC_SL | TK_OC_SR;
+opShift: TK_OC_SL { $$ = createNode($1); }
+| TK_OC_SR { $$ = createNode($1); };
 
  /*    def operadores binarios    
 	
@@ -402,9 +405,28 @@ C2: ',' C1;
 
  */
 
-shift: TK_IDENTIFICADOR S1;
-S1: '[' expressao ']' opShift S2 | opShift S2;
-S2: TK_LIT_INT ';';
+shift: TK_IDENTIFICADOR opShift S2 {
+
+	AST *identNode = createNode($1);
+	appendChild($2, identNode); 
+	appendChild($2, $3); //S2
+
+	$$ = $2; //opShift
+} 
+| TK_IDENTIFICADOR '[' expressao ']' opShift S2 { 
+
+	AST *identNode = createNode($1);
+	AST *indexerNode = createNodeNoLexicalValue(indexerType);
+
+	appendChild(indexerNode, identNode); 
+	appendChild(indexerNode, $3); //expressao
+
+	appendChild($5, indexerNode);
+	appendChild($5, $6); //S2
+
+	$$ = $5; //opShift
+};
+S2: TK_LIT_INT ';' { $$ = createNode($1); };
 
 /*    def retorno break e continue    
 
@@ -430,8 +452,22 @@ rbc: TK_PR_RETURN expressao ';' {
 
  */
 
-if: TK_PR_IF '(' expressao ')' bloco | TK_PR_IF '(' expressao ')' bloco I1;
-I1: TK_PR_ELSE bloco;
+if: TK_PR_IF '(' expressao ')' bloco { 
+	AST *rootNode = createNodeNoLexicalValue(ifType);
+	appendChild(rootNode, $3);
+	appendChild(rootNode, $5);
+	$$ = rootNode;
+}
+| TK_PR_IF '(' expressao ')' bloco I1 { 
+	AST *rootNode = createNodeNoLexicalValue(ifType);
+	appendChild(rootNode, $3);
+	appendChild(rootNode, $5);
+	appendChild(rootNode, $6);
+	$$ = rootNode;
+};
+I1: TK_PR_ELSE bloco {
+	$$ = $2;
+};
 
  /*    def while    
 

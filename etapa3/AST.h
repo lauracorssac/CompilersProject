@@ -8,6 +8,7 @@ typedef enum {
     functionType = 0,
     whileType,
     forType,
+    ifType,
     returnType,
     breakType,
     continueType,

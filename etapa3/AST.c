@@ -128,6 +128,9 @@ void printNodeType(NodeType nodeType) {
         case forType:
             printf("%s","for");
             break;
+        case ifType:
+            printf("%s","if");
+            break;
         case returnType:
             printf("%s","return");
             break;
