@@ -283,7 +283,10 @@ EXP3: EXP4 { $$ = $1; }
 	$$ = $2;
 };
 EXP4: EXP5 { $$ = $1; }
-| EXP4 opNivel6 EXP5 { 
+ /* recursao invertida
+	& eh o unico binario recursivo a direita
+ */
+| EXP5 opNivel6 EXP4 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2; 

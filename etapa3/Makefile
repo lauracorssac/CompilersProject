@@ -15,13 +15,8 @@ clean:
 	rm -f etapa3.tgz
 	rm -f -r etapa3
 deliver:
-	rm -f -r etapa3
-	mkdir etapa3
-	cp parser.y etapa3
-	cp scanner.l etapa3
-	cp Makefile etapa3
-	cp main.c etapa3
-	tar cvzf etapa3.tgz etapa3
+	make clean
+	tar cvzf etapa3.tgz .
 exec:
 	make main
 	./etapa3
