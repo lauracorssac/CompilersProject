@@ -102,10 +102,7 @@ void printAdresses(AST *tree) {
 
 void printValues(AST *tree) {
 
-    if (tree == NULL) { 
-        puts("ARVORE NULA VALUES");
-        return; 
-    }
+    if (tree == NULL) { return; }
     
     AST *first_child = tree->child;
     AST *child = tree->child;

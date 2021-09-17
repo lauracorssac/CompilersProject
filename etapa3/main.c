@@ -18,7 +18,6 @@ int main (int argc, char **argv)
   exporta (arvore);
   libera(arvore);
   arvore = NULL;
-  exporta (arvore);
   yylex_destroy();
   return ret;
 }
