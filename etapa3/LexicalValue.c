@@ -9,6 +9,7 @@
 #include <string.h>
 #include "LexicalValue.h"
 
+/* funcao usada para debug */
 void print_lexical_value(LexicalValue lexicalValue) {
 
     printf("Line number = %d\n", lexicalValue.lineNumber);
@@ -23,6 +24,7 @@ void print_lexical_value(LexicalValue lexicalValue) {
     printf("\n");
 }
 
+/* funcao usada para printar o valor literal */
 void print_literal_value(LiteralTokenValueAndType literalTokenValueAndType) {
     
     LiteralTokenType litTokenType = literalTokenValueAndType.type;
@@ -41,6 +43,7 @@ void print_literal_value(LiteralTokenValueAndType literalTokenValueAndType) {
 
 }
 
+ /* cria um valor lexico a partir de um token literal */
 LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralTokenType type) {
     
     LiteralTokenValue litValue;
@@ -75,6 +78,9 @@ LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralT
 
 }
 
+ /* cria um valor lexico a partir de um token nao literal
+    Exemplos: caracteres especiais, operadores compostos e identificadores
+  */
 LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, TokenType type) {
 
     LiteralTokenValue litValue;
@@ -92,6 +98,7 @@ LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, Token
 
 }
 
+ /* remove primeiro e ultimo caracter */
 char *removeFirstAndLast(char *text) {
     char *mystr = text;
     mystr++; /* removing first item */

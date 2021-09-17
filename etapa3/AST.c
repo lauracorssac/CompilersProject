@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-AST* createNode(LexicalValue *value) {  
+AST* createNodeNoType(LexicalValue *value) {  
     AST *newNodePointer = malloc(sizeof(AST));
 
     AST newNode;

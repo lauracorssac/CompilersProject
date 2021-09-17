@@ -21,7 +21,7 @@ extern void *arvore;
 	struct AST *node;
 }
 
-%start programa
+%start PROGRAM
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -69,29 +69,27 @@ extern void *arvore;
 
 %token<lexicalValue> ',' ';' ':' '(' ')' '[' ']' '{' '}' '=' '.' '$' '+' '-' '*' '/' '%' '^' '&' '|' '<' '>' '!' '?' '#'
 
-%type<node> literal
-%type<node> literalNum
-%type<node> literalBool
-%type<node> operando
-%type<node> expressao
-%type<node> unarios 
+%type<node> LITERAL
+%type<node> LITERALNUM
+%type<node> LITERALBOOL
+%type<node> OPERAND
+%type<node> EXPRESSION
 
-%type<node> att
-%type<node> bloco
-%type<node> B1
-%type<node> simples
-%type<node> local
-%type<node> io
-%type<node> shift
-%type<node> rbc
-%type<node> if
-%type<node> while
-%type<node> for
-%type<node> chamada
-%type<node> funcao
-%type<node> entrada
-%type<node> saida
-%type<node> opShift
+%type<node> ATT
+%type<node> BLOCK
+%type<node> BLOCK1
+%type<node> SIMPLECMD
+%type<node> LOCAL
+%type<node> IO
+%type<node> SHIFT
+%type<node> RBC
+%type<node> IF
+%type<node> WHILE
+%type<node> FOR
+%type<node> FCALL
+%type<node> FUNC
+%type<node> INPUT
+%type<node> OUTPUT
 
 %type<node> opNivel1
 %type<node> opNivel2
@@ -102,208 +100,55 @@ extern void *arvore;
 %type<node> opNivel7
 %type<node> opNivel8
 %type<node> opNivel9
+%type<node> opUnary 
+%type<node> opShift
 
-%type<node> E0
-%type<node> E1
-%type<node> E2
-%type<node> E3
-%type<node> E4
-%type<node> E5
-%type<node> E6
-%type<node> E7
-%type<node> E8
-%type<node> E9
-%type<node> E10
+%type<node> EXP1
+%type<node> EXP2
+%type<node> EXP3
+%type<node> EXP4
+%type<node> EXP5
+%type<node> EXP6
+%type<node> EXP7
+%type<node> EXP8
+%type<node> EXP9
+%type<node> EXP10
+%type<node> EXP11
 
-%type<node> F1
-%type<node> F2
-%type<node> F3
-%type<node> F4
-%type<node> F5
-%type<node> F6
-%type<node> F7
+%type<node> FUNC1
+%type<node> FUNC2
+%type<node> FUNC3
+%type<node> FUNC4
+%type<node> FUNC5
+%type<node> FUNC6
+%type<node> FUNC7
 
-%type<node> L1
-%type<node> L2
-%type<node> L3
-%type<node> L4
-%type<node> L5
-%type<node> L6
+%type<node> LOCAL1
+%type<node> LOCAL2
+%type<node> LOCAL3
+%type<node> LOCAL4
+%type<node> LOCAL5
+%type<node> LOCAL6
 
-%type<node> I1
-%type<node> S2
-%type<node> A2
+%type<node> IF1
+%type<node> SHIFT1
+%type<node> ATT1
+%type<node> FCALL1
 
-%type<node> chamada1
-
-%type<node> programa
+%type<node> PROGRAM
 
 
 %%
-tipo : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
 
-literal: TK_LIT_INT { $$ = createNode($1); }
-| TK_LIT_FLOAT { $$ = createNode($1); }
-| TK_LIT_FALSE { $$ = createNode($1); }
-| TK_LIT_TRUE { $$ = createNode($1); }
-| TK_LIT_CHAR { $$ = createNode($1); }
-| TK_LIT_STRING { $$ = createNode($1); };
-
-literalNum: TK_LIT_INT { $$ = createNode($1); }
-| TK_LIT_FLOAT { $$ = createNode($1); };
-literalBool: TK_LIT_TRUE { $$ = createNode($1); }
-| TK_LIT_FALSE { $$ = createNode($1); };
-
-simples: bloco ';' { $$ = $1; }
-| local { $$ = $1; }
-| att ';' { $$ = $1; }
-| io { $$ = $1; }
-| shift { $$ = $1; }
-| rbc { $$ = $1; }
-| if ';' { $$ = $1; }
-| while ';' { $$ = $1; }
-| for ';' { $$ = $1; }
-| chamada ';' { $$ = $1; }; 
-
-indexador: '[' TK_LIT_INT ']';
-
-operando: literalNum { $$ = $1; }
-| TK_IDENTIFICADOR { $$ = createNode($1); }
-| TK_IDENTIFICADOR '[' expressao ']' { 
-	AST *rootNode = createNodeNoLexicalValue(indexerType);
-	AST *identNode = createNode($1);
-	appendChild(rootNode, identNode);
-	appendChild(rootNode, $3);
-	$$ = rootNode;
-} 
-| chamada { $$ = $1; }
-| literalBool { $$ = $1; }; 
-
-opShift: TK_OC_SL { $$ = createNode($1); }
-| TK_OC_SR { $$ = createNode($1); };
-
- /*    def operadores binarios    
+ /*    def programa    
 	
-	ordem decrescente de precedencia
-	opNivelX: quanto menor o X, maior a precedencia do operador
- */
-opNivel1: '^' { $$ = createNode($1)};
-opNivel2: '*' { $$ = createNode($1)};
-| '/' { $$ = createNode($1)};
-| '%' { $$ = createNode($1)};;
-opNivel3: '+' { $$ = createNode($1)};
-| '-' { $$ = createNode($1)};;
-
- /* relacionais */
-opNivel4: TK_OC_LE { $$ = createNode($1)}
-| TK_OC_GE { $$ = createNode($1)}
-| '<' { $$ = createNode($1)}
-| '>' { $$ = createNode($1)};
-
-/* equalidade */
-opNivel5: TK_OC_EQ { $$ = createNode($1)}
-| TK_OC_NE { $$ = createNode($1)};
-
- /* bitwise and */
-opNivel6: '&' { $$ = createNode($1)};
-
-/* bitwise or */
-opNivel7: '|' { $$ = createNode($1)};
-
- /* logical and */ 
-opNivel8: TK_OC_AND { $$ = createNode($1)};
-
- /* logical or */
-opNivel9: TK_OC_OR { $$ = createNode($1)};
-
- /* operadores unarios */
-unarios: '-' { $$ = createNode($1); }
-| '+' { $$ = createNode($1); }
-| '*' { $$ = createNode($1); }
-| '&' { $$ = createNode($1); }
-| '#' { $$ = createNode($1); }
-| '!' { $$ = createNode($1); }
-| '?' { $$ = createNode($1); };
-
- /*    def expressao    
-	
-	inicial: expressao
-	final: E10
+	inicial: PROGRAM
+	terminais: PROGRAM
 
  */
 
-expressao: E0 { $$ = $1; }
-| expressao '?' E0 ':' E0 {
-	AST *rootNode = createNodeNoLexicalValue(ternaryType);
-	appendChild(rootNode, $1);
-	appendChild(rootNode, $3);
-	appendChild(rootNode, $5);
-	$$ = rootNode;
-};
-E0: E1 { $$ = $1; }
-| E0 opNivel9 E1 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
-};
-E1: E2 { $$ = $1; }
-| E1 opNivel8 E2 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
-};
-E2: E3 { $$ = $1; }
-| E2 opNivel7 E3 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
-};
-E3: E4 { $$ = $1; }
-| E3 opNivel6 E4 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2; 
-};
-E4: E5 { $$ = $1; }
-| E4 opNivel5 E5 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
-};
-E5: E6 { $$ = $1; }
-| E5 opNivel4 E6 {
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
-};
-E6: E7 { $$ = $1; }
-| E6 opNivel3 E7 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
-};
-E7: E8 { $$ = $1; }
-| E7 opNivel2 E8 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
-};
-E8: E9 { $$ = $1; }
-| E8 opNivel1 E9 { 
-	appendChild($2, $1);
-	appendChild($2, $3);
-	$$ = $2;
- };
-E9: E10 { $$ = $1; }
-| unarios E10 { 
-	appendChild($1, $2);
-	$$ = $1;
-};
-E10: operando { $$ = $1; }
-| '(' expressao ')' { $$ = $2; };
-
-programa : programa global { $$ = $1; }
-| programa funcao { 
+PROGRAM : PROGRAM GLOBAL { $$ = $1; }
+| PROGRAM FUNC { 
 	if ($1 == NULL) {
 		arvore = (void*)$2;
 		$$ = $2;
@@ -312,57 +157,223 @@ programa : programa global { $$ = $1; }
 	}
 	$$ = $2;
 }
-| { $$ = NULL };
+| { $$ = NULL; };
+
+ /* definicao tipos */
+TYPE : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
+
+ /* definicao literais */
+LITERAL: TK_LIT_INT { $$ = createNodeNoType($1); }
+| TK_LIT_FLOAT { $$ = createNodeNoType($1); }
+| TK_LIT_FALSE { $$ = createNodeNoType($1); }
+| TK_LIT_TRUE { $$ = createNodeNoType($1); }
+| TK_LIT_CHAR { $$ = createNodeNoType($1); }
+| TK_LIT_STRING { $$ = createNodeNoType($1); };
+LITERALNUM: TK_LIT_INT { $$ = createNodeNoType($1); }
+| TK_LIT_FLOAT { $$ = createNodeNoType($1); };
+LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoType($1); }
+| TK_LIT_FALSE { $$ = createNodeNoType($1); };
 
 
- /*    def var global    
+ /* definicao comandos simples */
+
+SIMPLECMD: BLOCK ';' { $$ = $1; }
+| LOCAL ';' { $$ = $1; }
+| ATT ';' { $$ = $1; }
+| IO ';' { $$ = $1; }
+| SHIFT ';' { $$ = $1; }
+| RBC ';' { $$ = $1; }
+| IF ';' { $$ = $1; }
+| WHILE ';' { $$ = $1; }
+| FOR ';' { $$ = $1; }
+| FCALL ';' { $$ = $1; }; 
+
+ /* definicao operandos aceitos em expressoes */
+OPERAND: LITERALNUM { $$ = $1; }
+| TK_IDENTIFICADOR { $$ = createNodeNoType($1); }
+| TK_IDENTIFICADOR '[' EXPRESSION ']' { 
+	AST *rootNode = createNodeNoLexicalValue(indexerType);
+	AST *identNode = createNodeNoType($1);
+	appendChild(rootNode, identNode);
+	appendChild(rootNode, $3);
+	$$ = rootNode;
+} 
+| FCALL { $$ = $1; }
+| LITERALBOOL { $$ = $1; }; 
+ 
+ /* def operador shift */
+opShift: TK_OC_SL { $$ = createNodeNoType($1); }
+| TK_OC_SR { $$ = createNodeNoType($1); };
+
+ /*    def operadores binarios    
 	
-	inicial: global
-	terminais: C D
+	ordem decrescente de precedencia
+	opNivelX: quanto menor o X, maior a precedencia do operador
 
  */
-global: TK_PR_STATIC A | A;
-A : tipo B;
-B : TK_IDENTIFICADOR C;
- /*    terminais da global    */
-C : ';' | ',' B | indexador D;
-D : ';' | ',' B;
+opNivel1: '^' { $$ = createNodeNoType($1);};
+opNivel2: '*' { $$ = createNodeNoType($1); };
+| '/' { $$ = createNodeNoType($1); };
+| '%' { $$ = createNodeNoType($1); };
+opNivel3: '+' { $$ = createNodeNoType($1); };
+| '-' { $$ = createNodeNoType($1); };
 
+ /* relacionais */
+opNivel4: TK_OC_LE { $$ = createNodeNoType($1); }
+| TK_OC_GE { $$ = createNodeNoType($1); }
+| '<' { $$ = createNodeNoType($1); }
+| '>' { $$ = createNodeNoType($1); };
 
- /*    def funcao    
+/* equalidade */
+opNivel5: TK_OC_EQ { $$ = createNodeNoType($1); }
+| TK_OC_NE { $$ = createNodeNoType($1); };
+
+ /* bitwise and */
+opNivel6: '&' { $$ = createNodeNoType($1); };
+
+/* bitwise or */
+opNivel7: '|' { $$ = createNodeNoType($1); };
+
+ /* logical and */ 
+opNivel8: TK_OC_AND { $$ = createNodeNoType($1); };
+
+ /* logical or */
+opNivel9: TK_OC_OR { $$ = createNodeNoType($1); };
+
+ /* operadores unarios */
+opUnary: '-' { $$ = createNodeNoType($1); }
+| '+' { $$ = createNodeNoType($1); }
+| '*' { $$ = createNodeNoType($1); }
+| '&' { $$ = createNodeNoType($1); }
+| '#' { $$ = createNodeNoType($1); }
+| '!' { $$ = createNodeNoType($1); }
+| '?' { $$ = createNodeNoType($1); };
+
+ /*    def expressao    
 	
-	inicial: funcao
-	terminais: F6 F4
+	inicial: EXPRESSION
+	final: E10
+
+ */
+
+EXPRESSION: EXP1 { $$ = $1; }
+| EXPRESSION '?' EXP1 ':' EXP1 {
+	AST *rootNode = createNodeNoLexicalValue(ternaryType);
+	appendChild(rootNode, $1);
+	appendChild(rootNode, $3);
+	appendChild(rootNode, $5);
+	$$ = rootNode;
+};
+EXP1: EXP2 { $$ = $1; }
+| EXP1 opNivel9 EXP2 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
+EXP2: EXP3 { $$ = $1; }
+| EXP2 opNivel8 EXP3 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
+EXP3: EXP4 { $$ = $1; }
+| EXP3 opNivel7 EXP4 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
+EXP4: EXP5 { $$ = $1; }
+| EXP4 opNivel6 EXP5 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2; 
+};
+EXP5: EXP6 { $$ = $1; }
+| EXP5 opNivel5 EXP6 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
+EXP6: EXP7 { $$ = $1; }
+| EXP6 opNivel4 EXP7 {
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
+EXP7: EXP8 { $$ = $1; }
+| EXP7 opNivel3 EXP8 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
+EXP8: EXP9 { $$ = $1; }
+| EXP8 opNivel2 EXP9 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+};
+EXP9: EXP10 { $$ = $1; }
+| EXP9 opNivel1 EXP10 { 
+	appendChild($2, $1);
+	appendChild($2, $3);
+	$$ = $2;
+ };
+EXP10: EXP11 { $$ = $1; }
+| opUnary EXP11 { 
+	appendChild($1, $2);
+	$$ = $1;
+};
+EXP11: OPERAND { $$ = $1; }
+| '(' EXPRESSION ')' { $$ = $2; };
+
+ /*    def variavel global    
+	
+	inicial: GLOBAL
+	terminais: GLOBAL3 GLOBAL4
+
+ */
+GLOBAL: TK_PR_STATIC GLOBAL1 | GLOBAL1;
+GLOBAL1 : TYPE GLOBAL2;
+GLOBAL2 : TK_IDENTIFICADOR GLOBAL3;
+ /*    terminais da global    */
+GLOBAL3 : ';' | ',' GLOBAL2 | '[' TK_LIT_INT ']' GLOBAL4;
+GLOBAL4 : ';' | ',' GLOBAL2;
+
+
+ /*    def FUNC    
+	
+	inicial: FUNC
+	terminais: FUNC6 FUNC4
 
   */
-funcao: TK_PR_STATIC F1 { $$ = $2; }
-| F1 { $$ = $1; };
-F1: tipo F2 { $$ = $2; };
-F2: TK_IDENTIFICADOR F3 { 
-	AST *rootNode = createNode($1);
+FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
+| FUNC1 { $$ = $1; };
+FUNC1: TYPE FUNC2 { $$ = $2; };
+FUNC2: TK_IDENTIFICADOR FUNC3 { 
+	AST *rootNode = createNodeNoType($1);
 	appendChild(rootNode, $2);
 	$$ = rootNode;
 };
-F3: '(' F4 { $$ = $2; };
-F4: ')' bloco { $$ = $2; }
-| tipo F5 { $$ = $2; }
-| TK_PR_CONST tipo F5 { $$ = $3; };
-F5: TK_IDENTIFICADOR F6 { $$ = $2; };
-F6: ')' bloco {  $$ = $2; }
-| ',' F7  { $$ = $2; };
-F7: tipo F5 { $$ = $2; }
-| TK_PR_CONST tipo F5 { $$ = $3; };
+FUNC3: '(' FUNC4 { $$ = $2; };
+FUNC4: ')' BLOCK { $$ = $2; }
+| TYPE FUNC5 { $$ = $2; }
+| TK_PR_CONST TYPE FUNC5 { $$ = $3; };
+FUNC5: TK_IDENTIFICADOR FUNC6 { $$ = $2; };
+FUNC6: ')' BLOCK {  $$ = $2; }
+| ',' FUNC7  { $$ = $2; };
+FUNC7: TYPE FUNC5 { $$ = $2; }
+| TK_PR_CONST TYPE FUNC5 { $$ = $3; };
 
- /*    def bloco    
+ /*    def BLOCO    
 	
-	inicial: bloco
-	terminais: B1
+	inicial: BLOCO
+	terminais: BLOCO1
 
  */
 
-bloco: '{' B1 { $$ = $2;};
-B1: '}' { $$ = NULL; }
-| simples B1 { 
+BLOCK: '{' BLOCK1 { $$ = $2;};
+BLOCK1: '}' { $$ = NULL; }
+| SIMPLECMD BLOCK1 { 
 	if ($1 != NULL){
 		appendChild($1, $2);
 		$$ = $1;
@@ -371,52 +382,52 @@ B1: '}' { $$ = NULL; }
 	}
 };
 
- /*    def var local    
+ /*    def var LOCAL    
 
-	inicial: local
-	terminais: L3, L4, L6
+	inicial: LOCAL
+	terminais: LOCAL2, LOCAL4, LOCAL6
 
  */
 
-local: L1 { $$ = $1; }
-| TK_PR_STATIC L1 { $$ = $2; }
-| TK_PR_CONST L1 { $$ = $2; }
-| TK_PR_STATIC TK_PR_CONST L1 { $$ = $3; };
-L1: tipo L2 { $$ = $2; };
-L2: TK_IDENTIFICADOR L3 { 
+LOCAL: LOCAL1 { $$ = $1; }
+| TK_PR_STATIC LOCAL1 { $$ = $2; }
+| TK_PR_CONST LOCAL1 { $$ = $2; }
+| TK_PR_STATIC TK_PR_CONST LOCAL1 { $$ = $3; };
+LOCAL1: TYPE LOCAL2 { $$ = $2; };
+LOCAL2: TK_IDENTIFICADOR { $$ = NULL; }
+| TK_IDENTIFICADOR LOCAL3 { 
 	if ($2 == NULL) {
 		$$ = NULL;
 	} else {
-		AST *node = createNode($1);
+		AST *node = createNodeNoType($1);
 		prependChild($2, node);
 		$$ = $2;
 	}
 };
-L3: ';' { $$ = NULL; }
-| TK_OC_LE L4 { 
+LOCAL3: TK_OC_LE LOCAL4 { 
 	AST *root = createNodeNoLexicalValue(initializerType);
 	appendChild(root, $2);
 	$$ = root;
 }
-| ',' L5 { $$ = NULL; };
-L4: TK_IDENTIFICADOR ';' { $$ = createNode($1); }
-| literal ';' { $$ = $1; };
-L5: TK_IDENTIFICADOR L6 { $$ = NULL; };
-L6: ',' L5 { $$ = NULL; }
-| ';' { $$ = NULL; };
+| ',' LOCAL5 { $$ = NULL; };
+LOCAL4: TK_IDENTIFICADOR { $$ = createNodeNoType($1); }
+| LITERAL { $$ = $1; };
+LOCAL5: TK_IDENTIFICADOR { $$ = NULL; };
+| TK_IDENTIFICADOR LOCAL6 { $$ = NULL; };
+LOCAL6: ',' LOCAL5 { $$ = NULL; };
 
  /*    def atribuicao    
 
-	inicial: att
-	terminais: A2
+	inicial: ATT
+	terminais: ATT1
 
  */
 
-att: 
-TK_IDENTIFICADOR '=' A2 { 
+ATT: 
+TK_IDENTIFICADOR '=' ATT1 { 
 	
 	AST *rootNode = createNodeNoLexicalValue(attributionType); 
-	AST *identNode = createNode($1);
+	AST *identNode = createNodeNoType($1);
 	
 	appendChild(rootNode, identNode);
 	appendChild(rootNode, $3);
@@ -424,11 +435,11 @@ TK_IDENTIFICADOR '=' A2 {
 	$$ =  rootNode;
 
 }
-| TK_IDENTIFICADOR '[' expressao ']' '=' A2 { 
+| TK_IDENTIFICADOR '[' EXPRESSION ']' '=' ATT1 { 
 
 	AST *rootNode = createNodeNoLexicalValue(attributionType); 
 	AST *indexerNode = createNodeNoLexicalValue(indexerType);
-	AST *identNode = createNode($1);
+	AST *identNode = createNodeNoType($1);
 	
 	appendChild(rootNode, indexerNode);
 	appendChild(indexerNode, identNode);
@@ -438,34 +449,34 @@ TK_IDENTIFICADOR '=' A2 {
 	$$ = rootNode;
 
 };
-A2: expressao { $$ = $1; };
+ATT1: EXPRESSION { $$ = $1; };
 
 
  /*    def IO    
 
-	inicial: io
-	terminais: entrada saida
+	inicial: IO
+	terminais: INPUT OUTPUT
 
  */
 
-io: entrada { $$ = $1; }
-| saida { $$ = $1; };
+IO: INPUT { $$ = $1; }
+| OUTPUT { $$ = $1; };
 
-entrada: TK_PR_INPUT TK_IDENTIFICADOR ';' { 
+INPUT: TK_PR_INPUT TK_IDENTIFICADOR { 
 	AST *inputNode = createNodeNoLexicalValue(inputType);
-	AST *identifier =  createNode($2);
+	AST *identifier =  createNodeNoType($2);
 	appendChild(inputNode, identifier);
 	$$ = inputNode;
 };
 
-saida: TK_PR_OUTPUT TK_IDENTIFICADOR ';' { 
+OUTPUT: TK_PR_OUTPUT TK_IDENTIFICADOR { 
 	AST *outputNode = createNodeNoLexicalValue(outputType);
-	AST *identifier =  createNode($2);
+	AST *identifier =  createNodeNoType($2);
 	appendChild(outputNode, identifier);
 	$$ = outputNode;
 }
 
-| TK_PR_OUTPUT literal ';' {
+| TK_PR_OUTPUT LITERAL {
 	AST *outputNode = createNodeNoLexicalValue(outputType);
 	appendChild(outputNode, $2);
 	$$ = outputNode;
@@ -473,12 +484,12 @@ saida: TK_PR_OUTPUT TK_IDENTIFICADOR ';' {
 
  /*    def chamada funcao    
 
-	inicial: chamada
-	terminais: chamada1
+	inicial: FCALL
+	terminais: FCALL1
 
  */
 
-chamada: TK_IDENTIFICADOR '(' chamada1 ')' { 
+FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' { 
 	AST *rootNode = createNodeWithLexicalTypeAndValue(functionCallType, $1);
 	appendChild(rootNode, $3);
 	$$ = rootNode;
@@ -486,8 +497,8 @@ chamada: TK_IDENTIFICADOR '(' chamada1 ')' {
 | TK_IDENTIFICADOR '(' ')' {
 	$$ = createNodeWithLexicalTypeAndValue(functionCallType, $1);
 };
-chamada1: expressao { $$ = $1; }
-| expressao ',' chamada1 {
+FCALL1: EXPRESSION { $$ = $1; }
+| EXPRESSION ',' FCALL1 {
 	appendChild($1, $3);
 	$$ = $1;
 };
@@ -499,17 +510,17 @@ chamada1: expressao { $$ = $1; }
 
  */
 
-shift: TK_IDENTIFICADOR opShift S2 {
+SHIFT: TK_IDENTIFICADOR opShift SHIFT1 {
 
-	AST *identNode = createNode($1);
+	AST *identNode = createNodeNoType($1);
 	appendChild($2, identNode); 
 	appendChild($2, $3); //S2
 
 	$$ = $2; //opShift
 } 
-| TK_IDENTIFICADOR '[' expressao ']' opShift S2 { 
+| TK_IDENTIFICADOR '[' EXPRESSION ']' opShift SHIFT1 { 
 
-	AST *identNode = createNode($1);
+	AST *identNode = createNodeNoType($1);
 	AST *indexerNode = createNodeNoLexicalValue(indexerType);
 
 	appendChild(indexerNode, identNode); 
@@ -520,76 +531,76 @@ shift: TK_IDENTIFICADOR opShift S2 {
 
 	$$ = $5; //opShift
 };
-S2: TK_LIT_INT ';' { $$ = createNode($1); };
+SHIFT1: TK_LIT_INT { $$ = createNodeNoType($1); };
 
 /*    def retorno break e continue    
 
-	inicial: rbc
-	terminais: rbc
+	inicial: RBC
+	terminais: RBC
 
  */
 
-rbc: TK_PR_RETURN expressao ';' { 
+RBC: TK_PR_RETURN EXPRESSION { 
 	AST *rootNode = createNodeNoLexicalValue(returnType);
 	appendChild(rootNode, $2);
 	$$ = rootNode;
 }
-| TK_PR_CONTINUE ';' {
+| TK_PR_CONTINUE {
 	$$ = createNodeNoLexicalValue(continueType);
 }
-| TK_PR_BREAK ';' {	$$ = createNodeNoLexicalValue(breakType);};
+| TK_PR_BREAK {	$$ = createNodeNoLexicalValue(breakType);};
 
- /*    def if    
+ /*    def IF    
 
-	inicial: if
-	terminais: if I1
+	inicial: IF
+	terminais: IF IF1
 
  */
 
-if: TK_PR_IF '(' expressao ')' bloco { 
+IF: TK_PR_IF '(' EXPRESSION ')' BLOCK { 
 	AST *rootNode = createNodeNoLexicalValue(ifType);
 	appendChild(rootNode, $3);
 	appendChild(rootNode, $5);
 	$$ = rootNode;
 }
-| TK_PR_IF '(' expressao ')' bloco I1 { 
+| TK_PR_IF '(' EXPRESSION ')' BLOCK IF1 { 
 	AST *rootNode = createNodeNoLexicalValue(ifType);
 	appendChild(rootNode, $3);
 	appendChild(rootNode, $5);
 	appendChild(rootNode, $6);
 	$$ = rootNode;
 };
-I1: TK_PR_ELSE bloco {
+IF1: TK_PR_ELSE BLOCK {
 	$$ = $2;
 };
 
- /*    def while    
+ /*    def WHILE    
 
-	inicial: while
-	terminais: while
+	inicial: WHILE
+	terminais: WHILE
 
  */
 
-while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco {
+WHILE: TK_PR_WHILE '(' EXPRESSION ')' TK_PR_DO BLOCK {
 	AST *rootNode = createNodeNoLexicalValue(whileType);
 	appendChild(rootNode, $3);
 	appendChild(rootNode, $6);
 	$$ = rootNode;
 };
 
- /*    def for    
+ /*    def FOR    
 
-	inicial: for
-	terminais: for
+	inicial: FOR
+	terminais: FOR
 
  */
 
-for: TK_PR_FOR '(' att ':' expressao ':' att ')' bloco {
+FOR: TK_PR_FOR '(' ATT ':' EXPRESSION ':' ATT ')' BLOCK {
 	AST *rootNode = createNodeNoLexicalValue(forType);
-	appendChild(rootNode, $3);
-	appendChild(rootNode, $5);
-	appendChild(rootNode, $7);
-	appendChild(rootNode, $9);
+	appendChild(rootNode, $3); //ATT
+	appendChild(rootNode, $5); //EXPRESSION
+	appendChild(rootNode, $7); //ATT
+	appendChild(rootNode, $9); //BLOCO
 	$$ = rootNode;
 };
 

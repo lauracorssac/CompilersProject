@@ -41,9 +41,9 @@ typedef struct {
 
 typedef struct LexicalValue 
 {
-    int lineNumber; // a
-    TokenType tokenType; //b
-    LiteralTokenValueAndType literalTokenValueAndType; //c
+    int lineNumber; // da spec: 2.1 (a)
+    TokenType tokenType; // da spec: 2.1 (b)
+    LiteralTokenValueAndType literalTokenValueAndType; // da spec: 2.1 (c)
     // for non-literal tokens literalTokenValueAndType always assumes:
     // LiteralTokenType: charSequenceType
     // LiteralTokenValue: char * 
