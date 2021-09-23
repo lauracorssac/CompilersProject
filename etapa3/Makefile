@@ -16,6 +16,7 @@ clean:
 	rm -f etapa3.tgz
 	rm -f -r etapa3
 	rm -f parser.tab.h
+	rm -f saida
 deliver:
 	make clean
 	tar cvzf etapa3.tgz .
