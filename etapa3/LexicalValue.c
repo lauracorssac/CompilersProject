@@ -62,7 +62,7 @@ LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralT
         litValue.boolValue = (strncmp (text,"true",4) == 1);
         break;
     case charType:
-        litValue.charValue = strdup(text)[1];
+        strncpy(&litValue.charValue, removeFirstAndLast(text), 1);
         break;
     default:
         break;
@@ -72,7 +72,7 @@ LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralT
     TokenType tokenType = literalType;
     LexicalValue lexicalValue = { lineCounter, tokenType, literalTokenValueAndType };
     
-    LexicalValue *valor_lexico = malloc(sizeof(LexicalValue)); 
+    LexicalValue *valor_lexico = malloc(sizeof(lexicalValue)); 
     *valor_lexico = lexicalValue;
     return valor_lexico;
 
@@ -92,9 +92,22 @@ LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, Token
     TokenType tokenType = type;
     LexicalValue lexicalValue = { lineCounter, tokenType, literalTokenValueAndType };
     
-    LexicalValue *valor_lexico = malloc(sizeof(LexicalValue)); 
+    LexicalValue *valor_lexico = malloc(sizeof(lexicalValue)); 
     *valor_lexico = lexicalValue;
     return valor_lexico;
+
+}
+
+ /* remove valor lexico. Caso tenha uma string armazenada, remove ela também. */
+void freeLexicalValue(LexicalValue *lexicalValue) {
+
+    if (lexicalValue == NULL) { return; }
+
+    if (lexicalValue->literalTokenValueAndType.type == charSequenceType) {
+        free(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
+    }
+
+    free(lexicalValue);
 
 }
 

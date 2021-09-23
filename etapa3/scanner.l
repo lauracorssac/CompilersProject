@@ -25,7 +25,11 @@ INTEGER {DIGIT}+
 
  /*    special characters    */
 
-[\,\;\:\(\)\[\]\{\}\=\.\$\+\-\*\/\%\^\&\|\<\>\!\?\#] { 
+[\,\;\:\(\)\[\]\{\}\.] {
+    return yytext[0]; 
+}
+
+[\=\$\+\-\*\/\%\^\&\|\<\>\!\?\#] { 
     yylval.lexicalValue = lexicalValueFromNonLiteralToken(line_counter, yytext, specialCharType);
     return yytext[0]; 
 }
@@ -141,9 +145,9 @@ INTEGER {DIGIT}+
 
 <INITIAL,multiLineComment>{NEWLINE} { line_counter++; }
 
- /*    ignore space    */
+ /*    ignore space and tabs  */
 
-" " { }
+[\t ] { }
 
  /*    comments    */
 

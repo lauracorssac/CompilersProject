@@ -67,7 +67,8 @@ extern void *arvore;
 %token<lexicalValue> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%token<lexicalValue> ',' ';' ':' '(' ')' '[' ']' '{' '}' '=' '.' '$' '+' '-' '*' '/' '%' '^' '&' '|' '<' '>' '!' '?' '#'
+%token ',' ';' ':' '(' ')' '[' ']' '{' '}' '.' 
+%token<lexicalValue> '=' '$' '+' '-' '*' '/' '%' '^' '&' '|' '<' '>' '!' '?' '#'
 
 %type<node> LITERAL
 %type<node> LITERALNUM
@@ -134,6 +135,7 @@ extern void *arvore;
 %type<node> SHIFT1
 %type<node> ATT1
 %type<node> FCALL1
+%type<node> SIMPLECMD1
 
 %type<node> PROGRAM
 
@@ -177,16 +179,17 @@ LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoType($1); }
 
  /* definicao comandos simples */
 
-SIMPLECMD: BLOCK ';' { $$ = $1; }
-| LOCAL ';' { $$ = $1; }
-| ATT ';' { $$ = $1; }
-| IO ';' { $$ = $1; }
-| SHIFT ';' { $$ = $1; }
-| RBC ';' { $$ = $1; }
-| IF ';' { $$ = $1; }
-| WHILE ';' { $$ = $1; }
-| FOR ';' { $$ = $1; }
-| FCALL ';' { $$ = $1; }; 
+SIMPLECMD: SIMPLECMD1 ';' { $$ = $1; }; 
+SIMPLECMD1: BLOCK { $$ = $1; }
+| LOCAL { $$ = $1; }
+| ATT { $$ = $1; }
+| IO { $$ = $1; }
+| SHIFT { $$ = $1; }
+| RBC { $$ = $1; }
+| IF { $$ = $1; }
+| WHILE { $$ = $1; }
+| FOR { $$ = $1; }
+| FCALL { $$ = $1; }; 
 
  /* definicao operandos aceitos em expressoes */
 OPERAND: LITERALNUM { $$ = $1; }
@@ -258,6 +261,7 @@ opUnary: '-' { $$ = createNodeNoType($1); }
 
 EXPRESSION: EXP1 { $$ = $1; }
 | EXPRESSION '?' EXP1 ':' EXP1 {
+	freeLexicalValue($2);
 	AST *rootNode = createNodeNoLexicalValue(ternaryType);
 	appendChild(rootNode, $1);
 	appendChild(rootNode, $3);
@@ -327,7 +331,9 @@ EXP10: EXP11 { $$ = $1; }
 	$$ = $1;
 };
 EXP11: OPERAND { $$ = $1; }
-| '(' EXPRESSION ')' { $$ = $2; };
+| '(' EXPRESSION ')' { 
+	$$ = $2; 
+};
 
  /*    def variavel global    
 	
@@ -337,9 +343,12 @@ EXP11: OPERAND { $$ = $1; }
  */
 GLOBAL: TK_PR_STATIC GLOBAL1 | GLOBAL1;
 GLOBAL1 : TYPE GLOBAL2;
-GLOBAL2 : TK_IDENTIFICADOR GLOBAL3;
+GLOBAL2 : TK_IDENTIFICADOR GLOBAL3 { freeLexicalValue($1); };
  /*    terminais da global    */
-GLOBAL3 : ';' | ',' GLOBAL2 | '[' TK_LIT_INT ']' GLOBAL4;
+GLOBAL3 : ';' | ',' GLOBAL2
+| '[' TK_LIT_INT ']' GLOBAL4 { 
+	freeLexicalValue($2);
+};
 GLOBAL4 : ';' | ',' GLOBAL2;
 
 
@@ -353,7 +362,7 @@ FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
 | FUNC1 { $$ = $1; };
 FUNC1: TYPE FUNC2 { $$ = $2; };
 FUNC2: TK_IDENTIFICADOR FUNC3 { 
-	AST *rootNode = createNodeNoType($1);
+	AST *rootNode = createNodeWithLexicalTypeAndValue(functionType, $1);
 	appendChild(rootNode, $2);
 	$$ = rootNode;
 };
@@ -361,8 +370,8 @@ FUNC3: '(' FUNC4 { $$ = $2; };
 FUNC4: ')' BLOCK { $$ = $2; }
 | TYPE FUNC5 { $$ = $2; }
 | TK_PR_CONST TYPE FUNC5 { $$ = $3; };
-FUNC5: TK_IDENTIFICADOR FUNC6 { $$ = $2; };
-FUNC6: ')' BLOCK {  $$ = $2; }
+FUNC5: TK_IDENTIFICADOR FUNC6 { freeLexicalValue($1); $$ = $2; };
+FUNC6: ')' BLOCK { $$ = $2; }
 | ',' FUNC7  { $$ = $2; };
 FUNC7: TYPE FUNC5 { $$ = $2; }
 | TK_PR_CONST TYPE FUNC5 { $$ = $3; };
@@ -397,7 +406,7 @@ LOCAL: LOCAL1 { $$ = $1; }
 | TK_PR_CONST LOCAL1 { $$ = $2; }
 | TK_PR_STATIC TK_PR_CONST LOCAL1 { $$ = $3; };
 LOCAL1: TYPE LOCAL2 { $$ = $2; };
-LOCAL2: TK_IDENTIFICADOR { $$ = NULL; }
+LOCAL2: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; }
 | TK_IDENTIFICADOR LOCAL3 { 
 	if ($2 == NULL) {
 		$$ = NULL;
@@ -408,15 +417,15 @@ LOCAL2: TK_IDENTIFICADOR { $$ = NULL; }
 	}
 };
 LOCAL3: TK_OC_LE LOCAL4 { 
-	AST *root = createNodeNoLexicalValue(initializerType);
+	AST *root = createNodeWithLexicalTypeAndValue(initializerType, $1);
 	appendChild(root, $2);
 	$$ = root;
 }
 | ',' LOCAL5 { $$ = NULL; };
 LOCAL4: TK_IDENTIFICADOR { $$ = createNodeNoType($1); }
 | LITERAL { $$ = $1; };
-LOCAL5: TK_IDENTIFICADOR { $$ = NULL; };
-| TK_IDENTIFICADOR LOCAL6 { $$ = NULL; };
+LOCAL5: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; };
+| TK_IDENTIFICADOR LOCAL6 { freeLexicalValue($1); $$ = NULL; };
 LOCAL6: ',' LOCAL5 { $$ = NULL; };
 
  /*    def atribuicao    
@@ -429,7 +438,7 @@ LOCAL6: ',' LOCAL5 { $$ = NULL; };
 ATT: 
 TK_IDENTIFICADOR '=' ATT1 { 
 	
-	AST *rootNode = createNodeNoLexicalValue(attributionType); 
+	AST *rootNode = createNodeWithLexicalTypeAndValue(attributionType, $2); 
 	AST *identNode = createNodeNoType($1);
 	
 	appendChild(rootNode, identNode);
@@ -440,7 +449,7 @@ TK_IDENTIFICADOR '=' ATT1 {
 }
 | TK_IDENTIFICADOR '[' EXPRESSION ']' '=' ATT1 { 
 
-	AST *rootNode = createNodeNoLexicalValue(attributionType); 
+	AST *rootNode = createNodeWithLexicalTypeAndValue(attributionType, $5); 
 	AST *indexerNode = createNodeNoLexicalValue(indexerType);
 	AST *identNode = createNodeNoType($1);
 	

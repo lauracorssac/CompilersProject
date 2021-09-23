@@ -54,6 +54,7 @@ void print_lexical_value(LexicalValue lexicalValue);
 void print_literal_value(LiteralTokenValueAndType literalTokenValueAndType);
 LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralTokenType type);
 LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, TokenType type);
-char *removeFirstAndLast(char *text);
+char *removeFirstAndLast(char *text) ;
+void freeLexicalValue(LexicalValue *lexicalValue);
 
 #endif

@@ -9,14 +9,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-AST* createNodeNoType(LexicalValue *value) {  
-    AST *newNodePointer = malloc(sizeof(AST));
+AST* createNodeNoType(LexicalValue *value) {
 
     AST newNode;
     newNode.child = NULL;
     newNode.sister = NULL;
     newNode.value = value;
     newNode.nodeType = noType;
+  
+    AST *newNodePointer = malloc(sizeof(newNode));
 
     *newNodePointer = newNode;
     return newNodePointer;
@@ -24,14 +25,13 @@ AST* createNodeNoType(LexicalValue *value) {
 
 AST* createNodeNoLexicalValue(NodeType type) {
     
-    AST *newNodePointer = malloc(sizeof(AST));
-
     AST newNode;
     newNode.nodeType = type;
     newNode.value = NULL;
     newNode.child = NULL;
     newNode.sister = NULL;
-    
+ 
+    AST *newNodePointer = malloc(sizeof(newNode));
     *newNodePointer = newNode;
     return newNodePointer;
 }
@@ -137,20 +137,16 @@ void exporta(void *arvore) {
 void libera(void *arvore) {
 
     AST *tree_root = (AST *) arvore;
-    if (tree_root == NULL) { return; } 
-    if (tree_root->child == NULL) { 
-        free(tree_root->value);
-        free(tree_root);
-        return; 
-    }
-
-    AST *first_child = tree_root->child;
+    if (tree_root == NULL) { return; }
     
-    while (first_child != NULL ) {
-        AST *first_sister = first_child->sister;
-        libera(first_child);
-        first_child = first_sister;
-    }
+    AST *first_child = tree_root->child;
+    AST *first_sister = tree_root->sister;
+    LexicalValue *value = tree_root->value;
+
+    freeLexicalValue(value);
+    free(tree_root);
+    libera(first_sister);
+    libera(first_child);
 
 }
 
@@ -192,10 +188,8 @@ void printNodeType(NodeType nodeType) {
             printf("%s","[]");
             break;
         case attributionType:
-            printf("%s","=");
             break;
         case initializerType:
-            printf("%s","<=");
             break;
         case functionCallType:
             printf("call ");

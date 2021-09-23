@@ -10,7 +10,8 @@
 #include "LexicalValue.h"
 
  /* definicao dos tipos de nodos existentes.
-    noType is used when the node is a leaf, is an operator, 
+    noType é usado geralmente quando há um valor léxico no nodo, como literais, identificadores, 
+    operadores,..
   */
 typedef enum {
 
