@@ -12,6 +12,7 @@
 using namespace std;
 
 class ErrorManager {
+public:
     static void printStringVector(string variableKey);
     static void printAttributionError(string variableKey, string attributionKey, int line);
     static void printElementsNotFoundAttribution(string variableKey, string attributionKey, int line);

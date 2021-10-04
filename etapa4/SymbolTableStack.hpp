@@ -42,7 +42,9 @@ public:
     
     int verifyAttribution(string variableKey, string attributionKey, int lineNumber);
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
-    void insertVariableWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
+    void insertVectorWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
+    void insertVariableWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue);
+    void printItself();
 
 
 };

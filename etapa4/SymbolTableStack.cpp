@@ -5,9 +5,15 @@
 #include "ErrorManager.hpp"
 #include <string>
 #include <list>
+#include <iostream>
 #include "errors.h"
 
 using namespace std;
+
+extern "C" {
+    #include "SyntacticalType.h"
+    SyntacticalType lastDeclaredType;
+}
 
 SymbolTableStack::SymbolTableStack() {
 
@@ -104,8 +110,33 @@ int SymbolTableStack::verifyCoersion(SyntacticalType variableType, SyntacticalTy
 
 }
 
-void  SymbolTableStack::insertVariableWithLastDeclaredType(int line, int column, 
+void SymbolTableStack::insertVectorWithLastDeclaredType(int line, int column, 
 LexicalValue *lexicalValue, int indexerValue) {
 
+    string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
+    if (lastDeclaredType == stringSType) {
+        return ErrorManager::printStringVector(key);
+    }
 
+    SymbolTableValue newValue = createVectorWithLastDeclaredType(line, column, lexicalValue, indexerValue);
+    this->insertNewItem(key, newValue);
+
+}
+
+void SymbolTableStack::insertVariableWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue) {
+    SymbolTableValue newValue = createVariableWithLastDeclaredType(line, column, lexicalValue);
+    string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
+    this->insertNewItem(key, newValue);
+}
+
+void SymbolTableStack::printItself() {
+
+    list<SymbolTable>::iterator it;
+    for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
+        cout << endl;
+        cout << "New Table" << endl;
+        for (auto kv: it->getTable()) {
+            cout << "Key: " << kv.first << "Value: " << pair.second << endl;
+        }
+    }
 }

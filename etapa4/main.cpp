@@ -25,6 +25,7 @@ SyntacticalType lastDeclaredType;
 int main (int argc, char **argv)
 {
   int ret = yyparse();
+  tableStack.printItself();
   exporta (arvore);
   libera(arvore);
   arvore = NULL;

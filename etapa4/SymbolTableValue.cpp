@@ -117,10 +117,6 @@ LexicalValue *lexicalValueInitialization) {
 SymbolTableValue createVectorWithLastDeclaredType(int line, int column, 
 LexicalValue *lexicalValue, int indexerValue) {
     
-    if (lastDeclaredType == stringSType) {
-        return ERRSTRING_VECTOR
-    }
-
     SymbolTableValue value = { .type: lastDeclaredType, .line: line, .column: column, 
     .lexicalValue: lexicalValue, .kind: vectorKind, 
     .size: getSizeForSyntacticalType(lastDeclaredType) * indexerValue }

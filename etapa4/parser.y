@@ -369,14 +369,15 @@ GLOBAL1: TYPE GLOBAL2 {
 	lastDeclaredType = $1;
 };
 GLOBAL2: TK_IDENTIFICADOR GLOBAL3 { 
-	insertVariableWithLastDeclaredType(get_line_number(), 0, $1);
+	symbolTableStack.insertVariableWithLastDeclaredType(get_line_number(), 0, $1);
 	//freeLexicalValue($1); 
 
 }
 | TK_IDENTIFICADOR '[' TK_LIT_INT ']' GLOBAL3 { 
-	freeLexicalValue($2); 
-}
-;
+	int indexerValue = $3->literalTokenValueAndType.value.integerValue;
+	symbolTableStack.insertVectorWithLastDeclaredType(get_line_number(), 0, $1, indexerValue);
+	//freeLexicalValue($2); 
+};
  /*    terminais da global    */
 GLOBAL3 : ';' 
 | ',' GLOBAL2;

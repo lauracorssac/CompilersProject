@@ -21,6 +21,7 @@ class SymbolTable {
     bool hasKey(string key);
     SymbolTableValue getValueForKey(string key);
     SymbolTable();
+    unordered_map<string, SymbolTableValue> getTable();
 };
 
 
