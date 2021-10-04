@@ -17,12 +17,12 @@ typedef union
 
 }LiteralTokenValue;
 
-typedef enum { 
+typedef enum {
     charSequenceType = 0,
-    integerType = 1,
-    floatType = 2,
-    boolType = 3,
-    charType = 4
+    integerType,
+    floatType,
+    boolType,
+    charType,
 } LiteralTokenType;
 
 typedef enum { 
@@ -41,9 +41,9 @@ typedef struct {
 
 typedef struct LexicalValue 
 {
-    int lineNumber; // da spec: 2.1 (a)
-    TokenType tokenType; // da spec: 2.1 (b)
-    LiteralTokenValueAndType literalTokenValueAndType; // da spec: 2.1 (c)
+    int lineNumber; // da spec: E3 2.1 (a)
+    TokenType tokenType; // da spec: E3 2.1 (b)
+    LiteralTokenValueAndType literalTokenValueAndType; // da spec: E3 2.1 (c)
     // for non-literal tokens literalTokenValueAndType always assumes:
     // LiteralTokenType: charSequenceType
     // LiteralTokenValue: char * 

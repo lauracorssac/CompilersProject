@@ -5,11 +5,11 @@
 */
 
 #include <stdio.h>
-
-void *arvore = NULL;
+#include "SymbolTableStack.hpp"
 
 extern "C"
 {
+  #include "SyntacticalType.h"
   void exporta (void *arvore);
   void libera (void *arvore);
   int yyparse(void);
@@ -17,6 +17,10 @@ extern "C"
   int yylex_destroy(void);
  
 }
+
+void *arvore = NULL;
+SymbolTableStack tableStack;
+SyntacticalType lastDeclaredType;
 
 int main (int argc, char **argv)
 {

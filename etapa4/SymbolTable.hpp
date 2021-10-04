@@ -9,13 +9,18 @@
 
 #include <unordered_map>
 #include <string>
+#include "SymbolTableValue.hpp"
 
 using namespace std;
 
-class Table {
+class SymbolTable {
+    private:
+    unordered_map<string, SymbolTableValue> symbolTable;
     public:
-    unordered_map<string, string> symbolTable;
-    Table();
+    void insertNewItem(string key, SymbolTableValue value);
+    bool hasKey(string key);
+    SymbolTableValue getValueForKey(string key);
+    SymbolTable();
 };
 
 

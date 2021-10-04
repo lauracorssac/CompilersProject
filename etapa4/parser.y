@@ -6,19 +6,16 @@
 
 %{
 
-
 #include <stdio.h>
-
 #include "SymbolTable.hpp"
+#include "SymbolTableValue.hpp"
+#include "SymbolTableStack.hpp"
 #include <iostream>
 
 #define YYDEBUG 1
-/*int yylex(void);*/
-int yyerror (char const *s);
-extern int get_line_number(void);
-extern void *arvore;
 
 extern "C" {
+	#include "SyntacticalType.h"
 	#include "AST.h"
 	#include "LexicalValue.h"
 	int yyparse(void);
@@ -29,11 +26,18 @@ extern "C" {
 
 }
 
+int yyerror (char const *s);
+extern int get_line_number(void);
+extern void *arvore;
+extern SymbolTableStack tableStack;
+extern SyntacticalType lastDeclaredType;
+
 %}
 
 %union {
 	struct LexicalValue *lexicalValue;
 	struct AST *node;
+	SyntacticalType syntacticalType;
 }
 
 %start PROGRAM
@@ -153,7 +157,7 @@ extern "C" {
 %type<node> SIMPLECMD1
 
 %type<node> PROGRAM
-
+%type<syntacticalType> TYPE
 
 %%
 
@@ -169,9 +173,6 @@ PROGRAM : PROGRAM GLOBAL { $$ = $1; }
 	if ($1 == NULL) {
 		arvore = (void*)$2;
 		$$ = $2;
-		Table *table = new Table();
-		table->symbolTable["hey"] = "how";
-		std::cout << table->symbolTable["hey"] << std::endl;
 	} else {
 		appendChild($1, $2);
 	}
@@ -180,7 +181,11 @@ PROGRAM : PROGRAM GLOBAL { $$ = $1; }
 | { $$ = NULL; };
 
  /* definicao tipos */
-TYPE : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
+TYPE : TK_PR_INT { $$ = intSType; }
+| TK_PR_FLOAT { $$ = floatSType; }
+| TK_PR_BOOL { $$ = boolSType; }
+| TK_PR_CHAR { $$ = charSType; }
+| TK_PR_STRING { $$ = stringSType; };
 
  /* definicao literais */
 LITERAL: TK_LIT_INT { $$ = createNodeNoType($1); }
@@ -356,19 +361,25 @@ EXP11: OPERAND { $$ = $1; }
  /*    def variavel global    
 	
 	inicial: GLOBAL
-	terminais: GLOBAL3 GLOBAL4
+	terminais: GLOBAL3
 
  */
 GLOBAL: TK_PR_STATIC GLOBAL1 | GLOBAL1;
-GLOBAL1 : TYPE GLOBAL2;
-GLOBAL2 : TK_IDENTIFICADOR GLOBAL3 { freeLexicalValue($1); };
- /*    terminais da global    */
-GLOBAL3 : ';' | ',' GLOBAL2
-| '[' TK_LIT_INT ']' GLOBAL4 { 
-	freeLexicalValue($2);
+GLOBAL1: TYPE GLOBAL2 { 
+	lastDeclaredType = $1;
 };
-GLOBAL4 : ';' | ',' GLOBAL2;
+GLOBAL2: TK_IDENTIFICADOR GLOBAL3 { 
+	insertVariableWithLastDeclaredType(get_line_number(), 0, $1);
+	//freeLexicalValue($1); 
 
+}
+| TK_IDENTIFICADOR '[' TK_LIT_INT ']' GLOBAL3 { 
+	freeLexicalValue($2); 
+}
+;
+ /*    terminais da global    */
+GLOBAL3 : ';' 
+| ',' GLOBAL2;
 
  /*    def FUNC    
 	
@@ -394,15 +405,21 @@ FUNC6: ')' BLOCK { $$ = $2; }
 FUNC7: TYPE FUNC5 { $$ = $2; }
 | TK_PR_CONST TYPE FUNC5 { $$ = $3; };
 
- /*    def BLOCO    
+ /*    def BLOCK   
 	
-	inicial: BLOCO
-	terminais: BLOCO1
+	inicial: BLOCK
+	terminais: BLOCK1
 
  */
 
-BLOCK: '{' BLOCK1 { $$ = $2;};
-BLOCK1: '}' { $$ = NULL; }
+BLOCK: '{' BLOCK1 { 
+	$$ = $2;
+	tableStack.beginNewScope();
+};
+BLOCK1: '}' { 
+	$$ = NULL; 
+	void endLastScope();
+}
 | SIMPLECMD BLOCK1 { 
 	if ($1 != NULL){
 		appendChild($1, $2);
@@ -419,19 +436,24 @@ BLOCK1: '}' { $$ = NULL; }
 
  */
 
-LOCAL: LOCAL1 { $$ = $1; }
+LOCAL: LOCAL1 { 
+	$$ = $1;
+}
 | TK_PR_STATIC LOCAL1 { $$ = $2; }
 | TK_PR_CONST LOCAL1 { $$ = $2; }
 | TK_PR_STATIC TK_PR_CONST LOCAL1 { $$ = $3; };
-LOCAL1: TYPE LOCAL2 { $$ = $2; };
+LOCAL1: TYPE LOCAL2 { lastDeclaredType = $1; $$ = $2; };
 LOCAL2: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; }
 | TK_IDENTIFICADOR LOCAL3 { 
 	if ($2 == NULL) {
 		$$ = NULL;
 	} else {
 		AST *node = createNodeNoType($1);
+		tableStack.verifyAttribution($2->child->value->literalTokenValueAndType.value.charSequenceType,
+		 $1->literalTokenValueAndType.value.charSequenceType)
 		prependChild($2, node);
 		$$ = $2;
+		
 	}
 };
 LOCAL3: TK_OC_LE LOCAL4 { 
@@ -440,6 +462,7 @@ LOCAL3: TK_OC_LE LOCAL4 {
 	$$ = root;
 }
 | ',' LOCAL5 { $$ = NULL; };
+/* valor da atribuicao */
 LOCAL4: TK_IDENTIFICADOR { $$ = createNodeNoType($1); }
 | LITERAL { $$ = $1; };
 LOCAL5: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; };

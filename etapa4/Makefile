@@ -6,10 +6,11 @@ main:
 	rm -f -r etapa4.tgz
 	bison -d parser.y
 	flex scanner.l
-	g++ -c SymbolTable.cpp
+	g++ -std=c++11 -c SymbolTable.cpp SymbolTableStack.cpp SymbolTableValue.cpp ErrorManager.cpp
 	gcc -c LexicalValue.c AST.c
-	g++ -c lex.yy.c parser.tab.c main.cpp
-	g++ -o etapa4 lex.yy.o parser.tab.o main.o LexicalValue.o AST.o SymbolTable.o -ll
+	g++ -std=c++11 -c lex.yy.c parser.tab.c main.cpp
+	g++ -std=c++11 -o etapa4 lex.yy.o parser.tab.o main.o LexicalValue.o AST.o SymbolTable.o SymbolTableStack.o SymbolTableValue.o ErrorManager.o -ll
+
 clean:
 	rm -f -r .vscode
 	rm -f lex.yy.c parser.tab.c lex.yy.c

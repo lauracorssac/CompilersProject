@@ -8,6 +8,7 @@
 #define AST_H
 
 #include "LexicalValue.h"
+#include "SyntacticalType.h"
 
  /* definicao dos tipos de nodos existentes.
     noType é usado geralmente quando há um valor léxico no nodo, como literais, identificadores, 
@@ -36,6 +37,7 @@ typedef enum {
  /* definicao de um nodo da arvore AST */
 typedef struct AST {
 
+    SyntacticalType sType; // acrescentando devido E4
     NodeType nodeType;
 
     // (optional) value of LexicalValue. 
