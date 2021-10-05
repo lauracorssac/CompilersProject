@@ -30,3 +30,6 @@ void SymbolTable::updateType(string key, SyntacticalType type) {
 		this->symbolTable[key].size = getSizeForSyntacticalType(type);
 	}
 }
+void SymbolTable::updateSizeString(string key, char *initializationString) {
+	this->symbolTable[key].size = getSizeForStringType(initializationString);
+}

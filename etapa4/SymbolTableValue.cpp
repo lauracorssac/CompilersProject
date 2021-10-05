@@ -84,6 +84,7 @@ void printSyntacticalType(SyntacticalType sType) {
         cout << "integer";
         break;
     default:
+        cout << "undefined";
         break;
     }
 }
@@ -108,6 +109,14 @@ SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValu
     .size= 0, .lexicalValue= lexicalValue };
     return value;
 }
+
+SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+
+    SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= sType,
+    .size= 0, .lexicalValue= lexicalValue };
+    return value;
+}
+
 
 SymbolTableValue createVariableWithInitialization(int line, int column, SyntacticalType type, 
 LexicalValue *lexicalValueIdentifier, 

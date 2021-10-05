@@ -9,6 +9,7 @@
 
 extern "C" {
     #include "SyntacticalType.h"
+    #include "LexicalValue.h"
     #include "AST.h"
 }
 
@@ -42,13 +43,17 @@ public:
     SearchResult find(string element);
     void endLastScope();
     
+    string stringFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
     int verifyInitializationVariable(LexicalValue *variableLV, int lineNumber);
-    int verifyInitializationWithLiteral(LexicalValue *variableLV, LexicalValue *attLV, int lineNumber);
-    int verifyInitializationWithIdentifier(LexicalValue *variableLV, LexicalValue *attLV, int lineNumber);
+
     int verifyAttribution(string variableKey, string attributionKey, int lineNumber);
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
+    
+    void makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode, int lineNumber);
+
     void insertVectorWithPendantType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
     void insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
+    void insertVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
     void insertLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
     void updateTypeOfVariablesWithPendantTypes(SyntacticalType type);
     void printItself();

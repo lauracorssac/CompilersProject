@@ -145,9 +145,7 @@ extern SyntacticalType lastDeclaredType;
 
 %type<node> LOCAL1
 %type<node> LOCAL2
-%type<node> LOCAL3
 %type<node> LOCAL4
-%type<node> LOCAL5
 
 %type<node> IF1
 %type<node> SHIFT1
@@ -423,7 +421,8 @@ BLOCK: '{' BLOCK1 {
 };
 BLOCK1: '}' { 
 	$$ = NULL; 
-	void endLastScope();
+	tableStack.printItself();
+	tableStack.endLastScope();
 }
 | SIMPLECMD BLOCK1 { 
 	if ($1 != NULL){
@@ -437,7 +436,7 @@ BLOCK1: '}' {
  /*    def var LOCAL    
 
 	inicial: LOCAL
-	terminais: LOCAL2, LOCAL4, LOCAL5
+	terminais: LOCAL2, LOCAL4
 
  */
 
@@ -450,40 +449,35 @@ LOCAL1: TYPE LOCAL2 {
 	SyntacticalType tipo = (SyntacticalType) $1;
 	tableStack.updateTypeOfVariablesWithPendantTypes(tipo);
 	$$ = $2; 
+}
+| TYPE TK_IDENTIFICADOR TK_OC_LE LOCAL4 { 
+	AST *root = createNodeWithLexicalTypeAndValue(initializerType, $3);
+	AST *indentNode = createNodeNoTypeWithSType($2, (SyntacticalType)$1);
+	tableStack.insertVariableWithType(get_line_number(), 0, $2, (SyntacticalType) $1);
+	
+	appendChild(root, $4);
+	prependChild(root, indentNode);
+	$$ = root;
+
+	tableStack.makeInitialization(indentNode, root, $4, get_line_number());
+	//root.type = type
+	//se for realizada uma coersão de tipo, o que tem que atualizar? Os nodos? A tabela de simbolos?
+	//se der wrong type, qual o tipo do OC_LE?
+
 };
+
 LOCAL2: TK_IDENTIFICADOR { 
 	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
-	//freeLexicalValue($1); 
 	$$ = NULL;
-}
-| TK_IDENTIFICADOR LOCAL3 { 
-	if ($2 == NULL) {
-		$$ = NULL;
-	} else {
-		AST *node = createNodeNoType($1);
-		prependChild($2, node);
-		$$ = $2;
-	}
+} 
+| LOCAL2 ',' TK_IDENTIFICADOR { 
+	tableStack.insertVariableWithPendantType(get_line_number(), 0, $3);
+	$$ = NULL;
 };
-LOCAL3: TK_OC_LE LOCAL4 { 
-	AST *root = createNodeWithLexicalTypeAndValue(initializerType, $1);
-	appendChild(root, $2);
-	$$ = root;
-}
-| ',' LOCAL5 { $$ = NULL; };
+
 /* valor da atribuicao */
 LOCAL4: TK_IDENTIFICADOR { $$ = createNodeNoType($1); tableStack.verifyIdentificatorNode($$); }
 | LITERAL { $$ = $1; };
-LOCAL5: TK_IDENTIFICADOR { 
-	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
-	//freeLexicalValue($1); 
-	$$ = NULL; 
-};
-| TK_IDENTIFICADOR ',' LOCAL5  { 
-	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
-	//freeLexicalValue($1); 
-	$$ = NULL; 
-};
 
 
  /*    def atribuicao    

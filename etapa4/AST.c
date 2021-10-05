@@ -16,6 +16,7 @@ AST* createNodeNoType(LexicalValue *value) {
     newNode.sister = NULL;
     newNode.value = value;
     newNode.nodeType = noType;
+    newNode.sType = undefinedSType;
   
     AST *newNodePointer = malloc(sizeof(newNode));
 
@@ -35,6 +36,7 @@ AST* createNodeNoLexicalValue(NodeType type) {
     newNode.value = NULL;
     newNode.child = NULL;
     newNode.sister = NULL;
+    newNode.sType = undefinedSType;
  
     AST *newNodePointer = malloc(sizeof(newNode));
     *newNodePointer = newNode;
@@ -50,6 +52,7 @@ AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value) {
     newNode.value = value;
     newNode.child = NULL;
     newNode.sister = NULL;
+    newNode.sType = undefinedSType;
     
     *newNodePointer = newNode;
     return newNodePointer;
