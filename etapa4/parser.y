@@ -415,9 +415,10 @@ FUNC7: TYPE FUNC5 { $$ = $2; }
 
  */
 
-BLOCK: '{' BLOCK1 { 
+BLOCK_BEGIN: '{' { tableStack.beginNewScope(); };
+
+BLOCK: BLOCK_BEGIN BLOCK1 { 
 	$$ = $2;
-	tableStack.beginNewScope();
 };
 BLOCK1: '}' { 
 	$$ = NULL; 
