@@ -148,7 +148,6 @@ extern SyntacticalType lastDeclaredType;
 %type<node> LOCAL3
 %type<node> LOCAL4
 %type<node> LOCAL5
-%type<node> LOCAL6
 
 %type<node> IF1
 %type<node> SHIFT1
@@ -188,16 +187,17 @@ TYPE : TK_PR_INT { $$ = intSType; }
 | TK_PR_STRING { $$ = stringSType; };
 
  /* definicao literais */
-LITERAL: TK_LIT_INT { $$ = createNodeNoType($1); }
-| TK_LIT_FLOAT { $$ = createNodeNoType($1); }
-| TK_LIT_FALSE { $$ = createNodeNoType($1); }
-| TK_LIT_TRUE { $$ = createNodeNoType($1); }
-| TK_LIT_CHAR { $$ = createNodeNoType($1); }
-| TK_LIT_STRING { $$ = createNodeNoType($1); };
-LITERALNUM: TK_LIT_INT { $$ = createNodeNoType($1); }
-| TK_LIT_FLOAT { $$ = createNodeNoType($1); };
-LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoType($1); }
-| TK_LIT_FALSE { $$ = createNodeNoType($1); };
+LITERAL: TK_LIT_INT { $$ = createNodeNoTypeWithSType($1, intSType); tableStack.insertLiteral(get_line_number(), 0, $1, intSType); }
+| TK_LIT_FLOAT { $$ = createNodeNoTypeWithSType($1, floatSType); tableStack.insertLiteral(get_line_number(), 0, $1, floatSType); }
+| TK_LIT_FALSE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); }
+| TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); }
+| TK_LIT_CHAR { $$ = createNodeNoTypeWithSType($1, charSType); tableStack.insertLiteral(get_line_number(), 0, $1, charSType); }
+| TK_LIT_STRING { $$ = createNodeNoTypeWithSType($1, stringSType); tableStack.insertLiteral(get_line_number(), 0, $1, stringSType); };
+
+LITERALNUM: TK_LIT_INT { $$ = createNodeNoTypeWithSType($1, intSType); tableStack.insertLiteral(get_line_number(), 0, $1, intSType); }
+| TK_LIT_FLOAT { $$ = createNodeNoTypeWithSType($1, floatSType); tableStack.insertLiteral(get_line_number(), 0, $1, floatSType);};
+LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType);  }
+| TK_LIT_FALSE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); };
 
 
  /* definicao comandos simples */
@@ -216,7 +216,10 @@ SIMPLECMD1: BLOCK { $$ = $1; }
 
  /* definicao operandos aceitos em expressoes */
 OPERAND: LITERALNUM { $$ = $1; }
-| TK_IDENTIFICADOR { $$ = createNodeNoType($1); }
+| TK_IDENTIFICADOR { 
+	$$ = createNodeNoType($1); 
+	tableStack.verifyIdentificatorNode($$);
+}
 | TK_IDENTIFICADOR '[' EXPRESSION ']' { 
 	AST *rootNode = createNodeNoLexicalValue(indexerType);
 	AST *identNode = createNodeNoType($1);
@@ -434,18 +437,25 @@ BLOCK1: '}' {
  /*    def var LOCAL    
 
 	inicial: LOCAL
-	terminais: LOCAL2, LOCAL4, LOCAL6
+	terminais: LOCAL2, LOCAL4, LOCAL5
 
  */
 
-LOCAL: LOCAL1 { 
-	$$ = $1;
-}
+LOCAL: LOCAL1 { $$ = $1; }
 | TK_PR_STATIC LOCAL1 { $$ = $2; }
 | TK_PR_CONST LOCAL1 { $$ = $2; }
 | TK_PR_STATIC TK_PR_CONST LOCAL1 { $$ = $3; };
-LOCAL1: TYPE LOCAL2 { $$ = $2; };
-LOCAL2: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; }
+
+LOCAL1: TYPE LOCAL2 { 
+	SyntacticalType tipo = (SyntacticalType) $1;
+	tableStack.updateTypeOfVariablesWithPendantTypes(tipo);
+	$$ = $2; 
+};
+LOCAL2: TK_IDENTIFICADOR { 
+	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
+	//freeLexicalValue($1); 
+	$$ = NULL;
+}
 | TK_IDENTIFICADOR LOCAL3 { 
 	if ($2 == NULL) {
 		$$ = NULL;
@@ -453,7 +463,6 @@ LOCAL2: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; }
 		AST *node = createNodeNoType($1);
 		prependChild($2, node);
 		$$ = $2;
-		
 	}
 };
 LOCAL3: TK_OC_LE LOCAL4 { 
@@ -463,11 +472,19 @@ LOCAL3: TK_OC_LE LOCAL4 {
 }
 | ',' LOCAL5 { $$ = NULL; };
 /* valor da atribuicao */
-LOCAL4: TK_IDENTIFICADOR { $$ = createNodeNoType($1); }
+LOCAL4: TK_IDENTIFICADOR { $$ = createNodeNoType($1); tableStack.verifyIdentificatorNode($$); }
 | LITERAL { $$ = $1; };
-LOCAL5: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; };
-| TK_IDENTIFICADOR LOCAL6 { freeLexicalValue($1); $$ = NULL; };
-LOCAL6: ',' LOCAL5 { $$ = NULL; };
+LOCAL5: TK_IDENTIFICADOR { 
+	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
+	//freeLexicalValue($1); 
+	$$ = NULL; 
+};
+| TK_IDENTIFICADOR ',' LOCAL5  { 
+	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
+	//freeLexicalValue($1); 
+	$$ = NULL; 
+};
+
 
  /*    def atribuicao    
 

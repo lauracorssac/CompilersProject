@@ -88,6 +88,20 @@ void printSyntacticalType(SyntacticalType sType) {
     }
 }
 
+SymbolTableValue createLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+
+    int size;
+     if (sType == stringSType) {
+        size = getSizeForStringType(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
+    } else  {
+        size =getSizeForSyntacticalType(sType);
+    }
+
+    SymbolTableValue value = {.line= line, .column= column, .kind= literalKind, .type= sType,
+    .size= size, .lexicalValue= lexicalValue};
+    return value;
+}
+
 SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue) {
 
     SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= undefinedSType,

@@ -9,6 +9,7 @@
 
 extern "C" {
     #include "SyntacticalType.h"
+    #include "AST.h"
 }
 
 #include "SymbolTable.hpp"
@@ -41,12 +42,23 @@ public:
     SearchResult find(string element);
     void endLastScope();
     
+    int verifyInitializationVariable(LexicalValue *variableLV, int lineNumber);
+    int verifyInitializationWithLiteral(LexicalValue *variableLV, LexicalValue *attLV, int lineNumber);
+    int verifyInitializationWithIdentifier(LexicalValue *variableLV, LexicalValue *attLV, int lineNumber);
     int verifyAttribution(string variableKey, string attributionKey, int lineNumber);
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     void insertVectorWithPendantType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
     void insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
+    void insertLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
     void updateTypeOfVariablesWithPendantTypes(SyntacticalType type);
     void printItself();
+    
+    /*
+        This function receiver a AST node which contains an lexical value of an identificator
+        If the variable was declared, updates the node with the type of the identificator.
+        If not, prints signalizes ERR_UNDECLARED error.
+    */
+    void verifyIdentificatorNode(AST *identificatorNode);
 
 
 };

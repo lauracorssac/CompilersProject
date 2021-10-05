@@ -53,6 +53,7 @@ typedef struct AST {
 
 AST* createNodeNoLexicalValue(NodeType type);
 AST* createNodeNoType(LexicalValue *value);
+AST* createNodeNoTypeWithSType(LexicalValue *value, SyntacticalType sType);
 AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value);
 
 void exporta(void *arvore);

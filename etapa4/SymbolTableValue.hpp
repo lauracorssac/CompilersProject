@@ -51,6 +51,7 @@ SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValu
 SymbolTableValue createVariableWithInitialization(int line, int column, SyntacticalType type, 
 LexicalValue *lexicalValueIdentifier, 
 LexicalValue *lexicalValueInitialization);
+SymbolTableValue createLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
 SymbolTableValue createVectorWithPendantType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
 
 #endif

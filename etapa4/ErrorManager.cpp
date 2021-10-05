@@ -17,6 +17,11 @@ void ErrorManager::printStringVector(string variableKey) {
     cout << "Motivo: Não é permitido declaração de vetores de string." << endl;
 }
 
+void ErrorManager::printDeclaredVariableInitialization(string variableKey, SymbolTableValue valueFound, int line) {
+    cout << "Não foi possível declarar " << variableKey << endl;
+    cout << "Motivo: Esse nome já foi declarado na linha " << valueFound.line << endl;
+}
+
 void ErrorManager::printAttributionError(string variableKey, string attributionKey, int line) {
 
     cout << "Não foi possível fazer atribuição de " << attributionKey << 
@@ -50,6 +55,11 @@ void ErrorManager::printCharToXAttribution(string variableKey, string attributio
 void ErrorManager::printFunctionAttribution(string variableKey, string attributionKey, int line) {
     ErrorManager::printAttributionError(variableKey, attributionKey, line);
     cout << "Motivo: " << variableKey  << " é uma função e não pode receber valor" << endl;
+}
+
+void ErrorManager::printVectorAttribution(string variableKey, string attributionKey, int line) {
+    ErrorManager::printAttributionError(variableKey, attributionKey, line);
+    cout << "Motivo: " << variableKey  << " é um vetor e não pode receber valor" << endl;
 }
 
 void ErrorManager::printWrongTypeAttribution(string variableKey, string attributionKey,

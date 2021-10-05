@@ -49,6 +49,50 @@ void SymbolTableStack::insertNewItem(string key, SymbolTableValue value) {
     this->listOfTables.front().insertNewItem(key, value);
 }
 
+void SymbolTableStack::verifyIdentificatorNode(AST *identificatorNode) {
+    LexicalValue *identificatorLV = identificatorNode->value;
+    string variableKey = string(identificatorLV->literalTokenValueAndType.value.charSequenceValue);
+    SearchResult resultVariable = this->find(variableKey);
+    if (resultVariable.found) {
+        identificatorNode->sType = resultVariable.valueFound.type;
+    } else {
+        cout << "VARIABLE NOT FOUND" << endl;
+    }
+    
+}
+
+int SymbolTableStack::verifyInitializationVariable(LexicalValue *variableLV, int lineNumber) {
+
+    string variableKey = string(variableLV->literalTokenValueAndType.value.charSequenceValue);
+    SearchResult resultVariable = this->find(variableKey);
+    if (resultVariable.found) {
+        ErrorManager::printDeclaredVariableInitialization(variableKey, resultVariable.valueFound, lineNumber);
+        return ERR_DECLARED;
+    }
+    return SUCCESS;
+}
+
+int SymbolTableStack::verifyInitializationWithLiteral(LexicalValue *variableLV, LexicalValue *attLV, int lineNumber) {
+
+    int variableVerification = this->verifyInitializationVariable(variableLV, lineNumber);
+    if (variableVerification != SUCCESS) { return variableVerification; }
+}
+
+int SymbolTableStack::verifyInitializationWithIdentifier(LexicalValue *variableLV, LexicalValue *attLV, int lineNumber) {
+
+    int variableVerification = this->verifyInitializationVariable(variableLV, lineNumber);
+    if (variableVerification != SUCCESS) { return variableVerification; }
+    
+    string attributionKey = string(attLV->literalTokenValueAndType.value.charSequenceValue);
+    string variableKey = string(variableLV->literalTokenValueAndType.value.charSequenceValue);
+    
+    SearchResult resultAttribution = this->find(attributionKey);
+    if (!resultAttribution.found) {
+        ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, attributionKey, lineNumber);
+        return ERR_UNDECLARED;
+    }
+}
+
 int SymbolTableStack::verifyAttribution(string variableKey, string attributionKey, int lineNumber) {
 
     SearchResult resultVariable = this->find(variableKey);
@@ -70,6 +114,10 @@ int SymbolTableStack::verifyAttribution(string variableKey, string attributionKe
         ErrorManager::printFunctionAttribution(variableKey, attributionKey, lineNumber);
         return ERR_FUNCTION;
     }
+    // if (resultVariable.valueFound.kind == vectorKind) {
+    //     ErrorManager::printVectorAttribution(variableKey, attributionKey, lineNumber);
+    //     return ERR_VECTOR;
+    // }
     if (resultAttribution.valueFound.type == charSType && resultVariable.valueFound.type != charSType) {
         ErrorManager::printCharToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
         return ERR_CHAR_TO_X;
@@ -79,14 +127,18 @@ int SymbolTableStack::verifyAttribution(string variableKey, string attributionKe
         ErrorManager::printStringToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
         return ERR_STRING_TO_X;
     }
-    if (this->verifyCoersion(resultVariable.valueFound.type, resultAttribution.valueFound.type) == SUCCESS) {
-        return SUCCESS;
-    } else {
+    if (this->verifyCoersion(resultVariable.valueFound.type, resultAttribution.valueFound.type) != SUCCESS) {
         ErrorManager::printWrongTypeAttribution(variableKey, attributionKey, 
         resultVariable.valueFound.type, 
         resultAttribution.valueFound.type, lineNumber);
         return ERR_WRONG_TYPE;
     }
+    //ERR STRING MAX
+    if (resultVariable.valueFound.type == stringSType && resultVariable.valueFound.size < resultAttribution.valueFound.size) {
+        cout << "MAX STRING ERROR" << endl;
+        return ERR_STRING_MAX;
+    }
+    return SUCCESS;
     
 }
 
@@ -122,6 +174,13 @@ LexicalValue *lexicalValue, int indexerValue) {
     SymbolTableValue newValue = createVectorWithPendantType(line, column, lexicalValue, indexerValue);
     this->insertNewItem(key, newValue);
 
+}
+
+void SymbolTableStack::insertLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+    
+    string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
+    SymbolTableValue newValue = createLiteral(line, column, lexicalValue, sType);
+    this->insertNewItem(key, newValue);
 }
 
 void SymbolTableStack::insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue) {

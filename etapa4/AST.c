@@ -23,6 +23,11 @@ AST* createNodeNoType(LexicalValue *value) {
     return newNodePointer;
 }
 
+AST* createNodeNoTypeWithSType(LexicalValue *value, SyntacticalType sType) {
+    AST* newNode = createNodeNoType(value);
+    newNode->sType = sType;
+}
+
 AST* createNodeNoLexicalValue(NodeType type) {
     
     AST newNode;
