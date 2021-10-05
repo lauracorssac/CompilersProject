@@ -19,6 +19,14 @@ bool SymbolTable::hasKey(string key) {
 SymbolTableValue SymbolTable::getValueForKey(string key) {
 	return this->symbolTable[key];
 }
-unordered_map<string, SymbolTableValue> getTable() {
+unordered_map<string, SymbolTableValue> SymbolTable::getTable() {
 	return this->symbolTable;
+}
+void SymbolTable::updateType(string key, SyntacticalType type) {
+	this->symbolTable[key].type = type;
+	if (this->symbolTable[key].kind == vectorKind) {
+		this->symbolTable[key].size *= getSizeForSyntacticalType(type);
+	} else {
+		this->symbolTable[key].size = getSizeForSyntacticalType(type);
+	}
 }

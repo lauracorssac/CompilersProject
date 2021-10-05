@@ -13,12 +13,10 @@ extern "C" {
     #include "LexicalValue.h"
     #include "SyntacticalType.h"
 }
-extern SyntacticalType lastDeclaredType;
 using namespace std;
 
 void printValue(SymbolTableValue symbolTableValue) {
 
-    cout << endl;
     cout << " ---- Printing symbol table value -----" << endl;
     cout << "Line: " << symbolTableValue.line << endl;
     cout << "Column: " << symbolTableValue.column << endl;
@@ -32,7 +30,7 @@ void printValue(SymbolTableValue symbolTableValue) {
     cout << "List of Parameters:" << endl;
     printListOfParameters(symbolTableValue.listOfParameters);
     cout << "Lexical Value: ";
-    //print_lexical_value(*symbolTableValue.lexicalValue);
+    print_lexical_value(*(symbolTableValue.lexicalValue));
     cout << endl;
 
 }
@@ -90,11 +88,10 @@ void printSyntacticalType(SyntacticalType sType) {
     }
 }
 
-SymbolTableValue createVariableWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue) {
+SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue) {
 
-    SymbolTableValue value = {.type: lastDeclaredType, .line: line, .column: column, 
-    .lexicalValue: lexicalValue, .kind: variableKind, 
-    .size: getSizeForSyntacticalType(lastDeclaredType)}
+    SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= undefinedSType,
+    .size= 0, .lexicalValue= lexicalValue };
     return value;
 }
 
@@ -106,19 +103,18 @@ LexicalValue *lexicalValueInitialization) {
     if (type == stringSType) {
         size = getSizeForStringType(lexicalValueInitialization->literalTokenValueAndType.value.charSequenceValue);
     } else  {
-        size = getSizeForSyntacticalType(lastDeclaredType);
+        size = 0; //getSizeForSyntacticalType(lastDeclaredType);
     }
 
-    SymbolTableValue value = { .type: type, .line: line, .column: column, 
-    .lexicalValue: lexicalValueIdentifier, .kind: variableKind, .size: size };
+    SymbolTableValue value = { .line= line, .column= column, .kind= variableKind, .type= type, .size= size,  
+    .lexicalValue= lexicalValueIdentifier};
     return value;
 }
 
-SymbolTableValue createVectorWithLastDeclaredType(int line, int column, 
+SymbolTableValue createVectorWithPendantType(int line, int column, 
 LexicalValue *lexicalValue, int indexerValue) {
     
-    SymbolTableValue value = { .type: lastDeclaredType, .line: line, .column: column, 
-    .lexicalValue: lexicalValue, .kind: vectorKind, 
-    .size: getSizeForSyntacticalType(lastDeclaredType) * indexerValue }
+    SymbolTableValue value = { .line= line, .column= column,  .kind= vectorKind, .type= undefinedSType, 
+    .size= indexerValue, .lexicalValue= lexicalValue };
     return value;
 }

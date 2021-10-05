@@ -33,6 +33,7 @@ private:
     // when a context is end, a table is removed from the front
     list<SymbolTable> listOfTables;
     void insertNewItem(string key, SymbolTableValue value);
+    list<string> variablesWithPendantTypes;
 
 public:
     SymbolTableStack();
@@ -42,8 +43,9 @@ public:
     
     int verifyAttribution(string variableKey, string attributionKey, int lineNumber);
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
-    void insertVectorWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
-    void insertVariableWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue);
+    void insertVectorWithPendantType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
+    void insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
+    void updateTypeOfVariablesWithPendantTypes(SyntacticalType type);
     void printItself();
 
 

@@ -11,6 +11,10 @@
 #include <string>
 #include "SymbolTableValue.hpp"
 
+extern "C" {
+    #include "SyntacticalType.h"
+}
+
 using namespace std;
 
 class SymbolTable {
@@ -22,6 +26,7 @@ class SymbolTable {
     SymbolTableValue getValueForKey(string key);
     SymbolTable();
     unordered_map<string, SymbolTableValue> getTable();
+    void updateType(string key, SyntacticalType type);
 };
 
 

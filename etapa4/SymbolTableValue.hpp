@@ -47,10 +47,10 @@ void printValue(SymbolTableValue symbolTableValue);
 void printKind(Kind kind);
 void printListOfParameters(list<Parameter> listOfParameters);
 void printSyntacticalType(SyntacticalType sType);
-SymbolTableValue createVariableWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue);
+SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
 SymbolTableValue createVariableWithInitialization(int line, int column, SyntacticalType type, 
 LexicalValue *lexicalValueIdentifier, 
 LexicalValue *lexicalValueInitialization);
-SymbolTableValue createVectorWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
+SymbolTableValue createVectorWithPendantType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
 
 #endif

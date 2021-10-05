@@ -7,7 +7,7 @@
 #ifndef SYNTACTICALTYPE_H
 #define SYNTACTICALTYPE_H
 
-typedef enum {
+typedef enum SyntacticalType {
     stringSType = 0,
     floatSType,
     intSType,

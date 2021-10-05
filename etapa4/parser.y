@@ -37,7 +37,7 @@ extern SyntacticalType lastDeclaredType;
 %union {
 	struct LexicalValue *lexicalValue;
 	struct AST *node;
-	SyntacticalType syntacticalType;
+	int syntacticalType;
 }
 
 %start PROGRAM
@@ -366,16 +366,17 @@ EXP11: OPERAND { $$ = $1; }
  */
 GLOBAL: TK_PR_STATIC GLOBAL1 | GLOBAL1;
 GLOBAL1: TYPE GLOBAL2 { 
-	lastDeclaredType = $1;
+	SyntacticalType tipo = (SyntacticalType) $1;
+	tableStack.updateTypeOfVariablesWithPendantTypes(tipo);
 };
 GLOBAL2: TK_IDENTIFICADOR GLOBAL3 { 
-	symbolTableStack.insertVariableWithLastDeclaredType(get_line_number(), 0, $1);
+	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
 	//freeLexicalValue($1); 
 
 }
 | TK_IDENTIFICADOR '[' TK_LIT_INT ']' GLOBAL3 { 
 	int indexerValue = $3->literalTokenValueAndType.value.integerValue;
-	symbolTableStack.insertVectorWithLastDeclaredType(get_line_number(), 0, $1, indexerValue);
+	tableStack.insertVectorWithPendantType(get_line_number(), 0, $1, indexerValue);
 	//freeLexicalValue($2); 
 };
  /*    terminais da global    */
@@ -443,15 +444,13 @@ LOCAL: LOCAL1 {
 | TK_PR_STATIC LOCAL1 { $$ = $2; }
 | TK_PR_CONST LOCAL1 { $$ = $2; }
 | TK_PR_STATIC TK_PR_CONST LOCAL1 { $$ = $3; };
-LOCAL1: TYPE LOCAL2 { lastDeclaredType = $1; $$ = $2; };
+LOCAL1: TYPE LOCAL2 { $$ = $2; };
 LOCAL2: TK_IDENTIFICADOR { freeLexicalValue($1); $$ = NULL; }
 | TK_IDENTIFICADOR LOCAL3 { 
 	if ($2 == NULL) {
 		$$ = NULL;
 	} else {
 		AST *node = createNodeNoType($1);
-		tableStack.verifyAttribution($2->child->value->literalTokenValueAndType.value.charSequenceType,
-		 $1->literalTokenValueAndType.value.charSequenceType)
 		prependChild($2, node);
 		$$ = $2;
 		

@@ -20,7 +20,6 @@ extern "C"
 
 void *arvore = NULL;
 SymbolTableStack tableStack;
-SyntacticalType lastDeclaredType;
 
 int main (int argc, char **argv)
 {

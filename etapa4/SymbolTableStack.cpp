@@ -12,11 +12,11 @@ using namespace std;
 
 extern "C" {
     #include "SyntacticalType.h"
-    SyntacticalType lastDeclaredType;
 }
 
 SymbolTableStack::SymbolTableStack() {
-
+    // começa o escopo global
+    this->beginNewScope(); 
 }
 
 void SymbolTableStack::beginNewScope() {
@@ -45,6 +45,7 @@ void SymbolTableStack::endLastScope() {
     this->listOfTables.pop_front();
 }
 void SymbolTableStack::insertNewItem(string key, SymbolTableValue value) {
+    
     this->listOfTables.front().insertNewItem(key, value);
 }
 
@@ -75,7 +76,7 @@ int SymbolTableStack::verifyAttribution(string variableKey, string attributionKe
     }
     if (resultAttribution.valueFound.type == stringSType &&
      resultVariable.valueFound.type != stringSType) {
-        ErrorManager::printStringToXXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
+        ErrorManager::printStringToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
         return ERR_STRING_TO_X;
     }
     if (this->verifyCoersion(resultVariable.valueFound.type, resultAttribution.valueFound.type) == SUCCESS) {
@@ -110,23 +111,34 @@ int SymbolTableStack::verifyCoersion(SyntacticalType variableType, SyntacticalTy
 
 }
 
-void SymbolTableStack::insertVectorWithLastDeclaredType(int line, int column, 
+void SymbolTableStack::insertVectorWithPendantType(int line, int column, 
 LexicalValue *lexicalValue, int indexerValue) {
 
     string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
-    if (lastDeclaredType == stringSType) {
-        return ErrorManager::printStringVector(key);
-    }
-
-    SymbolTableValue newValue = createVectorWithLastDeclaredType(line, column, lexicalValue, indexerValue);
+    // if (lastDeclaredType == stringSType) {
+    //     return ErrorManager::printStringVector(key);
+    // }
+    this->variablesWithPendantTypes.push_back(key);
+    SymbolTableValue newValue = createVectorWithPendantType(line, column, lexicalValue, indexerValue);
     this->insertNewItem(key, newValue);
 
 }
 
-void SymbolTableStack::insertVariableWithLastDeclaredType(int line, int column, LexicalValue *lexicalValue) {
-    SymbolTableValue newValue = createVariableWithLastDeclaredType(line, column, lexicalValue);
+void SymbolTableStack::insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue) {
+    SymbolTableValue newValue = createVariableWithPendantType(line, column, lexicalValue);
     string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
+    this->variablesWithPendantTypes.push_back(key);
     this->insertNewItem(key, newValue);
+}
+
+void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType type) {
+    
+    while (!this->variablesWithPendantTypes.empty()) {
+        string varKey = this->variablesWithPendantTypes.front();
+        this->listOfTables.front().updateType(varKey, type);
+        this->variablesWithPendantTypes.pop_front();
+    }
+
 }
 
 void SymbolTableStack::printItself() {
@@ -134,9 +146,11 @@ void SymbolTableStack::printItself() {
     list<SymbolTable>::iterator it;
     for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
         cout << endl;
-        cout << "New Table" << endl;
+        cout << "New Table:" << endl;
         for (auto kv: it->getTable()) {
-            cout << "Key: " << kv.first << "Value: " << pair.second << endl;
+            cout << endl;
+            cout << "Key: " << kv.first << " Value: " << endl;
+            printValue(kv.second);
         }
     }
 }
