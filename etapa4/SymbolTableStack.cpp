@@ -274,6 +274,135 @@ void SymbolTableStack::makeAttributionVector(AST *variableNode, AST *attribution
 
 }
 
+void SymbolTableStack::makeInput(AST *inputNode, AST *identifierNode) {
+    
+    string variableKey = string(identifierNode->value->literalTokenValueAndType.value.charSequenceValue);
+    SearchResult resultVariable = this->find(variableKey);
+
+    //Verifies ERR_UNDECLARED
+    if (!resultVariable.found) {
+        cout << "element not found" << endl;
+        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
+        return;
+    }
+
+    SyntacticalType typeFound = resultVariable.valueFound.type;
+    
+    //Verifies ERR WRONG PAR INPUT
+    if (typeFound != intSType && typeFound != floatSType) {
+        cout << "ERR WRONG PAR INPUT" << endl;
+        return;
+    }
+
+    inputNode->sType = typeFound;
+    identifierNode->sType = typeFound;
+
+}
+
+void SymbolTableStack::makeOutputIdentifier(AST *outputNode, AST *identifierNode) {
+    
+    string variableKey = string(identifierNode->value->literalTokenValueAndType.value.charSequenceValue);
+    SearchResult resultVariable = this->find(variableKey);
+
+    //Verifies ERR_UNDECLARED
+    if (!resultVariable.found) {
+        cout << "element not found" << endl;
+        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
+        return;
+    }
+
+    SyntacticalType typeFound = resultVariable.valueFound.type;
+    
+    //Verifies ERR WRONG PAR INPUT
+    if (typeFound != intSType && typeFound != floatSType) {
+        cout << "ERR WRONG PAR OUTPUT" << endl;
+        return;
+    }
+
+    outputNode->sType = typeFound;
+    identifierNode->sType = typeFound;
+
+}
+
+void SymbolTableStack::makeOutputLiteral(AST *outputNode, AST *literalNode) {
+    
+    SyntacticalType typeFound = literalNode->sType;
+    
+    //Verifies ERR WRONG PAR INPUT
+    if (typeFound != intSType && typeFound != floatSType) {
+        cout << "ERR WRONG PAR OUTPUT" << endl;
+        return;
+    }
+
+    outputNode->sType = typeFound;
+    literalNode->sType = typeFound;
+
+}
+
+void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersNode) {
+
+    string variableKey = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
+    SearchResult resultVariable = this->find(variableKey);
+
+    cout << "aqui"<< endl;
+    //Verifies ERR_UNDECLARED
+    if (!resultVariable.found) {
+        cout << "function not found" << endl;
+        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
+        return;
+    }
+    //Verifies ERR_VECTOR
+    if (resultVariable.valueFound.kind == vectorKind) {
+        cout << "err vector" << endl;
+        //ErrorManager::printFunctionAttribution(variableKey, attributionKey, lineNumber);
+        return;
+    }
+    //Verifies ERR_VARIABLE
+    if (resultVariable.valueFound.kind == variableKind) {
+        cout << "err variable" << endl;
+        //ErrorManager::printVectorAttribution(variableKey, attributionKey, lineNumber);
+        return;
+    }
+
+    list<Parameter>::iterator functionExpectedArg;
+    functionExpectedArg = resultVariable.valueFound.listOfParameters.begin();
+    AST *functionCallArg = parametersNode;
+
+    while(functionCallArg != NULL && functionExpectedArg != resultVariable.valueFound.listOfParameters.end()) {
+
+        cout << "functioncallArgType = ";
+        printSyntacticalType(functionCallArg->sType);
+        cout << endl;
+        cout << "functioncallArgType = ";
+        printSyntacticalType(functionExpectedArg->type);
+        cout << endl;
+
+        // Verifies ERR WRONG TYPE ARGS
+        if (verifyCoersion(functionCallArg->sType, functionExpectedArg->type) != SUCCESS) {
+            cout << "ERR WRONG TYPE ARGS" << endl;
+            return;
+        }
+
+        functionCallArg = functionCallArg->child;
+        functionExpectedArg++;
+    }
+    // Verifies ERR MISSING ARGS
+    if (functionCallArg == NULL && functionExpectedArg != resultVariable.valueFound.listOfParameters.end()) {
+        cout << "missing args" << endl;
+        return;
+    }
+    // Verifies ERR EXCESS AGRGS
+    if (functionCallArg != NULL && functionExpectedArg == resultVariable.valueFound.listOfParameters.end()) {
+        cout << "excess args" << endl;
+        return;
+    }
+
+    identificatorNode->sType = resultVariable.valueFound.type;
+
+}
+
+
+
 int SymbolTableStack::verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType) {
 
     if (attributionType == variableType) { return SUCCESS; }
@@ -323,12 +452,12 @@ string SymbolTableStack::stringFromLiteralValue(LiteralTokenValueAndType literal
         string convertedString(1, literalTokenValueAndType.value.charValue);
         return convertedString;
     } 
+    return "";
 }
 
 void SymbolTableStack::insertLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
     
     string key = this->stringFromLiteralValue(lexicalValue->literalTokenValueAndType);
-    cout << "inserting " << key << endl;
     SymbolTableValue newValue = createLiteral(line, column, lexicalValue, sType);
     this->insertNewItem(key, newValue);
 }
@@ -338,6 +467,44 @@ void SymbolTableStack::insertVariableWithPendantType(int line, int column, Lexic
     string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
     this->variablesWithPendantTypes.push_back(key);
     this->insertNewItem(key, newValue);
+}
+
+void SymbolTableStack::insertFunction(int line, int column, AST *identificatorNode, SyntacticalType sType) {
+    
+    string key = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
+    if (this->find(key).found) { 
+        cout << "Não foi possível declarar. Funcao já declarada" << endl;
+        return; 
+    }
+    //Verifies ERR FUNCTION STRING
+    if (sType == stringSType) {
+        cout << "ERR FUNCTION STRING" << endl;
+        return; //nao insere dai?
+    }
+    SymbolTableValue newValue = createFunctionWithType(line, column, identificatorNode->value, sType, this->pendantParameters);
+    this->insertNewItem(key, newValue);
+    identificatorNode->sType = sType;
+
+}
+
+void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+
+    string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
+    if (this->find(key).found) { 
+        cout << "Não foi possível declarar. Var já declarada" << endl;
+        return; 
+    }
+
+    //Verifies ERR FUNCTION STRING
+    if (sType == stringSType) {
+        cout << "ERR FUNCTION STRING" << endl;
+        return; //nao insere dai?
+    }
+
+    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType);
+    this->insertNewItem(key, newValue);
+    Parameter newParam = {.type = sType};
+    this->pendantParameters.push_back(newParam);
 }
 
 void SymbolTableStack::insertVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {

@@ -136,12 +136,9 @@ extern SyntacticalType lastDeclaredType;
 %type<node> EXP11
 
 %type<node> FUNC1
-%type<node> FUNC2
+%type<node> FUNC_PARAM_LIST
+%type<node> FUNC_BLOCK
 %type<node> FUNC3
-%type<node> FUNC4
-%type<node> FUNC5
-%type<node> FUNC6
-%type<node> FUNC7
 
 %type<node> LOCAL1
 %type<node> LOCAL2
@@ -389,24 +386,42 @@ GLOBAL3 : ';'
 	inicial: FUNC
 	terminais: FUNC6 FUNC4
 
-  */
+ */
+
+
 FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
 | FUNC1 { $$ = $1; };
-FUNC1: TYPE FUNC2 { $$ = $2; };
-FUNC2: TK_IDENTIFICADOR FUNC3 { 
-	AST *rootNode = createNodeWithLexicalTypeAndValue(functionType, $1);
-	appendChild(rootNode, $2);
+FUNC1: TYPE TK_IDENTIFICADOR FUNC3 {
+
+	AST *rootNode = createNodeWithLexicalTypeAndValue(functionType, $2);
+	tableStack.insertFunction($2->lineNumber, 0, rootNode, (SyntacticalType) $1);
+	appendChild(rootNode, $3);
 	$$ = rootNode;
+	
 };
-FUNC3: '(' FUNC4 { $$ = $2; };
-FUNC4: ')' BLOCK { $$ = $2; }
-| TYPE FUNC5 { $$ = $2; }
-| TK_PR_CONST TYPE FUNC5 { $$ = $3; };
-FUNC5: TK_IDENTIFICADOR FUNC6 { freeLexicalValue($1); $$ = $2; };
-FUNC6: ')' BLOCK { $$ = $2; }
-| ',' FUNC7  { $$ = $2; };
-FUNC7: TYPE FUNC5 { $$ = $2; }
-| TK_PR_CONST TYPE FUNC5 { $$ = $3; };
+FUNC3: '(' ')' BLOCK  { $$ = $3; }
+| PARAM_LIST_BEGIN FUNC_PARAM_LIST ')' FUNC_BLOCK  { $$ = $4; };
+
+FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR { 
+	tableStack.insertParameterWithType(get_line_number(), 0, $2, (SyntacticalType) $1);
+	$$ = NULL; 
+}
+| TK_PR_CONST TYPE TK_IDENTIFICADOR { 
+	tableStack.insertParameterWithType(get_line_number(), 0, $3, (SyntacticalType) $2);
+	$$ = NULL; 
+}
+| FUNC_PARAM_LIST ',' TYPE TK_IDENTIFICADOR { 
+	tableStack.insertParameterWithType(get_line_number(), 0, $4, (SyntacticalType) $3);
+	$$ = NULL;
+}
+| FUNC_PARAM_LIST ',' TK_PR_CONST TYPE TK_IDENTIFICADOR { 
+	tableStack.insertParameterWithType(get_line_number(), 0, $5, (SyntacticalType) $4);
+	$$ = NULL; 
+};
+
+FUNC_BLOCK: '{' BLOCK1 {$$ = $2;};
+PARAM_LIST_BEGIN: '(' { tableStack.beginNewScope(); };
+
 
  /*    def BLOCK   
 	
@@ -422,7 +437,6 @@ BLOCK: BLOCK_BEGIN BLOCK1 {
 };
 BLOCK1: '}' { 
 	$$ = NULL; 
-	tableStack.printItself();
 	tableStack.endLastScope();
 }
 | SIMPLECMD BLOCK1 { 
@@ -533,6 +547,8 @@ INPUT: TK_PR_INPUT TK_IDENTIFICADOR {
 	AST *identifier =  createNodeNoType($2);
 	appendChild(inputNode, identifier);
 	$$ = inputNode;
+
+	tableStack.makeInput(inputNode, identifier);
 };
 
 OUTPUT: TK_PR_OUTPUT TK_IDENTIFICADOR { 
@@ -540,12 +556,16 @@ OUTPUT: TK_PR_OUTPUT TK_IDENTIFICADOR {
 	AST *identifier =  createNodeNoType($2);
 	appendChild(outputNode, identifier);
 	$$ = outputNode;
+
+	tableStack.makeOutputIdentifier(outputNode, identifier);
 }
 
 | TK_PR_OUTPUT LITERAL {
 	AST *outputNode = createNodeNoLexicalValue(outputType);
 	appendChild(outputNode, $2);
 	$$ = outputNode;
+
+	tableStack.makeOutputLiteral(outputNode, $2);
 };
 
  /*    def chamada funcao    
@@ -559,6 +579,8 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	AST *rootNode = createNodeWithLexicalTypeAndValue(functionCallType, $1);
 	appendChild(rootNode, $3);
 	$$ = rootNode;
+
+	tableStack.makeFunctionCall(rootNode, $3);
 }
 | TK_IDENTIFICADOR '(' ')' {
 	$$ = createNodeWithLexicalTypeAndValue(functionCallType, $1);

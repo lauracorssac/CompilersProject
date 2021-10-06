@@ -36,6 +36,7 @@ private:
     list<SymbolTable> listOfTables;
     void insertNewItem(string key, SymbolTableValue value);
     list<string> variablesWithPendantTypes;
+    list<Parameter> pendantParameters;
 
 public:
     SymbolTableStack();
@@ -51,10 +52,15 @@ public:
     AST *indexerSymbolNode, AST *indexerNode, int lineNumber);
     void makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, int lineNumber);
     void makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode, int lineNumber);
-
+    void makeFunctionCall(AST *identificatorNode, AST *parametersNode);
+    void makeInput(AST *inputNode, AST *identifierNode);
+    void makeOutputIdentifier(AST *outputNode, AST *identifierNode);
+    void makeOutputLiteral(AST *outputNode, AST *literalNode);
+    void insertParameterWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
     void insertVectorWithPendantType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
     void insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
     void insertVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
+    void insertFunction(int line, int column, AST *identificatorNode, SyntacticalType sType);
     void insertLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
     void updateTypeOfVariablesWithPendantTypes(SyntacticalType type);
     void printItself();

@@ -89,6 +89,8 @@ void printSyntacticalType(SyntacticalType sType) {
     }
 }
 
+
+
 SymbolTableValue createLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
 
     int size;
@@ -110,13 +112,20 @@ SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValu
     return value;
 }
 
-SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+SymbolTableValue createFunctionWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, list<Parameter> listOfParameters) {
 
-    SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= sType,
-    .size= 0, .lexicalValue= lexicalValue };
+    SymbolTableValue value = {.line= line, .column= column, .kind= functionKind, .type= sType,
+    .size= getSizeForSyntacticalType(sType), 
+    .listOfParameters= listOfParameters, .lexicalValue= lexicalValue };
     return value;
 }
 
+SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+
+    SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= sType,
+    .size= getSizeForSyntacticalType(sType), .lexicalValue= lexicalValue };
+    return value;
+}
 
 SymbolTableValue createVariableWithInitialization(int line, int column, SyntacticalType type, 
 LexicalValue *lexicalValueIdentifier, 
@@ -126,7 +135,7 @@ LexicalValue *lexicalValueInitialization) {
     if (type == stringSType) {
         size = getSizeForStringType(lexicalValueInitialization->literalTokenValueAndType.value.charSequenceValue);
     } else  {
-        size = 0; //getSizeForSyntacticalType(lastDeclaredType);
+        size = getSizeForSyntacticalType(type);
     }
 
     SymbolTableValue value = { .line= line, .column= column, .kind= variableKind, .type= type, .size= size,  
