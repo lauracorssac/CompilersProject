@@ -224,6 +224,8 @@ OPERAND: LITERALNUM { $$ = $1; }
 	appendChild(rootNode, identNode);
 	appendChild(rootNode, $3);
 	$$ = rootNode;
+
+	tableStack.verifyVectorNode(identNode, rootNode, $3);
 } 
 | FCALL { $$ = $1; }
 | LITERALBOOL { $$ = $1; }; 
@@ -372,13 +374,11 @@ GLOBAL1: TYPE GLOBAL2 {
 };
 GLOBAL2: TK_IDENTIFICADOR GLOBAL3 { 
 	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
-	//freeLexicalValue($1); 
-
 }
 | TK_IDENTIFICADOR '[' TK_LIT_INT ']' GLOBAL3 { 
 	int indexerValue = $3->literalTokenValueAndType.value.integerValue;
 	tableStack.insertVectorWithPendantType(get_line_number(), 0, $1, indexerValue);
-	//freeLexicalValue($2); 
+	//TODO: inserir aqui o literal int??
 };
  /*    terminais da global    */
 GLOBAL3 : ';' 
@@ -494,10 +494,11 @@ TK_IDENTIFICADOR '=' ATT1 {
 	AST *rootNode = createNodeWithLexicalTypeAndValue(attributionType, $2); 
 	AST *identNode = createNodeNoType($1);
 	
-	appendChild(rootNode, identNode);
 	appendChild(rootNode, $3);
-
+	prependChild(rootNode, identNode);
 	$$ =  rootNode;
+
+	tableStack.makeAttributionVariable(identNode, rootNode, $3, get_line_number());
 
 }
 | TK_IDENTIFICADOR '[' EXPRESSION ']' '=' ATT1 { 
@@ -510,9 +511,9 @@ TK_IDENTIFICADOR '=' ATT1 {
 	appendChild(indexerNode, identNode);
 	appendChild(indexerNode, $3);
 	appendChild(rootNode, $6);
-
 	$$ = rootNode;
 
+	tableStack.makeAttributionVector(identNode, rootNode, $6, indexerNode, $3, get_line_number());
 };
 ATT1: EXPRESSION { $$ = $1; };
 

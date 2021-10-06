@@ -49,27 +49,61 @@ void SymbolTableStack::insertNewItem(string key, SymbolTableValue value) {
     this->listOfTables.front().insertNewItem(key, value);
 }
 
+void SymbolTableStack::verifyVectorNode(AST *identificatorNode, AST *indexerSymbolNode, AST *indexerNode) {
+    LexicalValue *identificatorLV = identificatorNode->value;
+    string variableKey = string(identificatorLV->literalTokenValueAndType.value.charSequenceValue);
+    SearchResult resultVariable = this->find(variableKey);
+    
+    //Verifies ERR UNDECLARED
+    if (!resultVariable.found) {
+        cout << "VARIABLE NOT FOUND" << endl;
+        return;
+    }
+    // Verifies ERR VARIABLE
+    if (resultVariable.valueFound.kind == variableKind) {
+        cout << "ERR VARIABLE" << endl;
+        return;
+    }
+    // Verifies ERR FUNCTION
+    if (resultVariable.valueFound.kind == functionKind) {
+        cout << "ERR FUNCTION" << endl;
+        return;
+    }
+    // Verifies ERR WRONG TYPE no indexador
+    if (indexerNode->sType != intSType) {
+        cout << "ERR WRONG TYPE" << endl;
+        return;
+    }
+
+    identificatorNode->sType = resultVariable.valueFound.type;
+    indexerSymbolNode->sType = resultVariable.valueFound.type;
+
+    
+}
+
 void SymbolTableStack::verifyIdentificatorNode(AST *identificatorNode) {
     LexicalValue *identificatorLV = identificatorNode->value;
     string variableKey = string(identificatorLV->literalTokenValueAndType.value.charSequenceValue);
     SearchResult resultVariable = this->find(variableKey);
-    if (resultVariable.found) {
-        identificatorNode->sType = resultVariable.valueFound.type;
-    } else {
-        cout << "VARIABLE NOT FOUND" << endl;
-    }
     
-}
-
-int SymbolTableStack::verifyInitializationVariable(LexicalValue *variableLV, int lineNumber) {
-
-    string variableKey = string(variableLV->literalTokenValueAndType.value.charSequenceValue);
-    SearchResult resultVariable = this->find(variableKey);
-    if (resultVariable.found) {
-        ErrorManager::printDeclaredVariableInitialization(variableKey, resultVariable.valueFound, lineNumber);
-        return ERR_DECLARED;
+    //Verifies ERR UNDECLARED
+    if (!resultVariable.found) {
+        cout << "VARIABLE NOT FOUND" << endl;
+        return;
     }
-    return SUCCESS;
+    // Verifies ERR VECTOR
+    if (resultVariable.valueFound.kind == vectorKind) {
+        cout << "ERR VECTOR" << endl;
+        return;
+    }
+    // Verifies ERR FUNCTION
+    if (resultVariable.valueFound.kind == functionKind) {
+        cout << "ERR FUNCTION" << endl;
+        return;
+    }
+
+    identificatorNode->sType = resultVariable.valueFound.type;
+    
 }
 
 void SymbolTableStack::makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode, int lineNumber) {
@@ -105,53 +139,139 @@ void SymbolTableStack::makeInitialization(AST *variableNode, AST *initialization
 
 }
 
-int SymbolTableStack::verifyAttribution(string variableKey, string attributionKey, int lineNumber) {
+void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, int lineNumber) {
 
+    string variableKey = string(variableNode->value->literalTokenValueAndType.value.charSequenceValue);
     SearchResult resultVariable = this->find(variableKey);
-    SearchResult resultAttribution = this->find(attributionKey);
 
-    if (!resultVariable.found && !resultAttribution.found) {
-        ErrorManager::printElementsNotFoundAttribution(variableKey, attributionKey, lineNumber);
-        return ERR_UNDECLARED;
+    //this case happens when trying to initialize with unexistent variable
+    if (attributionNode->sType == undefinedSType) {
+        return;
     }
+    //Verifies ERR_UNDECLARED
     if (!resultVariable.found) {
-        ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
-        return ERR_UNDECLARED;
+        cout << "printElementNotFoundAttribution" << endl;
+        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
+        return;
     }
-    if (!resultAttribution.found) {
-        ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, attributionKey, lineNumber);
-        return ERR_UNDECLARED;
-    }
+    //Verifies ERR_FUNCTION
     if (resultVariable.valueFound.kind == functionKind) {
-        ErrorManager::printFunctionAttribution(variableKey, attributionKey, lineNumber);
-        return ERR_FUNCTION;
+        cout << "printFunctionAttribution" << endl;
+        //ErrorManager::printFunctionAttribution(variableKey, attributionKey, lineNumber);
+        return;
     }
-    // if (resultVariable.valueFound.kind == vectorKind) {
-    //     ErrorManager::printVectorAttribution(variableKey, attributionKey, lineNumber);
-    //     return ERR_VECTOR;
-    // }
-    if (resultAttribution.valueFound.type == charSType && resultVariable.valueFound.type != charSType) {
-        ErrorManager::printCharToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
-        return ERR_CHAR_TO_X;
+    //Verifies ERR_VECTOR
+    if (resultVariable.valueFound.kind == vectorKind) {
+        cout << "printVectorAttribution" << endl;
+        //ErrorManager::printVectorAttribution(variableKey, attributionKey, lineNumber);
+        return;
     }
-    if (resultAttribution.valueFound.type == stringSType &&
-     resultVariable.valueFound.type != stringSType) {
-        ErrorManager::printStringToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
-        return ERR_STRING_TO_X;
+    //Verifies ERR_CHAR_TO_X
+    if (attributionNode->sType == charSType && resultVariable.valueFound.type != charSType) {
+        cout << "printCharToXAttribution" << endl;
+        //ErrorManager::printCharToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
+        return;
     }
-    if (this->verifyCoersion(resultVariable.valueFound.type, resultAttribution.valueFound.type) != SUCCESS) {
-        ErrorManager::printWrongTypeAttribution(variableKey, attributionKey, 
-        resultVariable.valueFound.type, 
-        resultAttribution.valueFound.type, lineNumber);
-        return ERR_WRONG_TYPE;
+    //Verifies ERR_STRING_TO_X
+    if (attributionNode->sType == stringSType && resultVariable.valueFound.type != stringSType) {
+        cout << "printStringToXAttribution" << endl;
+        //ErrorManager::printStringToXAttribution(variableKey, attributionKey,  resultVariable.valueFound.type, lineNumber);
+        return;
     }
+
+    //Verifies ERR_WRONG_TYPE
+    if (this->verifyCoersion(resultVariable.valueFound.type, attributionNode->sType) != SUCCESS) {
+        
+        cout << "printWrongTypeAttribution" << endl;
+        //ErrorManager::printWrongTypeAttribution(variableKey, attributionKey, 
+        //resultVariable.valueFound.type, 
+        //resultAttribution.valueFound.type, lineNumber);
+        return;
+    }
+
     //ERR STRING MAX
-    if (resultVariable.valueFound.type == stringSType && resultVariable.valueFound.size < resultAttribution.valueFound.size) {
-        cout << "MAX STRING ERROR" << endl;
-        return ERR_STRING_MAX;
+    if (resultVariable.valueFound.type == stringSType) {
+        string attKey = string(attributionNode->value->literalTokenValueAndType.value.charSequenceValue);
+        SearchResult resultAttribution = this->find(attKey);
+        if (!resultVariable.found) { cout << "Algo de errado nao esta certo"<< endl; return; }
+        if (resultVariable.valueFound.size < resultAttribution.valueFound.size) {
+            cout << "MAX STRING ERROR" << endl;
+            return;
+        }
     }
-    return SUCCESS;
-    
+
+    variableNode->sType = resultVariable.valueFound.type;
+    attributionSymbolNode->sType = resultVariable.valueFound.type;
+
+}
+
+void SymbolTableStack::makeAttributionVector(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, 
+    AST *indexerSymbolNode, AST *indexerNode, int lineNumber) {
+
+    string variableKey = string(variableNode->value->literalTokenValueAndType.value.charSequenceValue);
+    SearchResult resultVariable = this->find(variableKey);
+
+    //Verifies if indexerExp is int. If not, prints ERR_WRONG_TYPE
+    if (indexerNode->sType != intSType) {
+        cout << "indexer must be int" << endl;
+        return;
+    }
+
+    //this case happens when trying to initialize with unexistent variable or bad expression
+    if (attributionNode->sType == undefinedSType) {
+        return;
+    }
+    //Verifies ERR_UNDECLARED
+    if (!resultVariable.found) {
+        cout << "printElementNotFoundAttribution" << endl;
+        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
+        return;
+    }
+    //Verifies ERR_FUNCTION
+    if (resultVariable.valueFound.kind == functionKind) {
+        cout << "printFunctionAttribution" << endl;
+        //ErrorManager::printFunctionAttribution(variableKey, attributionKey, lineNumber);
+        return;
+    }
+    //Verifies ERR_VARIABLE
+    if (resultVariable.valueFound.kind == variableKind) {
+        cout << "printVARIABLEAttribution" << endl;
+        //ErrorManager::printVectorAttribution(variableKey, attributionKey, lineNumber);
+        return;
+    }
+    //Verifies ERR_CHAR_TO_X
+    if (attributionNode->sType == charSType && resultVariable.valueFound.type != charSType) {
+        cout << "printCharToXAttribution" << endl;
+        //ErrorManager::printCharToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
+        return;
+    }
+    //Verifies ERR_STRING_VECTOR
+    if (resultVariable.valueFound.type == stringSType) {
+        cout << "ERR_STRING_VECTOR" << endl;
+        return;
+    }
+
+    //Verifies ERR_STRING_TO_X
+    if (attributionNode->sType == stringSType) {
+        cout << "printStringToXAttribution" << endl;
+        //ErrorManager::printStringToXAttribution(variableKey, attributionKey,  resultVariable.valueFound.type, lineNumber);
+        return;
+    }
+
+    //Verifies ERR_WRONG_TYPE
+    if (this->verifyCoersion(resultVariable.valueFound.type, attributionNode->sType) != SUCCESS) {
+        
+        cout << "printWrongTypeAttribution" << endl;
+        //ErrorManager::printWrongTypeAttribution(variableKey, attributionKey, 
+        //resultVariable.valueFound.type, 
+        //resultAttribution.valueFound.type, lineNumber);
+        return;
+    }
+
+    variableNode->sType = resultVariable.valueFound.type;
+    attributionSymbolNode->sType = resultVariable.valueFound.type;
+    indexerSymbolNode->sType = resultVariable.valueFound.type;
+
 }
 
 int SymbolTableStack::verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType) {
@@ -235,6 +355,14 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
     
     while (!this->variablesWithPendantTypes.empty()) {
         string varKey = this->variablesWithPendantTypes.front();
+
+        //VECTOR OF STRING ERROR
+        if (this->listOfTables.front().getValueForKey(varKey).kind == vectorKind && type == stringSType) {
+            cout << "VECTOR OF STRING ERROR" << endl;
+            //TODO: tira da tabela???
+            this->variablesWithPendantTypes.pop_front();
+            continue;
+        }
         this->listOfTables.front().updateType(varKey, type);
         this->variablesWithPendantTypes.pop_front();
     }
