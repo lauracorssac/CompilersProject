@@ -584,6 +584,8 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 }
 | TK_IDENTIFICADOR '(' ')' {
 	$$ = createNodeWithLexicalTypeAndValue(functionCallType, $1);
+
+	tableStack.makeFunctionCall($$, NULL);
 };
 FCALL1: EXPRESSION { $$ = $1; }
 | EXPRESSION ',' FCALL1 {

@@ -344,7 +344,6 @@ void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersN
     string variableKey = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
     SearchResult resultVariable = this->find(variableKey);
 
-    cout << "aqui"<< endl;
     //Verifies ERR_UNDECLARED
     if (!resultVariable.found) {
         cout << "function not found" << endl;
@@ -368,14 +367,13 @@ void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersN
     functionExpectedArg = resultVariable.valueFound.listOfParameters.begin();
     AST *functionCallArg = parametersNode;
 
+    // Verifies ERR MISSING ARGS
+    if (parametersNode == NULL && resultVariable.valueFound.listOfParameters.size() != 0) {
+        cout << "missing args" << endl;
+        return;
+    }
+   
     while(functionCallArg != NULL && functionExpectedArg != resultVariable.valueFound.listOfParameters.end()) {
-
-        cout << "functioncallArgType = ";
-        printSyntacticalType(functionCallArg->sType);
-        cout << endl;
-        cout << "functioncallArgType = ";
-        printSyntacticalType(functionExpectedArg->type);
-        cout << endl;
 
         // Verifies ERR WRONG TYPE ARGS
         if (verifyCoersion(functionCallArg->sType, functionExpectedArg->type) != SUCCESS) {
