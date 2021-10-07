@@ -501,10 +501,7 @@ LOCAL1: TYPE LOCAL2 {
 	prependChild(root, indentNode);
 	$$ = root;
 
-	tableStack.makeInitialization(indentNode, root, $4, get_line_number());
-	//root.type = type
-	//se for realizada uma coersão de tipo, o que tem que atualizar? Os nodos? A tabela de simbolos?
-	//se der wrong type, qual o tipo do OC_LE?
+	tableStack.makeInitialization(indentNode, root, $4);
 
 };
 

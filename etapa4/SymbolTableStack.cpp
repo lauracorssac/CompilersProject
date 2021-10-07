@@ -50,28 +50,33 @@ void SymbolTableStack::insertNewItem(string key, SymbolTableValue value) {
 }
 
 void SymbolTableStack::verifyVectorNode(AST *identificatorNode, AST *indexerSymbolNode, AST *indexerNode) {
+    
     LexicalValue *identificatorLV = identificatorNode->value;
     string variableKey = string(identificatorLV->literalTokenValueAndType.value.charSequenceValue);
     SearchResult resultVariable = this->find(variableKey);
     
     //Verifies ERR UNDECLARED
     if (!resultVariable.found) {
-        cout << "VARIABLE NOT FOUND" << endl;
+        ErrorManager::printLine(identificatorNode->value->lineNumber);
+        ErrorManager::errorElementNotFound(variableKey);
         return;
     }
     // Verifies ERR VARIABLE
     if (resultVariable.valueFound.kind == variableKind) {
-        cout << "ERR VARIABLE" << endl;
+        ErrorManager::printLine(identificatorNode->value->lineNumber);
+        ErrorManager::errorVariableVector(variableKey);
         return;
     }
     // Verifies ERR FUNCTION
     if (resultVariable.valueFound.kind == functionKind) {
-        cout << "ERR FUNCTION" << endl;
+        ErrorManager::printLine(identificatorNode->value->lineNumber);
+        ErrorManager::errorVariableFunction(variableKey);
         return;
     }
     // Verifies ERR WRONG TYPE no indexador
     if (this->verifyCoersion(indexerNode->sType, intSType) != SUCCESS) {
-        cout << "ERR WRONG TYPE" << endl;
+        ErrorManager::printLine(identificatorNode->value->lineNumber);
+        ErrorManager::errorWrongTypeExpression(intSType, indexerNode->sType);
         return;
     }
 
@@ -105,29 +110,35 @@ void SymbolTableStack::verifyIdentificatorNode(AST *identificatorNode) {
     
 }
 
-void SymbolTableStack::makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode, int lineNumber) {
+void SymbolTableStack::makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode) {
 
     string variableKey = string(variableNode->value->literalTokenValueAndType.value.charSequenceValue);
     string attributionKey = this->stringFromLiteralValue(initializationValueNode->value->literalTokenValueAndType);
     
     //this case happens when trying to initialize with unexistent variable
-    if (initializationValueNode->sType == undefinedSType) {
-        return;
+    if (initializationValueNode->sType == undefinedSType) { return; }
+
+    //Verifies ERR CHAR TO X
+    if (initializationValueNode->sType == charSType && variableNode->sType != charSType) {
+        ErrorManager::printLine(initializationValueNode->value->lineNumber);
+        ErrorManager::printAttributionError(variableKey, attributionKey);
+        ErrorManager::errorCharToX(variableKey, attributionKey, variableNode->sType);
     }
 
-    if (variableNode->sType == charSType && initializationValueNode->sType != charSType) {
-        ErrorManager::printCharToXAttribution(variableKey, attributionKey, variableNode->sType, lineNumber);
-        return;
+    //Verifies ERR STRING TO X
+    if (initializationValueNode->sType == stringSType && variableNode->sType != stringSType) {
+        ErrorManager::printLine(initializationValueNode->value->lineNumber);
+        ErrorManager::printAttributionError(variableKey, attributionKey);
+        ErrorManager::errorStringToX(variableKey, attributionKey, variableNode->sType);
     }
-    if (variableNode->sType == stringSType && initializationValueNode->sType != stringSType) {
-        ErrorManager::printStringToXAttribution(variableKey, attributionKey, variableNode->sType, lineNumber);
-        return;
-    }
+
+    //Verifies ERR WRONG TYPE
     if (this->verifyCoersion(variableNode->sType, initializationValueNode->sType) != SUCCESS) {
-        ErrorManager::printWrongTypeAttribution(variableKey, attributionKey, 
-        variableNode->sType, 
-        initializationValueNode->sType, lineNumber);
-        return;
+        
+        ErrorManager::printLine(initializationValueNode->value->lineNumber);
+        ErrorManager::printAttributionError(variableKey, attributionKey);
+        ErrorManager::errorWrongTypeNamed(attributionKey, variableNode->sType, initializationValueNode->sType);
+        
     }
   
     if (variableNode->sType == stringSType) {

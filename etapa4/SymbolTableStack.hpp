@@ -53,7 +53,7 @@ public:
     void makeAttributionVector(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, 
     AST *indexerSymbolNode, AST *indexerNode, int lineNumber);
     void makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, int lineNumber);
-    void makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode, int lineNumber);
+    void makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode);
     void makeFunctionCall(AST *identificatorNode, AST *parametersNode);
     void makeInput(AST *inputNode, AST *identifierNode);
     void makeOutputIdentifier(AST *outputNode, AST *identifierNode);
