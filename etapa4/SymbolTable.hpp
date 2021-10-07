@@ -28,6 +28,7 @@ class SymbolTable {
     unordered_map<string, SymbolTableValue> getTable();
     void updateType(string key, SyntacticalType type);
     void updateSizeString(string key, char *initializationString);
+    void updateParameters(list<Parameter> parameters, string functionIdentifier);
 };
 
 

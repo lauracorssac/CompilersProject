@@ -7,6 +7,7 @@
 #include "SymbolTable.hpp"
 #include "SymbolTableValue.hpp"
 #include <unordered_map>
+#include <list>
 
 SymbolTable::SymbolTable() {}
 
@@ -32,4 +33,7 @@ void SymbolTable::updateType(string key, SyntacticalType type) {
 }
 void SymbolTable::updateSizeString(string key, char *initializationString) {
 	this->symbolTable[key].size = getSizeForStringType(initializationString);
+}
+void SymbolTable::updateParameters(list<Parameter> parameters, string functionIdentifier) {
+	this->symbolTable[functionIdentifier].listOfParameters = parameters;
 }

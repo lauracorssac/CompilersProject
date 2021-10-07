@@ -339,6 +339,20 @@ void SymbolTableStack::makeOutputLiteral(AST *outputNode, AST *literalNode) {
 
 }
 
+void SymbolTableStack::makeShift(AST *shiftSumbolNode, AST *shiftLiteralNode) {
+    
+    int intValue = shiftLiteralNode->value->literalTokenValueAndType.value.integerValue;
+    
+    //Verifies ERR WRONG PAR SHIFT
+    if (intValue > 16) {
+        cout << "ERR WRONG PAR SHIFT" << endl;
+        return;
+    }
+
+    shiftSumbolNode->sType = intSType;
+    shiftLiteralNode->sType = intSType;
+}
+
 void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersNode) {
 
     string variableKey = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
@@ -398,8 +412,6 @@ void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersN
     identificatorNode->sType = resultVariable.valueFound.type;
 
 }
-
-
 
 int SymbolTableStack::verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType) {
 
@@ -479,10 +491,31 @@ void SymbolTableStack::insertFunction(int line, int column, AST *identificatorNo
         cout << "ERR FUNCTION STRING" << endl;
         return; //nao insere dai?
     }
-    SymbolTableValue newValue = createFunctionWithType(line, column, identificatorNode->value, sType, this->pendantParameters);
+    SymbolTableValue newValue = createFunctionWithTypeNoParameters(line, column, identificatorNode->value, sType);
     this->insertNewItem(key, newValue);
     identificatorNode->sType = sType;
+    this->lastDeclaredFunction = key;
 
+}
+
+void SymbolTableStack::makeReturn(AST *returnSymbolNode, AST *returnExpressionNode) {
+
+    SymbolTableValue functionValue = this->listOfTables.back().getValueForKey(lastDeclaredFunction);
+
+    //Verifies ERR WRONG PAR RETURN
+    if (this->verifyCoersion(returnExpressionNode->sType, functionValue.type) != SUCCESS) {
+        cout << "ERR WRONG PAR RETURN" << endl;
+        return;
+    }
+
+    returnSymbolNode->sType = functionValue.type;
+
+}
+
+void SymbolTableStack::updateFunctionWithPendantParameters() {
+
+    this->listOfTables.back().updateParameters(this->pendantParameters, this->lastDeclaredFunction);
+    this->pendantParameters.clear();
 }
 
 void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {

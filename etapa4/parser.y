@@ -139,6 +139,7 @@ extern SyntacticalType lastDeclaredType;
 %type<node> FUNC_PARAM_LIST
 %type<node> FUNC_BLOCK
 %type<node> FUNC3
+%type<node> FUNC_HEADER
 
 %type<node> LOCAL1
 %type<node> LOCAL2
@@ -389,18 +390,20 @@ GLOBAL3 : ';'
  */
 
 
-FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
-| FUNC1 { $$ = $1; };
-FUNC1: TYPE TK_IDENTIFICADOR FUNC3 {
-
+FUNC_HEADER: TYPE TK_IDENTIFICADOR {
 	AST *rootNode = createNodeWithLexicalTypeAndValue(functionType, $2);
 	tableStack.insertFunction($2->lineNumber, 0, rootNode, (SyntacticalType) $1);
-	appendChild(rootNode, $3);
 	$$ = rootNode;
+}
+FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
+| FUNC1 { $$ = $1; };
+FUNC1: FUNC_HEADER FUNC3 {
+	appendChild($1, $2);
+	$$ = $1;
 	
 };
 FUNC3: '(' ')' BLOCK  { $$ = $3; }
-| PARAM_LIST_BEGIN FUNC_PARAM_LIST ')' FUNC_BLOCK  { $$ = $4; };
+| PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK  { $$ = $4; };
 
 FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR { 
 	tableStack.insertParameterWithType(get_line_number(), 0, $2, (SyntacticalType) $1);
@@ -421,6 +424,7 @@ FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR {
 
 FUNC_BLOCK: '{' BLOCK1 {$$ = $2;};
 PARAM_LIST_BEGIN: '(' { tableStack.beginNewScope(); };
+PARAM_LIST_END: ')'  { tableStack.updateFunctionWithPendantParameters(); };
 
 
  /*    def BLOCK   
@@ -607,6 +611,9 @@ SHIFT: TK_IDENTIFICADOR opShift SHIFT1 {
 	appendChild($2, $3); //S2
 
 	$$ = $2; //opShift
+
+	tableStack.verifyIdentificatorNode(identNode);
+	tableStack.makeShift($2, $3);
 } 
 | TK_IDENTIFICADOR '[' EXPRESSION ']' opShift SHIFT1 { 
 
@@ -620,8 +627,13 @@ SHIFT: TK_IDENTIFICADOR opShift SHIFT1 {
 	appendChild($5, $6); //S2
 
 	$$ = $5; //opShift
+
+	tableStack.verifyVectorNode(identNode, indexerNode, $6);
+	tableStack.makeShift($5, $6);
 };
-SHIFT1: TK_LIT_INT { $$ = createNodeNoType($1); };
+SHIFT1: TK_LIT_INT { 
+	$$ = createNodeNoType($1);
+ };
 
 /*    def retorno break e continue    
 
@@ -634,6 +646,8 @@ RBC: TK_PR_RETURN EXPRESSION {
 	AST *rootNode = createNodeNoLexicalValue(returnType);
 	appendChild(rootNode, $2);
 	$$ = rootNode;
+
+	tableStack.makeReturn(rootNode, $2);
 }
 | TK_PR_CONTINUE {
 	$$ = createNodeNoLexicalValue(continueType);

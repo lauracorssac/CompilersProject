@@ -36,6 +36,7 @@ private:
     list<SymbolTable> listOfTables;
     void insertNewItem(string key, SymbolTableValue value);
     list<string> variablesWithPendantTypes;
+    string lastDeclaredFunction;
     list<Parameter> pendantParameters;
 
 public:
@@ -47,6 +48,7 @@ public:
     string stringFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     
+    void makeReturn(AST *returnSymbolNode, AST *returnExpressionNode);
     void verifyVectorNode(AST *identificatorNode, AST *indexerSymbolNode, AST *indexerNode);
     void makeAttributionVector(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, 
     AST *indexerSymbolNode, AST *indexerNode, int lineNumber);
@@ -56,6 +58,7 @@ public:
     void makeInput(AST *inputNode, AST *identifierNode);
     void makeOutputIdentifier(AST *outputNode, AST *identifierNode);
     void makeOutputLiteral(AST *outputNode, AST *literalNode);
+    void makeShift(AST *shiftSumbolNode, AST *shiftLiteralNode);
     void insertParameterWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
     void insertVectorWithPendantType(int line, int column, LexicalValue *lexicalValue, int indexerValue);
     void insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
@@ -64,6 +67,7 @@ public:
     void insertLiteral(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
     void updateTypeOfVariablesWithPendantTypes(SyntacticalType type);
     void printItself();
+    void updateFunctionWithPendantParameters();
     
     /*
         This function receiver a AST node which contains an lexical value of an identificator
