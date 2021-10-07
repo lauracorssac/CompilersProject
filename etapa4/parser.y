@@ -291,24 +291,33 @@ EXPRESSION: EXP1 { $$ = $1; }
 	appendChild(rootNode, $3);
 	appendChild(rootNode, $5);
 	$$ = rootNode;
+
+	tableStack.makeTernaryOperation($1, rootNode, $3, $5);
+
 };
 EXP1: EXP2 { $$ = $1; }
 | EXP1 opNivel9 EXP2 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP2: EXP3 { $$ = $1; }
 | EXP2 opNivel8 EXP3 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP3: EXP4 { $$ = $1; }
 | EXP3 opNivel7 EXP4 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP4: EXP5 { $$ = $1; }
  /* recursao invertida
@@ -318,41 +327,55 @@ EXP4: EXP5 { $$ = $1; }
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2; 
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP5: EXP6 { $$ = $1; }
 | EXP5 opNivel5 EXP6 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP6: EXP7 { $$ = $1; }
 | EXP6 opNivel4 EXP7 {
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP7: EXP8 { $$ = $1; }
 | EXP7 opNivel3 EXP8 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP8: EXP9 { $$ = $1; }
 | EXP8 opNivel2 EXP9 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
 };
 EXP9: EXP10 { $$ = $1; }
 | EXP9 opNivel1 EXP10 { 
 	appendChild($2, $1);
 	appendChild($2, $3);
 	$$ = $2;
+
+	tableStack.makeBinaryOperation($1, $2, $3);
  };
 EXP10: EXP11 { $$ = $1; }
 | opUnary EXP11 { 
 	appendChild($1, $2);
 	$$ = $1;
+
+	tableStack.makeUnaryOperation($2, $1);
 };
 EXP11: OPERAND { $$ = $1; }
 | '(' EXPRESSION ')' { 

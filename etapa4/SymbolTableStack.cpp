@@ -70,7 +70,7 @@ void SymbolTableStack::verifyVectorNode(AST *identificatorNode, AST *indexerSymb
         return;
     }
     // Verifies ERR WRONG TYPE no indexador
-    if (indexerNode->sType != intSType) {
+    if (this->verifyCoersion(indexerNode->sType, intSType) != SUCCESS) {
         cout << "ERR WRONG TYPE" << endl;
         return;
     }
@@ -78,7 +78,6 @@ void SymbolTableStack::verifyVectorNode(AST *identificatorNode, AST *indexerSymb
     identificatorNode->sType = resultVariable.valueFound.type;
     indexerSymbolNode->sType = resultVariable.valueFound.type;
 
-    
 }
 
 void SymbolTableStack::verifyIdentificatorNode(AST *identificatorNode) {
@@ -565,6 +564,74 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
         this->variablesWithPendantTypes.pop_front();
     }
 
+}
+
+SyntacticalType SymbolTableStack::getInferenceBinaryOperation(SyntacticalType type1, SyntacticalType type2) {
+
+    if (type1 == undefinedSType || type2 == undefinedSType) { return undefinedSType; } 
+
+    //Verifies STRING CHAR TO X
+    if (type1 == stringSType || type2 == stringSType) { 
+        cout << "ERR STRING TO X" << endl;
+        return undefinedSType; 
+    }
+
+    //Verifies ERR CHAR TO X
+    if (type1 == charSType || type2 == charSType) { 
+        cout << "ERR CHAR TO X" << endl;
+        return undefinedSType; 
+    }
+
+    if (type1 == type2) { return type1; }
+    if (type1 == floatSType || type2 == floatSType) { return floatSType; }
+    return intSType;
+
+}
+
+void SymbolTableStack::makeTernaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node, AST *exp3Node) {
+
+    SyntacticalType type1 = exp1Node->sType;
+    SyntacticalType type2 = exp2Node->sType;
+    SyntacticalType type3 = exp3Node->sType;
+
+    SyntacticalType partialType = this->getInferenceBinaryOperation(type1, type2);
+    SyntacticalType finalType = this->getInferenceBinaryOperation(partialType, type3);
+
+    if(finalType == undefinedSType) { return; }
+
+    operandNode->sType = finalType; 
+}
+
+void SymbolTableStack::makeBinaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node) {
+
+    SyntacticalType type1 = exp1Node->sType;
+    SyntacticalType type2 = exp2Node->sType;
+    SyntacticalType finalType = this->getInferenceBinaryOperation(type1, type2);
+
+    if(this->getInferenceBinaryOperation(type1, type2) == undefinedSType) {
+        return;
+    }
+
+    operandNode->sType = finalType; 
+}
+
+void SymbolTableStack::makeUnaryOperation(AST *exp1Node, AST *operandNode) {
+
+    SyntacticalType type1 = exp1Node->sType;
+    
+    //Verifies ERR CHAR TO X
+    if (type1 == charSType) {
+        cout << "ERR CHAR TO X" << endl;
+        return;
+    } 
+
+    //Verifies ERR STRING TO X
+    if (type1 == stringSType) {
+        cout << "ERR STRING TO X" << endl;
+        return;
+    }
+
+    operandNode->sType = type1;
 }
 
 void SymbolTableStack::printItself() {

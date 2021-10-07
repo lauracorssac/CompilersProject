@@ -68,6 +68,10 @@ public:
     void updateTypeOfVariablesWithPendantTypes(SyntacticalType type);
     void printItself();
     void updateFunctionWithPendantParameters();
+    void makeBinaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node);
+    void makeUnaryOperation(AST *exp1Node, AST *operandNode);
+    void makeTernaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node, AST *exp3Node);
+    SyntacticalType getInferenceBinaryOperation(SyntacticalType type1, SyntacticalType type2);
     
     /*
         This function receiver a AST node which contains an lexical value of an identificator
