@@ -536,7 +536,8 @@ TK_IDENTIFICADOR '=' ATT1 {
 	prependChild(rootNode, identNode);
 	$$ =  rootNode;
 
-	tableStack.makeAttributionVariable(identNode, rootNode, $3, get_line_number());
+	tableStack.verifyIdentificatorNode(identNode);
+	tableStack.makeAttributionVariable(identNode, rootNode, $3);
 
 }
 | TK_IDENTIFICADOR '[' EXPRESSION ']' '=' ATT1 { 

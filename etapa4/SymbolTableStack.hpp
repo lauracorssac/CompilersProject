@@ -45,14 +45,13 @@ public:
     SearchResult find(string element);
     void endLastScope();
     
-    string stringFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     
     void makeReturn(AST *returnSymbolNode, AST *returnExpressionNode);
     void verifyVectorNode(AST *identificatorNode, AST *indexerSymbolNode, AST *indexerNode);
     void makeAttributionVector(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, 
     AST *indexerSymbolNode, AST *indexerNode, int lineNumber);
-    void makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, int lineNumber);
+    void makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode);
     void makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode);
     void makeFunctionCall(AST *identificatorNode, AST *parametersNode);
     void makeInput(AST *inputNode, AST *identifierNode);

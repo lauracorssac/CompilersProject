@@ -6,12 +6,15 @@
 
 #include "SymbolTableValue.hpp"
 #include "ErrorManager.hpp"
+#include "Utils.hpp"
 
 #include <string>
 #include <iostream>
 
 extern "C" {
     #include "errors.h"
+    #include "AST.h"
+    #include "LexicalValue.h"
 }
 
 using namespace std;
@@ -59,11 +62,22 @@ void ErrorManager::errorStringToX(string variableKey, string attributionKey,
     
 }
 
-void ErrorManager::errorCharToX(string variableKey, string attributionKey, SyntacticalType variableType) {
-    cout << "Motivo: " << attributionKey  << " é do tipo char, que não pode ser convertido em nenhum tipo. No caso, " << variableKey << " é um ";
+string ErrorManager::stringFromExpression(AST *expressionNode) {
+   
+    if (expressionNode->value->tokenType == literalType || expressionNode->value->tokenType == identifierType) {
+        return stringFromLiteralValue(expressionNode->value->literalTokenValueAndType);
+    } else {
+       return "Expressão";
+    }
+}
+
+void ErrorManager::errorCharToX(string variableKey, AST *attributionNode, SyntacticalType variableType) {
+
+    string element = ErrorManager::stringFromExpression(attributionNode);
+    cout << element  << " é do tipo char, que não pode ser convertido em nenhum tipo. No caso, " << variableKey << " é um ";
     printSyntacticalType(variableType);
     cout << endl;
-     exit(ERR_CHAR_TO_X);
+    exit(ERR_CHAR_TO_X);
 }
 
 void ErrorManager::errorFunctionVector(string variableKey) {
@@ -96,21 +110,12 @@ void ErrorManager::errorVariableVector(string variableKey) {
     exit(ERR_VARIABLE);
 }
 
-void ErrorManager::errorWrongTypeNamed(string attributionKey, SyntacticalType expectedType, SyntacticalType givenType) {
+void ErrorManager::errorWrongType(AST *attributionNode, SyntacticalType expectedType) {
 
-    cout << attributionKey  << " possui tipo = ";
-    printSyntacticalType(givenType);
-    cout << " e não pode ser convertido para o tipo esperado = ";
-    printSyntacticalType(expectedType);
-    cout << endl;
-
-    exit(ERR_WRONG_TYPE);
-}
-
-void ErrorManager::errorWrongTypeExpression(SyntacticalType expectedType, SyntacticalType givenType) {
-
-    cout << "Expressão possui tipo = ";
-    printSyntacticalType(givenType);
+    string element = ErrorManager::stringFromExpression(attributionNode);
+    cout << element; 
+    cout << " possui tipo = ";
+    printSyntacticalType(attributionNode->sType);
     cout << " e não pode ser convertido para o tipo esperado = ";
     printSyntacticalType(expectedType);
     cout << endl;
