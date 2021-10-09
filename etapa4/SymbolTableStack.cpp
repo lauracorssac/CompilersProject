@@ -260,66 +260,43 @@ void SymbolTableStack::makeAttributionVector(AST *variableNode, AST *attribution
 
 void SymbolTableStack::makeInput(AST *inputNode, AST *identifierNode) {
     
-    string variableKey = string(identifierNode->value->literalTokenValueAndType.value.charSequenceValue);
-    SearchResult resultVariable = this->find(variableKey);
-
-    //Verifies ERR_UNDECLARED
-    if (!resultVariable.found) {
-        cout << "element not found" << endl;
-        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
-        return;
-    }
-
-    SyntacticalType typeFound = resultVariable.valueFound.type;
+    SyntacticalType type = identifierNode->sType;
     
     //Verifies ERR WRONG PAR INPUT
-    if (typeFound != intSType && typeFound != floatSType) {
-        cout << "ERR WRONG PAR INPUT" << endl;
-        return;
+    if (type != intSType && type != floatSType) {
+        ErrorManager::printLine(identifierNode->value->lineNumber);
+        ErrorManager::errorInput(identifierNode);
     }
 
-    inputNode->sType = typeFound;
-    identifierNode->sType = typeFound;
+    inputNode->sType = type;
 
 }
 
 void SymbolTableStack::makeOutputIdentifier(AST *outputNode, AST *identifierNode) {
     
-    string variableKey = string(identifierNode->value->literalTokenValueAndType.value.charSequenceValue);
-    SearchResult resultVariable = this->find(variableKey);
-
-    //Verifies ERR_UNDECLARED
-    if (!resultVariable.found) {
-        cout << "element not found" << endl;
-        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
-        return;
-    }
-
-    SyntacticalType typeFound = resultVariable.valueFound.type;
+    SyntacticalType type = identifierNode->sType;
     
     //Verifies ERR WRONG PAR INPUT
-    if (typeFound != intSType && typeFound != floatSType) {
-        cout << "ERR WRONG PAR OUTPUT" << endl;
-        return;
+    if (type != intSType && type != floatSType) {
+        ErrorManager::printLine(identifierNode->value->lineNumber);
+        ErrorManager::errorOutput(identifierNode);
     }
 
-    outputNode->sType = typeFound;
-    identifierNode->sType = typeFound;
+    outputNode->sType = type;
 
 }
 
 void SymbolTableStack::makeOutputLiteral(AST *outputNode, AST *literalNode) {
     
-    SyntacticalType typeFound = literalNode->sType;
+    SyntacticalType type = literalNode->sType;
     
     //Verifies ERR WRONG PAR INPUT
-    if (typeFound != intSType && typeFound != floatSType) {
-        cout << "ERR WRONG PAR OUTPUT" << endl;
-        return;
+    if (type != intSType && type != floatSType) {
+        ErrorManager::printLine(literalNode->value->lineNumber);
+        ErrorManager::errorOutput(literalNode);
     }
 
-    outputNode->sType = typeFound;
-    literalNode->sType = typeFound;
+    outputNode->sType = type;
 
 }
 
@@ -329,12 +306,11 @@ void SymbolTableStack::makeShift(AST *shiftSumbolNode, AST *shiftLiteralNode) {
     
     //Verifies ERR WRONG PAR SHIFT
     if (intValue > 16) {
-        cout << "ERR WRONG PAR SHIFT" << endl;
-        return;
+        ErrorManager::printLine(shiftSumbolNode->value->lineNumber);
+        ErrorManager::errorShift(shiftLiteralNode);
     }
 
     shiftSumbolNode->sType = intSType;
-    shiftLiteralNode->sType = intSType;
 }
 
 void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersNode) {

@@ -34,6 +34,9 @@ public:
     static void errorVariableFunction(string variableKey);
     static void errorVariableVector(string variableKey);
     static void errorWrongType(AST *attributionNode, SyntacticalType expectedType);
+    static void errorInput(AST *inputNode);
+    static void errorOutput(AST *outputNode);
+    static void errorShift(AST *shiftNode);
 };
 
 #endif

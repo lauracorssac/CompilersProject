@@ -122,3 +122,30 @@ void ErrorManager::errorWrongType(AST *attributionNode, SyntacticalType expected
 
     exit(ERR_WRONG_TYPE);
 }
+
+void ErrorManager::errorInput(AST *inputNode) {
+
+    string element = ErrorManager::stringFromExpression(inputNode);
+    cout << element << " não pode seguir comando input, pois possui tipo = ";
+    printSyntacticalType(inputNode->sType);
+    cout << " e esse comando somente aceita valores do tipo int e float." << endl;
+
+    exit(ERR_WRONG_PAR_INPUT);
+}
+
+void ErrorManager::errorOutput(AST *outputNode) {
+
+    string element = ErrorManager::stringFromExpression(outputNode);
+    cout << element << " não pode seguir comando output, pois possui tipo = ";
+    printSyntacticalType(outputNode->sType);
+    cout << " e esse comando somente aceita valores do tipo int e float." << endl;
+
+    exit(ERR_WRONG_PAR_OUTPUT);
+}
+
+void ErrorManager::errorShift(AST *shiftNode) {
+    string element = ErrorManager::stringFromExpression(shiftNode);
+    cout << "Não é possível realizar a operação de shift com " << element << ", pois ele possui valor maior que 16" << endl;
+    
+    exit(ERR_WRONG_PAR_SHIFT);
+}

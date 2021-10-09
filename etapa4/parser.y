@@ -94,6 +94,7 @@ extern SyntacticalType lastDeclaredType;
 %type<node> LITERALBOOL
 %type<node> OPERAND
 %type<node> EXPRESSION
+%type<node> DECIDENTIFIER
 
 %type<node> ATT
 %type<node> BLOCK
@@ -195,6 +196,11 @@ LITERALNUM: TK_LIT_INT { $$ = createNodeNoTypeWithSType($1, intSType); tableStac
 LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType);  }
 | TK_LIT_FALSE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); };
 
+/* Definição de um identificador declarado */
+DECIDENTIFIER: TK_IDENTIFICADOR { 
+	$$ = createNodeNoType($1); 
+	tableStack.verifyIdentificatorNode($$);
+}
 
  /* definicao comandos simples */
 
@@ -212,10 +218,7 @@ SIMPLECMD1: BLOCK { $$ = $1; }
 
  /* definicao operandos aceitos em expressoes */
 OPERAND: LITERALNUM { $$ = $1; }
-| TK_IDENTIFICADOR { 
-	$$ = createNodeNoType($1); 
-	tableStack.verifyIdentificatorNode($$);
-}
+| DECIDENTIFIER { $$ = $1; }
 | TK_IDENTIFICADOR '[' EXPRESSION ']' { 
 	AST *rootNode = createNodeNoLexicalValue(indexerType);
 	AST *identNode = createNodeNoType($1);
@@ -567,22 +570,20 @@ ATT1: EXPRESSION { $$ = $1; };
 IO: INPUT { $$ = $1; }
 | OUTPUT { $$ = $1; };
 
-INPUT: TK_PR_INPUT TK_IDENTIFICADOR { 
-	AST *inputNode = createNodeNoLexicalValue(inputType);
-	AST *identifier =  createNodeNoType($2);
-	appendChild(inputNode, identifier);
+INPUT: TK_PR_INPUT DECIDENTIFIER { 
+	AST *inputNode = createNodeNoLexicalValue(inputType); 
+	appendChild(inputNode, $2);
 	$$ = inputNode;
 
-	tableStack.makeInput(inputNode, identifier);
+	tableStack.makeInput(inputNode, $2);
 };
 
-OUTPUT: TK_PR_OUTPUT TK_IDENTIFICADOR { 
+OUTPUT: TK_PR_OUTPUT DECIDENTIFIER { 
 	AST *outputNode = createNodeNoLexicalValue(outputType);
-	AST *identifier =  createNodeNoType($2);
-	appendChild(outputNode, identifier);
+	appendChild(outputNode, $2);
 	$$ = outputNode;
 
-	tableStack.makeOutputIdentifier(outputNode, identifier);
+	tableStack.makeOutputIdentifier(outputNode, $2);
 }
 
 | TK_PR_OUTPUT LITERAL {
@@ -625,15 +626,13 @@ FCALL1: EXPRESSION { $$ = $1; }
 
  */
 
-SHIFT: TK_IDENTIFICADOR opShift SHIFT1 {
+SHIFT: DECIDENTIFIER opShift SHIFT1 {
 
-	AST *identNode = createNodeNoType($1);
-	appendChild($2, identNode); 
+	appendChild($2, $1); // IDENTIFIER
 	appendChild($2, $3); //S2
 
 	$$ = $2; //opShift
 
-	tableStack.verifyIdentificatorNode(identNode);
 	tableStack.makeShift($2, $3);
 } 
 | TK_IDENTIFICADOR '[' EXPRESSION ']' opShift SHIFT1 { 
