@@ -155,6 +155,7 @@ extern SyntacticalType lastDeclaredType;
 %type<node> PROGRAM
 %type<syntacticalType> TYPE
 
+
 %%
 
  /*    def programa    
@@ -402,7 +403,6 @@ GLOBAL2: TK_IDENTIFICADOR GLOBAL3 {
 | TK_IDENTIFICADOR '[' TK_LIT_INT ']' GLOBAL3 { 
 	int indexerValue = $3->literalTokenValueAndType.value.integerValue;
 	tableStack.insertVectorWithPendantType(get_line_number(), 0, $1, indexerValue);
-	//TODO: inserir aqui o literal int??
 };
  /*    terminais da global    */
 GLOBAL3 : ';' 

@@ -376,6 +376,7 @@ void SymbolTableStack::insertLiteral(int line, int column, LexicalValue *lexical
 }
 
 void SymbolTableStack::insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue) {
+    
     SymbolTableValue newValue = createVariableWithPendantType(line, column, lexicalValue);
     string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
     this->variablesWithPendantTypes.push_back(key);
@@ -385,15 +386,21 @@ void SymbolTableStack::insertVariableWithPendantType(int line, int column, Lexic
 void SymbolTableStack::insertFunction(int line, int column, AST *identificatorNode, SyntacticalType sType) {
     
     string key = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
-    if (this->find(key).found) { 
-        cout << "Não foi possível declarar. Funcao já declarada" << endl;
-        return; 
+    SearchResult searchResult = this->find(key);
+
+    //Verifies ERR DECLARED
+    if (searchResult.found) { 
+        ErrorManager::printLine(identificatorNode->value->lineNumber);
+        ErrorManager::errorDeclared(key, searchResult.valueFound);
     }
+    
     //Verifies ERR FUNCTION STRING
     if (sType == stringSType) {
-        cout << "ERR FUNCTION STRING" << endl;
-        return; //nao insere dai?
+        ErrorManager::printLine(identificatorNode->value->lineNumber);
+        ErrorManager::errorFunctionString(identificatorNode);
+
     }
+
     SymbolTableValue newValue = createFunctionWithTypeNoParameters(line, column, identificatorNode->value, sType);
     this->insertNewItem(key, newValue);
     identificatorNode->sType = sType;
@@ -407,8 +414,9 @@ void SymbolTableStack::makeReturn(AST *returnSymbolNode, AST *returnExpressionNo
 
     //Verifies ERR WRONG PAR RETURN
     if (this->verifyCoersion(returnExpressionNode->sType, functionValue.type) != SUCCESS) {
-        cout << "ERR WRONG PAR RETURN" << endl;
-        return;
+        ErrorManager::printLine(returnExpressionNode->value->lineNumber);
+        ErrorManager::errorReturn(returnExpressionNode, lastDeclaredFunction, 
+        functionValue.type, functionValue.line);
     }
 
     returnSymbolNode->sType = functionValue.type;
@@ -460,7 +468,6 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
         //VECTOR OF STRING ERROR
         if (this->listOfTables.front().getValueForKey(varKey).kind == vectorKind && type == stringSType) {
             cout << "VECTOR OF STRING ERROR" << endl;
-            //TODO: tira da tabela???
             this->variablesWithPendantTypes.pop_front();
             continue;
         }

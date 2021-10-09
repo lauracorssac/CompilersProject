@@ -10,6 +10,7 @@
 
 #include <string>
 #include <iostream>
+#include <cctype>
 
 extern "C" {
     #include "errors.h"
@@ -148,4 +149,26 @@ void ErrorManager::errorShift(AST *shiftNode) {
     cout << "Não é possível realizar a operação de shift com " << element << ", pois ele possui valor maior que 16" << endl;
     
     exit(ERR_WRONG_PAR_SHIFT);
+}
+
+void ErrorManager::errorFunctionString(AST *functionNode) {
+
+    string element = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+    cout << "Função " << element;
+    cout << " não pode ser declarada, pois possui tipo string e isso não é permitido nessa linguagem" << endl;
+    
+    exit(ERR_FUNCTION_STRING);
+}
+
+void ErrorManager::errorReturn(AST *returnNode, string functionName, SyntacticalType functionType, int functionLine) {
+
+    string element = ErrorManager::stringFromExpression(returnNode);
+    cout << element << " não pode ser suceder o comando return";
+    cout << ", pois possui tipo = ";
+    printSyntacticalType(returnNode->sType);
+    cout << ", não compatível com o esperado pela função " <<  functionName;
+    cout << ", declarada na linha " << functionLine << " com tipo = ";
+    printSyntacticalType(functionType);
+    
+    exit(ERR_WRONG_PAR_RETURN);
 }
