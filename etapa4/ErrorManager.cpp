@@ -33,7 +33,7 @@ void ErrorManager::printAttributionError(string variableKey, string attributionK
 }
 
 void ErrorManager::errorStringVector(string variableKey) {
-    cout << "Variável " << variableKey << " não pode ser declarada." << endl;
+    cout << "Vetor " << variableKey << " não pode ser declarado." << endl;
     cout << "Motivo: Não é permitido declaração de vetores de string." << endl;
     exit(ERR_STRING_VECTOR);
 }

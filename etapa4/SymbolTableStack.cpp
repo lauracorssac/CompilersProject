@@ -487,10 +487,11 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
         string varKey = this->variablesWithPendantTypes.front();
 
         //VECTOR OF STRING ERROR
-        if (this->listOfTables.front().getValueForKey(varKey).kind == vectorKind && type == stringSType) {
-            cout << "VECTOR OF STRING ERROR" << endl;
-            this->variablesWithPendantTypes.pop_front();
-            continue;
+        SymbolTableValue value = this->listOfTables.front().getValueForKey(varKey);
+        if (value.kind == vectorKind && type == stringSType) {
+            
+            ErrorManager::printLine(value.line);
+            ErrorManager::errorStringVector(varKey);
         }
         this->listOfTables.front().updateType(varKey, type);
         this->variablesWithPendantTypes.pop_front();
