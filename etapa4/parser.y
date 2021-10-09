@@ -518,7 +518,7 @@ LOCAL2: TK_IDENTIFICADOR {
 };
 
 /* valor da atribuicao */
-LOCAL4: TK_IDENTIFICADOR { $$ = createNodeNoType($1); tableStack.verifyIdentificatorNode($$); }
+LOCAL4: DECIDENTIFIER { $$ = $1; }
 | LITERAL { $$ = $1; };
 
 
@@ -555,7 +555,8 @@ TK_IDENTIFICADOR '=' ATT1 {
 	appendChild(rootNode, $6);
 	$$ = rootNode;
 
-	tableStack.makeAttributionVector(identNode, rootNode, $6, indexerNode, $3, get_line_number());
+	tableStack.verifyVectorNode(identNode, indexerNode, $3);
+	tableStack.makeAttributionVector(identNode, rootNode, $6, indexerNode);
 };
 ATT1: EXPRESSION { $$ = $1; };
 

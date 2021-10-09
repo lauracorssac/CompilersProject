@@ -71,7 +71,7 @@ void SymbolTableStack::verifyVectorNode(AST *identificatorNode, AST *indexerSymb
     // Verifies ERR FUNCTION
     if (resultVariable.valueFound.kind == functionKind) {
         ErrorManager::printLine(identificatorNode->value->lineNumber);
-        ErrorManager::errorVariableFunction(variableKey);
+        ErrorManager::errorFunctionVector(variableKey);
         return;
     }
     // Verifies ERR WRONG TYPE no indexador
@@ -189,72 +189,32 @@ void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributi
 
 }
 
-void SymbolTableStack::makeAttributionVector(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode, 
-    AST *indexerSymbolNode, AST *indexerNode, int lineNumber) {
+void SymbolTableStack::makeAttributionVector(AST *identifierNode, AST *attributionSymbolNode, AST *attributionNode, 
+    AST *indexerSymbolNode) {
 
-    string variableKey = string(variableNode->value->literalTokenValueAndType.value.charSequenceValue);
-    SearchResult resultVariable = this->find(variableKey);
+    string variableKey = string(identifierNode->value->literalTokenValueAndType.value.charSequenceValue);
 
-    //Verifies if indexerExp is int. If not, prints ERR_WRONG_TYPE
-    if (indexerNode->sType != intSType) {
-        cout << "indexer must be int" << endl;
-        return;
-    }
-
-    //this case happens when trying to initialize with unexistent variable or bad expression
-    if (attributionNode->sType == undefinedSType) {
-        return;
-    }
-    //Verifies ERR_UNDECLARED
-    if (!resultVariable.found) {
-        cout << "printElementNotFoundAttribution" << endl;
-        //ErrorManager::printElementNotFoundAttribution(variableKey, attributionKey, variableKey, lineNumber);
-        return;
-    }
-    //Verifies ERR_FUNCTION
-    if (resultVariable.valueFound.kind == functionKind) {
-        cout << "printFunctionAttribution" << endl;
-        //ErrorManager::printFunctionAttribution(variableKey, attributionKey, lineNumber);
-        return;
-    }
-    //Verifies ERR_VARIABLE
-    if (resultVariable.valueFound.kind == variableKind) {
-        cout << "printVARIABLEAttribution" << endl;
-        //ErrorManager::printVectorAttribution(variableKey, attributionKey, lineNumber);
-        return;
-    }
     //Verifies ERR_CHAR_TO_X
-    if (attributionNode->sType == charSType && resultVariable.valueFound.type != charSType) {
-        cout << "printCharToXAttribution" << endl;
-        //ErrorManager::printCharToXAttribution(variableKey, attributionKey, resultVariable.valueFound.type, lineNumber);
-        return;
-    }
-    //Verifies ERR_STRING_VECTOR
-    if (resultVariable.valueFound.type == stringSType) {
-        cout << "ERR_STRING_VECTOR" << endl;
-        return;
+    if (attributionNode->sType == charSType && indexerSymbolNode->sType != charSType) {
+        
+        ErrorManager::printLine(attributionNode->value->lineNumber);
+        ErrorManager::errorCharToX(variableKey, attributionNode, indexerSymbolNode->sType);
     }
 
     //Verifies ERR_STRING_TO_X
     if (attributionNode->sType == stringSType) {
-        cout << "printStringToXAttribution" << endl;
-        //ErrorManager::printStringToXAttribution(variableKey, attributionKey,  resultVariable.valueFound.type, lineNumber);
-        return;
+        ErrorManager::printLine(attributionNode->value->lineNumber);
+        string attKey = string(attributionNode->value->literalTokenValueAndType.value.charSequenceValue);
+        ErrorManager::errorStringToX(variableKey, attKey, indexerSymbolNode->sType);
     }
 
     //Verifies ERR_WRONG_TYPE
-    if (this->verifyCoersion(resultVariable.valueFound.type, attributionNode->sType) != SUCCESS) {
-        
-        cout << "printWrongTypeAttribution" << endl;
-        //ErrorManager::printWrongTypeAttribution(variableKey, attributionKey, 
-        //resultVariable.valueFound.type, 
-        //resultAttribution.valueFound.type, lineNumber);
-        return;
+    if (this->verifyCoersion(indexerSymbolNode->sType, attributionNode->sType) != SUCCESS) {
+        ErrorManager::printLine(attributionNode->value->lineNumber);
+        ErrorManager::errorWrongType(attributionNode, indexerSymbolNode->sType);
     }
 
-    variableNode->sType = resultVariable.valueFound.type;
-    attributionSymbolNode->sType = resultVariable.valueFound.type;
-    indexerSymbolNode->sType = resultVariable.valueFound.type;
+    attributionSymbolNode->sType = indexerSymbolNode->sType;
 
 }
 
