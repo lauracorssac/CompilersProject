@@ -486,7 +486,7 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
     while (!this->variablesWithPendantTypes.empty()) {
         string varKey = this->variablesWithPendantTypes.front();
 
-        //VECTOR OF STRING ERROR
+        //Verifies ERR VEC STRING
         SymbolTableValue value = this->listOfTables.front().getValueForKey(varKey);
         if (value.kind == vectorKind && type == stringSType) {
             
@@ -548,23 +548,18 @@ void SymbolTableStack::makeBinaryOperation(AST *exp1Node, AST *operandNode, AST 
     operandNode->sType = finalType; 
 }
 
-void SymbolTableStack::makeUnaryOperation(AST *exp1Node, AST *operandNode) {
+void SymbolTableStack::makeUnaryOperation(AST *exp1Node, AST *operatorSymbolNode) {
 
     SyntacticalType type1 = exp1Node->sType;
+    string key = stringFromLiteralValue(exp1Node->value->literalTokenValueAndType);
     
-    //Verifies ERR CHAR TO X
-    if (type1 == charSType) {
-        cout << "ERR CHAR TO X" << endl;
-        return;
+    //Verifies ERR CHAR TO X and STRING TO X
+    if (type1 == charSType || type1 == stringSType) {
+        ErrorManager::printLine(exp1Node->value->lineNumber);
+        ErrorManager::errorCharOrStringToXOperation(exp1Node, type1);
     } 
 
-    //Verifies ERR STRING TO X
-    if (type1 == stringSType) {
-        cout << "ERR STRING TO X" << endl;
-        return;
-    }
-
-    operandNode->sType = type1;
+    operatorSymbolNode->sType = type1;
 }
 
 void SymbolTableStack::printItself() {

@@ -27,6 +27,7 @@ public:
     static void errorElementNotFound(string undeclared);
     static void errorStringToX(string variableKey, string attributionKey, SyntacticalType variableType);
     static void errorCharToX(string variableKey, AST *attributionNode, SyntacticalType variableType);
+    static void errorCharOrStringToXOperation(AST *expressionNode, SyntacticalType type);
     static void errorFunctionVector(string variableKey);
     static void errorFunctionVariable(string variableKey);
     static void errorVectorFunction(string variableKey);

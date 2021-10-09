@@ -81,6 +81,21 @@ void ErrorManager::errorCharToX(string variableKey, AST *attributionNode, Syntac
     exit(ERR_CHAR_TO_X);
 }
 
+void ErrorManager::errorCharOrStringToXOperation(AST *expressionNode, SyntacticalType type) {
+
+    string element = ErrorManager::stringFromExpression(expressionNode);
+    cout << element  << " é do tipo ";
+    printSyntacticalType(type);
+    cout << ", que não pode ser operando de expressões. " << endl;
+    
+    if (type == charSType) {
+        exit(ERR_CHAR_TO_X);
+    } else {
+        exit(ERR_STRING_TO_X);
+    }
+    
+}
+
 void ErrorManager::errorFunctionVector(string variableKey) {
     cout << variableKey  << " é uma função e está sendo usada como vetor" << endl;
     exit(ERR_FUNCTION);

@@ -68,7 +68,7 @@ public:
     void printItself();
     void updateFunctionWithPendantParameters();
     void makeBinaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node);
-    void makeUnaryOperation(AST *exp1Node, AST *operandNode);
+    void makeUnaryOperation(AST *exp1Node, AST *operatorSymbolNode);
     void makeTernaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node, AST *exp3Node);
     SyntacticalType getInferenceBinaryOperation(SyntacticalType type1, SyntacticalType type2);
     int countNumberOfGivenParameters(AST *functionCallNode);
