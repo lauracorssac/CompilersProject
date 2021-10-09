@@ -398,11 +398,11 @@ GLOBAL1: TYPE GLOBAL2 {
 	tableStack.updateTypeOfVariablesWithPendantTypes(tipo);
 };
 GLOBAL2: TK_IDENTIFICADOR GLOBAL3 { 
-	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
+	tableStack.insertVariableWithPendantType($1->lineNumber, 0, $1);
 }
 | TK_IDENTIFICADOR '[' TK_LIT_INT ']' GLOBAL3 { 
 	int indexerValue = $3->literalTokenValueAndType.value.integerValue;
-	tableStack.insertVectorWithPendantType(get_line_number(), 0, $1, indexerValue);
+	tableStack.insertVectorWithPendantType($1->lineNumber, 0, $1, indexerValue);
 };
  /*    terminais da global    */
 GLOBAL3 : ';' 
@@ -498,7 +498,7 @@ LOCAL1: TYPE LOCAL2 {
 | TYPE TK_IDENTIFICADOR TK_OC_LE LOCAL4 { 
 	AST *root = createNodeWithLexicalTypeAndValue(initializerType, $3);
 	AST *indentNode = createNodeNoTypeWithSType($2, (SyntacticalType)$1);
-	tableStack.insertVariableWithType(get_line_number(), 0, $2, (SyntacticalType) $1);
+	tableStack.insertVariableWithType($2->lineNumber, 0, $2, (SyntacticalType) $1);
 	
 	appendChild(root, $4);
 	prependChild(root, indentNode);
@@ -509,11 +509,11 @@ LOCAL1: TYPE LOCAL2 {
 };
 
 LOCAL2: TK_IDENTIFICADOR { 
-	tableStack.insertVariableWithPendantType(get_line_number(), 0, $1);
+	tableStack.insertVariableWithPendantType($1->lineNumber, 0, $1);
 	$$ = NULL;
 } 
 | LOCAL2 ',' TK_IDENTIFICADOR { 
-	tableStack.insertVariableWithPendantType(get_line_number(), 0, $3);
+	tableStack.insertVariableWithPendantType($3->lineNumber, 0, $3);
 	$$ = NULL;
 };
 

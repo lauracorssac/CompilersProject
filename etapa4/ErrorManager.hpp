@@ -39,6 +39,11 @@ public:
     static void errorShift(AST *shiftNode);
     static void errorFunctionString(AST *functionNode);
     static void errorReturn(AST *returnNode, string functionName, SyntacticalType functionType, int functionLine);
+    static void errorFunctionStringParameter(string parameterName);
+    static void errorFunctionStringFunction(AST *functionNode);
+    
+    static void errorWrongQuantityParameters(AST *functionNode, int expectedQuantity, int givenQuantity);
+    static void errorWrongTypeParameters(AST *functionNode, SyntacticalType expectedType, int position, AST *givenParameter);
 
 };
 

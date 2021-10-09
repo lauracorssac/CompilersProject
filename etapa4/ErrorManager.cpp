@@ -169,6 +169,56 @@ void ErrorManager::errorReturn(AST *returnNode, string functionName, Syntactical
     cout << ", não compatível com o esperado pela função " <<  functionName;
     cout << ", declarada na linha " << functionLine << " com tipo = ";
     printSyntacticalType(functionType);
+    cout << endl;
     
     exit(ERR_WRONG_PAR_RETURN);
+}
+
+void ErrorManager::errorFunctionStringParameter(string parameterName) {
+
+    cout << parameterName << " não pode ser parâmetro de uma função, pois possui tipo string" << endl;
+    
+    exit(ERR_FUNCTION_STRING);
+}
+
+void ErrorManager::errorFunctionStringFunction(AST *functionNode) {
+
+    string element = ErrorManager::stringFromExpression(functionNode);
+    cout << element << " não pode ser declarada como uma função, pois possui tipo string" << endl;
+    exit(ERR_FUNCTION_STRING);
+}
+
+void ErrorManager::errorWrongQuantityParameters(AST *functionNode, int expectedQuantity, int givenQuantity) {
+
+    string element = ErrorManager::stringFromExpression(functionNode);
+    int line = functionNode->value->lineNumber;
+
+    cout << "Função " << element << " declarada na linha " << line << " espera " << expectedQuantity 
+    << " parâmetros, mas recebeu " << givenQuantity << endl;
+
+    if (expectedQuantity > givenQuantity) {
+        exit(ERR_MISSING_ARGS);
+    } else {
+        exit(ERR_EXCESS_ARGS);
+    }
+
+}
+
+void ErrorManager::errorWrongTypeParameters(AST *functionNode, SyntacticalType expectedType, int position, AST *givenParameter) {
+
+    string element = ErrorManager::stringFromExpression(functionNode);
+    string parameterName = ErrorManager::stringFromExpression(givenParameter);
+    SyntacticalType givenType = givenParameter->sType;
+    int line = functionNode->value->lineNumber;
+
+    cout << "Função " << element << " declarada na linha " << line << " espera um parâmetro do tipo ";
+    printSyntacticalType(expectedType);
+    cout << " na posição " << position
+    << ", mas recebeu " << parameterName << ", que possui tipo ";
+    printSyntacticalType(givenType);
+    cout << ", que não pode ser convertido para ";
+    printSyntacticalType(expectedType);
+    cout << endl;
+
+    exit(ERR_WRONG_TYPE_ARGS);
 }

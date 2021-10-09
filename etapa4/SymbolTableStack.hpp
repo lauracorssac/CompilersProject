@@ -71,6 +71,7 @@ public:
     void makeUnaryOperation(AST *exp1Node, AST *operandNode);
     void makeTernaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node, AST *exp3Node);
     SyntacticalType getInferenceBinaryOperation(SyntacticalType type1, SyntacticalType type2);
+    int countNumberOfGivenParameters(AST *functionCallNode);
     
     /*
         This function receiver a AST node which contains an lexical value of an identificator
