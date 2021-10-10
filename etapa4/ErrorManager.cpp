@@ -237,3 +237,22 @@ void ErrorManager::errorWrongTypeParameters(AST *functionNode, SyntacticalType e
 
     exit(ERR_WRONG_TYPE_ARGS);
 }
+
+void ErrorManager::errorMaxString(AST *variableNode, AST *attributionNode, int variableSize) {
+
+    string variableName = ErrorManager::stringFromExpression(variableNode);
+    string attributionName = ErrorManager::stringFromExpression(attributionNode);
+
+    int attSize = getSizeForStringType(attributionNode->value->literalTokenValueAndType.value.charSequenceValue);
+
+    cout << attributionName << " não pode ser atribuída a " << variableName << "pois possui tamanho = " 
+    << attSize << ", que é maior que o o tamanho máximo de " << variableName << " = " << variableSize
+    << endl;
+
+    exit(ERR_STRING_MAX);
+}
+
+void ErrorManager::errorException() {
+    cout << "Ocorreu algo imprevisto no código" << endl;
+    exit(GENERIC_ERROR);
+}

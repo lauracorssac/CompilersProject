@@ -1,3 +1,8 @@
+/*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+*/
 
 #include "SymbolTableStack.hpp"
 #include "SymbolTable.hpp"
@@ -43,6 +48,12 @@ SearchResult SymbolTableStack::find(string element) {
 }
 
 void SymbolTableStack::endLastScope() {
+
+    if (this->listOfTables.empty()) { return; }
+    SymbolTable lastScope = this->listOfTables.front();
+    for (pair<string, SymbolTableValue> kv : lastScope.getTable()) {
+        freeLexicalValue(kv.second.lexicalValue);
+    }
     this->listOfTables.pop_front();
 }
 void SymbolTableStack::insertNewItem(string key, SymbolTableValue value) {
@@ -150,6 +161,7 @@ void SymbolTableStack::makeInitialization(AST *variableNode, AST *initialization
 void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode) {
 
     string variableKey = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
+    string attKey = stringFromLiteralValue(attributionNode->value->literalTokenValueAndType);
     
     //Verifies ERR_CHAR_TO_X
     if (attributionNode->sType == charSType && variableNode->sType != charSType) {
@@ -160,20 +172,24 @@ void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributi
     //Verifies ERR_STRING_TO_X
     if (attributionNode->sType == stringSType && variableNode->sType != stringSType) {
         ErrorManager::printLine(attributionSymbolNode->value->lineNumber);
-        cout << "ERR_STRING_TO_X" << endl;
+        ErrorManager::errorStringToX(variableKey, attKey, variableNode->sType);
         return;
     }
 
     //ERR STRING MAX
     if (variableNode->sType == stringSType && attributionNode->sType == stringSType) {
 
+
         string attKey = stringFromLiteralValue(attributionNode->value->literalTokenValueAndType);
         SearchResult resultAttribution = this->find(attKey);
         SearchResult resultVariable = this->find(variableKey);
-        if (!resultVariable.found || !resultAttribution.found) { cout << "aaa" << endl; return; }
+        if (!resultVariable.found || !resultAttribution.found) { cout << "HEEEEE" << endl; return; }
+
         if (resultVariable.valueFound.size < resultAttribution.valueFound.size) {
-            cout << "MAX STRING ERROR" << endl;
-            return;
+            
+            ErrorManager::printLine(attributionNode->value->lineNumber);
+            ErrorManager::errorMaxString(variableNode, attributionNode, resultVariable.valueFound.size);
+
         }
     }
 
@@ -501,24 +517,25 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
 
 SyntacticalType SymbolTableStack::getInferenceBinaryOperation(SyntacticalType type1, SyntacticalType type2) {
 
-    if (type1 == undefinedSType || type2 == undefinedSType) { return undefinedSType; } 
-
-    //Verifies STRING CHAR TO X
-    if (type1 == stringSType || type2 == stringSType) { 
-        cout << "ERR STRING TO X" << endl;
-        return undefinedSType; 
-    }
-
-    //Verifies ERR CHAR TO X
-    if (type1 == charSType || type2 == charSType) { 
-        cout << "ERR CHAR TO X" << endl;
-        return undefinedSType; 
-    }
+    if (type1 == undefinedSType || type2 == undefinedSType 
+    || type1 == stringSType || type2 == stringSType ||
+    type1 == charSType || type2 == charSType) { return undefinedSType; } 
 
     if (type1 == type2) { return type1; }
     if (type1 == floatSType || type2 == floatSType) { return floatSType; }
     return intSType;
 
+}
+
+void SymbolTableStack::checkStringCharOperation(AST *exp1Node) {
+
+    SyntacticalType type1 = exp1Node->sType;
+
+    //Verifies ERR_STRING_TO_X and CHAR TO X
+    if (type1 == stringSType || type1 == charSType) { 
+        ErrorManager::printLine(exp1Node->value->lineNumber);
+        ErrorManager::errorCharOrStringToXOperation(exp1Node, type1);
+    }
 }
 
 void SymbolTableStack::makeTernaryOperation(AST *exp1Node, AST *operandNode, AST *exp2Node, AST *exp3Node) {
@@ -527,10 +544,14 @@ void SymbolTableStack::makeTernaryOperation(AST *exp1Node, AST *operandNode, AST
     SyntacticalType type2 = exp2Node->sType;
     SyntacticalType type3 = exp3Node->sType;
 
+    this->checkStringCharOperation(exp1Node);
+    this->checkStringCharOperation(exp2Node);
+    this->checkStringCharOperation(exp3Node);
+
     SyntacticalType partialType = this->getInferenceBinaryOperation(type1, type2);
     SyntacticalType finalType = this->getInferenceBinaryOperation(partialType, type3);
 
-    if(finalType == undefinedSType) { return; }
+    if(finalType == undefinedSType) { ErrorManager::errorException(); }
 
     operandNode->sType = finalType; 
 }
@@ -541,8 +562,11 @@ void SymbolTableStack::makeBinaryOperation(AST *exp1Node, AST *operandNode, AST 
     SyntacticalType type2 = exp2Node->sType;
     SyntacticalType finalType = this->getInferenceBinaryOperation(type1, type2);
 
+    this->checkStringCharOperation(exp1Node);
+    this->checkStringCharOperation(exp2Node);
+
     if(this->getInferenceBinaryOperation(type1, type2) == undefinedSType) {
-        return;
+        ErrorManager::errorException();
     }
 
     operandNode->sType = finalType; 
@@ -553,11 +577,7 @@ void SymbolTableStack::makeUnaryOperation(AST *exp1Node, AST *operatorSymbolNode
     SyntacticalType type1 = exp1Node->sType;
     string key = stringFromLiteralValue(exp1Node->value->literalTokenValueAndType);
     
-    //Verifies ERR CHAR TO X and STRING TO X
-    if (type1 == charSType || type1 == stringSType) {
-        ErrorManager::printLine(exp1Node->value->lineNumber);
-        ErrorManager::errorCharOrStringToXOperation(exp1Node, type1);
-    } 
+    this->checkStringCharOperation(exp1Node);
 
     operatorSymbolNode->sType = type1;
 }
@@ -568,7 +588,7 @@ void SymbolTableStack::printItself() {
     cout << "Printing total of " << this->listOfTables.size() << "tables" << endl;
     for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
         cout << "New Table:" << endl;
-        for (auto kv: it->getTable()) {
+        for (pair<string, SymbolTableValue> kv : it->getTable()) {
             cout << endl;
             cout << "Key: " << kv.first << " Value: " << endl;
             printValue(kv.second);
