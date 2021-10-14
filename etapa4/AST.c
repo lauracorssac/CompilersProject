@@ -6,6 +6,7 @@
 
 #include "AST.h"
 #include "LexicalValue.h"
+#include "ReleaseManager.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,8 +18,11 @@ AST* createNodeNoType(LexicalValue *value) {
     newNode.value = value;
     newNode.nodeType = noType;
     newNode.sType = undefinedSType;
+
+    value->referenceCounter += 1;
   
     AST *newNodePointer = malloc(sizeof(newNode));
+    insertNewNode(newNodePointer);
 
     *newNodePointer = newNode;
     return newNodePointer;
@@ -39,13 +43,13 @@ AST* createNodeNoLexicalValue(NodeType type) {
     newNode.sType = undefinedSType;
  
     AST *newNodePointer = malloc(sizeof(newNode));
+    insertNewNode(newNodePointer);
+
     *newNodePointer = newNode;
     return newNodePointer;
 }
 
 AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value) {
-    
-    AST *newNodePointer = malloc(sizeof(AST));
 
     AST newNode;
     newNode.nodeType = type;
@@ -53,6 +57,11 @@ AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value) {
     newNode.child = NULL;
     newNode.sister = NULL;
     newNode.sType = undefinedSType;
+
+    AST *newNodePointer = malloc(sizeof(AST));
+    insertNewNode(newNodePointer);
+    
+    value->referenceCounter += 1;
     
     *newNodePointer = newNode;
     return newNodePointer;

@@ -47,6 +47,9 @@ typedef struct LexicalValue
     // for non-literal tokens literalTokenValueAndType always assumes:
     // LiteralTokenType: charSequenceType
     // LiteralTokenValue: char * 
+   
+    /* counts references to the object so that it can be freed when and only when it has 0 references */
+    int referenceCounter;
     
 } LexicalValue;
 

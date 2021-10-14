@@ -47,17 +47,48 @@ SearchResult SymbolTableStack::find(string element) {
     return returnValue;
 }
 
+SearchResult SymbolTableStack::findInScope(string element) {
+
+    if (this->listOfTables.empty()) { return {.found= false }; }
+    SymbolTable currentScopeTable = this->listOfTables.front();
+    if(currentScopeTable.hasKey(element)) {
+            
+        SearchResult returnValue = { .found= true, .valueFound= currentScopeTable.getValueForKey(element) };
+        return returnValue;
+    }
+    return { .found= false };
+}
+
 void SymbolTableStack::endLastScope() {
 
     if (this->listOfTables.empty()) { return; }
     SymbolTable lastScope = this->listOfTables.front();
     for (pair<string, SymbolTableValue> kv : lastScope.getTable()) {
+        
         freeLexicalValue(kv.second.lexicalValue);
     }
     this->listOfTables.pop_front();
 }
+
+void SymbolTableStack::endAllScopes() {
+
+    if (this->listOfTables.empty()) { return; }
+    list<SymbolTable>::iterator it;
+    for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
+       for (pair<string, SymbolTableValue> kv : it->getTable()) {
+            freeLexicalValue(kv.second.lexicalValue);
+        }
+    }
+}
+
+
 void SymbolTableStack::insertNewItem(string key, SymbolTableValue value) {
     
+    SearchResult searchResult  = this->findInScope(key);
+    if (searchResult.found) {
+        freeLexicalValue(searchResult.valueFound.lexicalValue);
+    }
+
     this->listOfTables.front().insertNewItem(key, value);
 }
 
@@ -173,7 +204,6 @@ void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributi
     if (attributionNode->sType == stringSType && variableNode->sType != stringSType) {
         ErrorManager::printLine(attributionSymbolNode->value->lineNumber);
         ErrorManager::errorStringToX(variableKey, attKey, variableNode->sType);
-        return;
     }
 
     //ERR STRING MAX
@@ -307,7 +337,7 @@ void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersN
     //Verifies ERR_VARIABLE
     if (resultVariable.valueFound.kind == variableKind) {
         ErrorManager::printLine(identificatorNode->value->lineNumber);
-        ErrorManager::errorVectorFunction(variableKey);
+        ErrorManager::errorVariableFunction(variableKey);
     }
 
     list<Parameter>::iterator functionExpectedArg;
@@ -376,7 +406,7 @@ void SymbolTableStack::insertVectorWithPendantType(int line, int column,
 LexicalValue *lexicalValue, int indexerValue) {
 
     string key = stringFromLiteralValue(lexicalValue->literalTokenValueAndType);
-    SearchResult searchResult = this->find(key);
+    SearchResult searchResult = this->findInScope(key);
 
     //Verifies ERR DECLARED
     if (searchResult.found) { 
@@ -400,7 +430,7 @@ void SymbolTableStack::insertLiteral(int line, int column, LexicalValue *lexical
 void SymbolTableStack::insertVariableWithPendantType(int line, int column, LexicalValue *lexicalValue) {
 
     string key = stringFromLiteralValue(lexicalValue->literalTokenValueAndType);
-    SearchResult searchResult = this->find(key);
+    SearchResult searchResult = this->findInScope(key);
 
     //Verifies ERR DECLARED
     if (searchResult.found) { 
@@ -416,7 +446,7 @@ void SymbolTableStack::insertVariableWithPendantType(int line, int column, Lexic
 void SymbolTableStack::insertFunction(int line, int column, AST *identificatorNode, SyntacticalType sType) {
     
     string key = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
-    SearchResult searchResult = this->find(key);
+    SearchResult searchResult = this->findInScope(key);
 
     //Verifies ERR DECLARED
     if (searchResult.found) { 
@@ -462,7 +492,7 @@ void SymbolTableStack::updateFunctionWithPendantParameters() {
 void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
 
     string key = stringFromLiteralValue(lexicalValue->literalTokenValueAndType);
-    SearchResult searchResult = this->find(key);
+    SearchResult searchResult = this->findInScope(key);
     
     //Verifies ERR DECLARED
     if (searchResult.found) { 
@@ -485,7 +515,7 @@ void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValu
 void SymbolTableStack::insertVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
 
     string key = string(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
-    SearchResult searchResult = this->find(key);
+    SearchResult searchResult = this->findInScope(key);
 
     //Verifies ERR DECLARED
     if (searchResult.found) { 

@@ -19,6 +19,7 @@ extern "C" {
 }
 
 using namespace std;
+extern void executeShutDownRoutine();
 
 void ErrorManager::printLine(int line) {
     cout << "ERRO linha: " << line << endl;
@@ -35,13 +36,13 @@ void ErrorManager::printAttributionError(string variableKey, string attributionK
 void ErrorManager::errorStringVector(string variableKey) {
     cout << "Vetor " << variableKey << " não pode ser declarado." << endl;
     cout << "Motivo: Não é permitido declaração de vetores de string." << endl;
-    exit(ERR_STRING_VECTOR);
+    ErrorManager::shutDown(ERR_STRING_VECTOR);
 }
 
 void ErrorManager::errorDeclared(string variableKey, SymbolTableValue valueFound) {
     cout << "Não foi possível declarar " << variableKey << endl;
     cout << "Nome já foi declarado na linha " << valueFound.line << endl;
-    exit(ERR_DECLARED);
+    ErrorManager::shutDown(ERR_DECLARED);
 }
 
 // void ErrorManager::printElementsNotFoundAttribution(string variableKey, string attributionKey, int line) {
@@ -51,7 +52,7 @@ void ErrorManager::errorDeclared(string variableKey, SymbolTableValue valueFound
 
 void ErrorManager::errorElementNotFound(string undeclared) {
     cout << undeclared  << " não foi declarado " << endl;
-    exit(ERR_UNDECLARED);
+    ErrorManager::shutDown(ERR_UNDECLARED);
 }
 
 void ErrorManager::errorStringToX(string variableKey, string attributionKey,
@@ -59,7 +60,7 @@ void ErrorManager::errorStringToX(string variableKey, string attributionKey,
     cout << attributionKey  << " é do tipo string, que não pode ser convertido em nenhum tipo. No caso, " << variableKey << " é um ";
     printSyntacticalType(variableType);
     cout << endl;
-    exit(ERR_STRING_TO_X);
+    ErrorManager::shutDown(ERR_STRING_TO_X);
     
 }
 
@@ -78,7 +79,7 @@ void ErrorManager::errorCharToX(string variableKey, AST *attributionNode, Syntac
     cout << element  << " é do tipo char, que não pode ser convertido em nenhum tipo. No caso, " << variableKey << " é um ";
     printSyntacticalType(variableType);
     cout << endl;
-    exit(ERR_CHAR_TO_X);
+    ErrorManager::shutDown(ERR_CHAR_TO_X);
 }
 
 void ErrorManager::errorCharOrStringToXOperation(AST *expressionNode, SyntacticalType type) {
@@ -89,41 +90,41 @@ void ErrorManager::errorCharOrStringToXOperation(AST *expressionNode, Syntactica
     cout << ", que não pode ser operando de expressões. " << endl;
     
     if (type == charSType) {
-        exit(ERR_CHAR_TO_X);
+        ErrorManager::shutDown(ERR_CHAR_TO_X);
     } else {
-        exit(ERR_STRING_TO_X);
+        ErrorManager::shutDown(ERR_STRING_TO_X);
     }
     
 }
 
 void ErrorManager::errorFunctionVector(string variableKey) {
     cout << variableKey  << " é uma função e está sendo usada como vetor" << endl;
-    exit(ERR_FUNCTION);
+    ErrorManager::shutDown(ERR_FUNCTION);
 }
 
 void ErrorManager::errorFunctionVariable(string variableKey) {
     cout << variableKey  << " é uma função e está sendo usada como variável" << endl;
-    exit(ERR_FUNCTION);
+    ErrorManager::shutDown(ERR_FUNCTION);
 }
 
 void ErrorManager::errorVectorFunction(string variableKey) {
     cout << variableKey  << " é um vetor e está sendo usada como função" << endl;
-    exit(ERR_VECTOR);
+    ErrorManager::shutDown(ERR_VECTOR);
 }
 
 void ErrorManager::errorVectorVariable(string variableKey) {
     cout << variableKey  << " é um vetor e está sendo usada como variável" << endl;
-    exit(ERR_VECTOR);
+    ErrorManager::shutDown(ERR_VECTOR);
 }
 
 void ErrorManager::errorVariableFunction(string variableKey) {
     cout << variableKey  << " é uma variável e está sendo usada como função" << endl;
-    exit(ERR_VARIABLE);
+    ErrorManager::shutDown(ERR_VARIABLE);
 }
 
 void ErrorManager::errorVariableVector(string variableKey) {
     cout << variableKey  << " é uma variável e está sendo usada como vetor" << endl;
-    exit(ERR_VARIABLE);
+    ErrorManager::shutDown(ERR_VARIABLE);
 }
 
 void ErrorManager::errorWrongType(AST *attributionNode, SyntacticalType expectedType) {
@@ -136,7 +137,7 @@ void ErrorManager::errorWrongType(AST *attributionNode, SyntacticalType expected
     printSyntacticalType(expectedType);
     cout << endl;
 
-    exit(ERR_WRONG_TYPE);
+    ErrorManager::shutDown(ERR_WRONG_TYPE);
 }
 
 void ErrorManager::errorInput(AST *inputNode) {
@@ -146,7 +147,7 @@ void ErrorManager::errorInput(AST *inputNode) {
     printSyntacticalType(inputNode->sType);
     cout << " e esse comando somente aceita valores do tipo int e float." << endl;
 
-    exit(ERR_WRONG_PAR_INPUT);
+    ErrorManager::shutDown(ERR_WRONG_PAR_INPUT);
 }
 
 void ErrorManager::errorOutput(AST *outputNode) {
@@ -156,14 +157,14 @@ void ErrorManager::errorOutput(AST *outputNode) {
     printSyntacticalType(outputNode->sType);
     cout << " e esse comando somente aceita valores do tipo int e float." << endl;
 
-    exit(ERR_WRONG_PAR_OUTPUT);
+    ErrorManager::shutDown(ERR_WRONG_PAR_OUTPUT);
 }
 
 void ErrorManager::errorShift(AST *shiftNode) {
     string element = ErrorManager::stringFromExpression(shiftNode);
     cout << "Não é possível realizar a operação de shift com " << element << ", pois ele possui valor maior que 16" << endl;
     
-    exit(ERR_WRONG_PAR_SHIFT);
+    ErrorManager::shutDown(ERR_WRONG_PAR_SHIFT);
 }
 
 void ErrorManager::errorFunctionString(AST *functionNode) {
@@ -172,7 +173,7 @@ void ErrorManager::errorFunctionString(AST *functionNode) {
     cout << "Função " << element;
     cout << " não pode ser declarada, pois possui tipo string e isso não é permitido nessa linguagem" << endl;
     
-    exit(ERR_FUNCTION_STRING);
+    ErrorManager::shutDown(ERR_FUNCTION_STRING);
 }
 
 void ErrorManager::errorReturn(AST *returnNode, string functionName, SyntacticalType functionType, int functionLine) {
@@ -186,21 +187,21 @@ void ErrorManager::errorReturn(AST *returnNode, string functionName, Syntactical
     printSyntacticalType(functionType);
     cout << endl;
     
-    exit(ERR_WRONG_PAR_RETURN);
+    ErrorManager::shutDown(ERR_WRONG_PAR_RETURN);
 }
 
 void ErrorManager::errorFunctionStringParameter(string parameterName) {
 
     cout << parameterName << " não pode ser parâmetro de uma função, pois possui tipo string" << endl;
     
-    exit(ERR_FUNCTION_STRING);
+    ErrorManager::shutDown(ERR_FUNCTION_STRING);
 }
 
 void ErrorManager::errorFunctionStringFunction(AST *functionNode) {
 
     string element = ErrorManager::stringFromExpression(functionNode);
     cout << element << " não pode ser declarada como uma função, pois possui tipo string" << endl;
-    exit(ERR_FUNCTION_STRING);
+    ErrorManager::shutDown(ERR_FUNCTION_STRING);
 }
 
 void ErrorManager::errorWrongQuantityParameters(AST *functionNode, int expectedQuantity, int givenQuantity) {
@@ -212,9 +213,9 @@ void ErrorManager::errorWrongQuantityParameters(AST *functionNode, int expectedQ
     << " parâmetros, mas recebeu " << givenQuantity << endl;
 
     if (expectedQuantity > givenQuantity) {
-        exit(ERR_MISSING_ARGS);
+        ErrorManager::shutDown(ERR_MISSING_ARGS);
     } else {
-        exit(ERR_EXCESS_ARGS);
+        ErrorManager::shutDown(ERR_EXCESS_ARGS);
     }
 
 }
@@ -235,7 +236,7 @@ void ErrorManager::errorWrongTypeParameters(AST *functionNode, SyntacticalType e
     printSyntacticalType(expectedType);
     cout << endl;
 
-    exit(ERR_WRONG_TYPE_ARGS);
+    ErrorManager::shutDown(ERR_WRONG_TYPE_ARGS);
 }
 
 void ErrorManager::errorMaxString(AST *variableNode, AST *attributionNode, int variableSize) {
@@ -249,10 +250,15 @@ void ErrorManager::errorMaxString(AST *variableNode, AST *attributionNode, int v
     << attSize << ", que é maior que o o tamanho máximo de " << variableName << " = " << variableSize
     << endl;
 
-    exit(ERR_STRING_MAX);
+    ErrorManager::shutDown(ERR_STRING_MAX);
 }
 
 void ErrorManager::errorException() {
     cout << "Ocorreu algo imprevisto no código" << endl;
-    exit(GENERIC_ERROR);
+    ErrorManager::shutDown(GENERIC_ERROR);
+}
+
+void ErrorManager::shutDown(int errorCode) {
+    executeShutDownRoutine();
+    exit(errorCode);
 }

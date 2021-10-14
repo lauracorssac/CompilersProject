@@ -43,7 +43,9 @@ public:
     SymbolTableStack();
     void beginNewScope();
     SearchResult find(string element);
+    SearchResult findInScope(string element);
     void endLastScope();
+    void endAllScopes();
     
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     

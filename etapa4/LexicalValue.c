@@ -22,6 +22,7 @@ void print_lexical_value(LexicalValue lexicalValue) {
 
     print_literal_value(lexicalValue.literalTokenValueAndType);
     printf("\n");
+
 }
 
 /* funcao usada para printar o valor literal */
@@ -70,7 +71,7 @@ LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralT
     LiteralTokenType litType = type;
     LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
     TokenType tokenType = literalType;
-    LexicalValue lexicalValue = { lineCounter, tokenType, literalTokenValueAndType };
+    LexicalValue lexicalValue = { lineCounter, tokenType, literalTokenValueAndType, 0 };
     
     LexicalValue *valor_lexico = malloc(sizeof(lexicalValue)); 
     *valor_lexico = lexicalValue;
@@ -90,7 +91,9 @@ LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, Token
     LiteralTokenValueAndType literalTokenValueAndType = { litValue, litType };
     
     TokenType tokenType = type;
-    LexicalValue lexicalValue = { lineCounter, tokenType, literalTokenValueAndType };
+    LexicalValue lexicalValue = { .lineNumber=lineCounter, .tokenType= tokenType,
+     .literalTokenValueAndType= literalTokenValueAndType, 
+     .referenceCounter=0 };
     
     LexicalValue *valor_lexico = malloc(sizeof(lexicalValue)); 
     *valor_lexico = lexicalValue;
@@ -101,9 +104,11 @@ LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, Token
  /* remove valor lexico. Caso tenha uma string armazenada, remove ela também. */
 void freeLexicalValue(LexicalValue *lexicalValue) {
 
-    if (lexicalValue == NULL) { return; }
+    if (lexicalValue == NULL ) { return; }
+    lexicalValue->referenceCounter -= 1;
 
-    if (lexicalValue->literalTokenValueAndType.type == charSequenceType) {
+    if (lexicalValue->referenceCounter > 0) { return; }
+    if (lexicalValue->literalTokenValueAndType.type == charSequenceType && lexicalValue->literalTokenValueAndType.value.charSequenceValue != NULL) {
         free(lexicalValue->literalTokenValueAndType.value.charSequenceValue);
     }
 

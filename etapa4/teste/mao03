@@ -4,6 +4,5 @@ int f() {
     int b;
     float c;
     bool d;
-    a = b + c * d;
-    return 0;
+    a = 2;
 }

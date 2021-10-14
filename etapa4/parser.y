@@ -537,7 +537,7 @@ TK_IDENTIFICADOR '=' ATT1 {
 	
 	appendChild(rootNode, $3);
 	prependChild(rootNode, identNode);
-	$$ =  rootNode;
+	$$ = rootNode;
 
 	tableStack.verifyIdentificatorNode(identNode);
 	tableStack.makeAttributionVariable(identNode, rootNode, $3);
