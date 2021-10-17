@@ -217,7 +217,6 @@ DECVECTOR: TK_IDENTIFICADOR '[' EXPRESSION ']' {
 }
 
  /* definicao comandos simples */
-
 SIMPLECMD: SIMPLECMD1 ';' { $$ = $1; }; 
 SIMPLECMD1: BLOCK { $$ = $1; }
 | LOCAL { $$ = $1; }

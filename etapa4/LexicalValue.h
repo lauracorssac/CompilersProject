@@ -49,6 +49,8 @@ typedef struct LexicalValue
     // LiteralTokenValue: char * 
    
     /* counts references to the object so that it can be freed when and only when it has 0 references */
+    /* when a node or an entry in the symbol table is created, this counter is incremented */
+    /* if those are released, this counter is decrementes */
     int referenceCounter;
     
 } LexicalValue;

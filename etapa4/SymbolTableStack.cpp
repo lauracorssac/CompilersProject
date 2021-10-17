@@ -35,7 +35,7 @@ SearchResult SymbolTableStack::find(string element) {
 
     list<SymbolTable>::iterator it;
     for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
-        if(it->hasKey(element)) {
+        if(it->hasKeyVariables(element)) {
             
             SearchResult returnValue = { .found= true, .valueFound= it->getValueForKey(element) };
             return returnValue;
@@ -51,7 +51,7 @@ SearchResult SymbolTableStack::findInScope(string element) {
 
     if (this->listOfTables.empty()) { return {.found= false }; }
     SymbolTable currentScopeTable = this->listOfTables.front();
-    if(currentScopeTable.hasKey(element)) {
+    if(currentScopeTable.hasKeyVariables(element)) {
             
         SearchResult returnValue = { .found= true, .valueFound= currentScopeTable.getValueForKey(element) };
         return returnValue;
@@ -63,7 +63,13 @@ void SymbolTableStack::endLastScope() {
 
     if (this->listOfTables.empty()) { return; }
     SymbolTable lastScope = this->listOfTables.front();
-    for (pair<string, SymbolTableValue> kv : lastScope.getTable()) {
+    /* frees identifiers's table */
+    for (pair<string, SymbolTableValue> kv : lastScope.getTableVariables()) {
+        
+        freeLexicalValue(kv.second.lexicalValue);
+    }
+    /* frees literals's table */
+    for (pair<string, SymbolTableValue> kv : lastScope.getTableLiterals()) {
         
         freeLexicalValue(kv.second.lexicalValue);
     }
@@ -75,7 +81,12 @@ void SymbolTableStack::endAllScopes() {
     if (this->listOfTables.empty()) { return; }
     list<SymbolTable>::iterator it;
     for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
-       for (pair<string, SymbolTableValue> kv : it->getTable()) {
+        /* frees identifiers's table */
+       for (pair<string, SymbolTableValue> kv : it->getTableVariables()) {
+            freeLexicalValue(kv.second.lexicalValue);
+        }
+        /* frees literals's table */
+        for (pair<string, SymbolTableValue> kv : it->getTableLiterals()) {
             freeLexicalValue(kv.second.lexicalValue);
         }
     }
@@ -84,11 +95,6 @@ void SymbolTableStack::endAllScopes() {
 
 void SymbolTableStack::insertNewItem(string key, SymbolTableValue value) {
     
-    SearchResult searchResult  = this->findInScope(key);
-    if (searchResult.found) {
-        freeLexicalValue(searchResult.valueFound.lexicalValue);
-    }
-
     this->listOfTables.front().insertNewItem(key, value);
 }
 
@@ -213,7 +219,7 @@ void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributi
         string attKey = stringFromLiteralValue(attributionNode->value->literalTokenValueAndType);
         SearchResult resultAttribution = this->find(attKey);
         SearchResult resultVariable = this->find(variableKey);
-        if (!resultVariable.found || !resultAttribution.found) { cout << "HEEEEE" << endl; return; }
+        if (!resultVariable.found || !resultAttribution.found) { ErrorManager::errorException(); }
 
         if (resultVariable.valueFound.size < resultAttribution.valueFound.size) {
             
@@ -618,7 +624,12 @@ void SymbolTableStack::printItself() {
     cout << "Printing total of " << this->listOfTables.size() << "tables" << endl;
     for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
         cout << "New Table:" << endl;
-        for (pair<string, SymbolTableValue> kv : it->getTable()) {
+        for (pair<string, SymbolTableValue> kv : it->getTableVariables()) {
+            cout << endl;
+            cout << "Key: " << kv.first << " Value: " << endl;
+            printValue(kv.second);
+        }
+        for (pair<string, SymbolTableValue> kv : it->getTableLiterals()) {
             cout << endl;
             cout << "Key: " << kv.first << " Value: " << endl;
             printValue(kv.second);

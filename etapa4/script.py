@@ -20,6 +20,7 @@ errorDic = {
 "ERR_WRONG_PAR_OUTPUT":51,
 "ERR_WRONG_PAR_RETURN":52,
 "ERR_WRONG_PAR_SHIFT":53,
+"SUCCESS": 0
 }
 
 os.system("make --silent")
