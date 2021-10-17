@@ -23,7 +23,7 @@ errorDic = {
 "SUCCESS": 0
 }
 
-os.system("make --silent")
+os.system("cd etapa4 && make --silent")
 
 failed = []
 errors_code = [10, 11, 20, 21, 22, 30, 31, 32, 33, 34, 40, 41, 42, 43, 50, 51, 52, ]
@@ -36,7 +36,7 @@ def execute(fileName):
     line = f.readline().strip()
     shouldReturnError = line.startswith("//")
     errorName = line[2:]
-    command = "./etapa4 < " + fileName + " > saida.txt"
+    command = "./etapa4/etapa4 < " + fileName + " > saida.txt"
     exitCode = subprocess.call(command, shell=True)
     print("ExitCode", str(exitCode))
     
@@ -49,14 +49,14 @@ def execute(fileName):
         print("FALHOU!")
 
 for i in range(0,100):
-    fileName = "teste/kal"
+    fileName = "testeE4/kal"
     if i < 10:
         fileName += "0"
     fileName += str(i)
     execute(fileName)
     
 for i in range(1,10):
-    fileName = "teste/mao0"
+    fileName = "testeE4/mao0"
     fileName += str(i)
     execute(fileName)
     

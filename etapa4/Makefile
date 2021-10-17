@@ -16,13 +16,13 @@ main:
 
 clean:
 	rm -f -r .vscode
-	rm -f lex.yy.c parser.tab.c lex.yy.c
+	rm -f lex.yy.c parser.tab.c lex.yy.cc
 	rm -f *.o
 	rm -f *.output
 	rm -f etapa4.tgz
 	rm -f -r etapa4
 	rm -f parser.tab.h
-	rm -f saida
+	rm -f saida saida.txt
 deliver:
 	make clean
 	tar cvzf etapa4.tgz .
