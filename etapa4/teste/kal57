@@ -1,4 +1,4 @@
-//ERR_CHAR_TO_X
+//ERR_WRONG_TYPE
 int f() {
     char a <= 'o';
     a = 3.2;

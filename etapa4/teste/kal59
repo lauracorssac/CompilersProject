@@ -1,6 +1,7 @@
-//ERR_CHAR_TO_X
+//ERR_STRING_TO_X
 int f() {
     char a <= 'o';
-    a = "universo";
+    string universo;
+    a = universo;
     return 0;
 }

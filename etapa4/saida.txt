@@ -1,2 +1,2 @@
 ERRO linha: 2
-Função g não pode ser declarada, pois possui tipo string e isso não é permitido nessa linguagem
+oi não pode ser parâmetro de uma função, pois possui tipo string

@@ -1,6 +1,7 @@
-//ERR_WRONG_TYPE
+//ERR_STRING_TO_X
 float v[30];
 int f() {
-    v[2] = "universo";
+    string universo;
+    v[2] = universo;
     return 0;
 }

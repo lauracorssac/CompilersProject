@@ -29,11 +29,13 @@ errors_code = [10, 11, 20, 21, 22, 30, 31, 32, 33, 34, 40, 41, 42, 43, 50, 51, 5
 
 def execute(fileName):
     print("FileName = ", fileName)
+    if not os.path.exists(fileName):
+        return
     f = open(fileName, "r")
     line = f.readline().strip()
     shouldReturnError = line.startswith("//")
     errorName = line[2:]
-    command = "valgrind ./etapa4 < " + fileName + " > saida.txt"
+    command = "./etapa4 < " + fileName + " > saida.txt"
     exitCode = subprocess.call(command, shell=True)
     print("ExitCode", str(exitCode))
     

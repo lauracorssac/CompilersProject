@@ -235,10 +235,10 @@ void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributi
 
 }
 
-void SymbolTableStack::makeAttributionVector(AST *identifierNode, AST *attributionSymbolNode, AST *attributionNode, 
+void SymbolTableStack::makeAttributionVector(AST *attributionSymbolNode, AST *attributionNode, 
     AST *indexerSymbolNode) {
 
-    string variableKey = string(identifierNode->value->literalTokenValueAndType.value.charSequenceValue);
+    string variableKey = stringFromLiteralValue(indexerSymbolNode->child->value->literalTokenValueAndType);
 
     //Verifies ERR_CHAR_TO_X
     if (attributionNode->sType == charSType && indexerSymbolNode->sType != charSType) {
@@ -308,10 +308,10 @@ void SymbolTableStack::makeOutputLiteral(AST *outputNode, AST *literalNode) {
 
 void SymbolTableStack::makeShift(AST *shiftSumbolNode, AST *shiftLiteralNode) {
     
-    int intValue = shiftLiteralNode->value->literalTokenValueAndType.value.integerValue;
+    int intValueLeft = shiftLiteralNode->value->literalTokenValueAndType.value.integerValue;
     
     //Verifies ERR WRONG PAR SHIFT
-    if (intValue > 16) {
+    if (intValueLeft > 16) {
         ErrorManager::printLine(shiftSumbolNode->value->lineNumber);
         ErrorManager::errorShift(shiftLiteralNode);
     }

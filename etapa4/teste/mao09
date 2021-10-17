@@ -1,7 +1,2 @@
-//ERR_WRONG_TYPE
-string g() { return "universo"; }
-int f() {
-    int a;
-    a = g();
-    return 0;
-}
+//ERR_FUNCTION_STRING
+char g(string oi) { }

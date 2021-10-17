@@ -1,6 +1,7 @@
-//ERR_WRONG_TYPE
+//ERR_STRING_TO_X
 int f() {
     int a;
-    a = "universo";
+    string universo;
+    a = universo;
     return 0;
 }

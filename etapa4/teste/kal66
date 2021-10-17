@@ -1,4 +1,4 @@
-//ERR_WRONG_TYPE_ARGS
+//ERR_FUNCTION_STRING
 int g(string a) { return 0; }
 int f() {
     g(4);

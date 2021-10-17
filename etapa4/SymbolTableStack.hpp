@@ -51,8 +51,7 @@ public:
     
     void makeReturn(AST *returnSymbolNode, AST *returnExpressionNode);
     void verifyVectorNode(AST *identificatorNode, AST *indexerSymbolNode, AST *indexerNode);
-    void makeAttributionVector(AST *identifierNode, AST *attributionSymbolNode, AST *attributionNode, 
-    AST *indexerSymbolNode);
+    void makeAttributionVector(AST *attributionSymbolNode, AST *attributionNode, AST *indexerSymbolNode);
     void makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode);
     void makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode);
     void makeFunctionCall(AST *identificatorNode, AST *parametersNode);

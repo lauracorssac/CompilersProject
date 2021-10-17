@@ -1,9 +1,10 @@
-//ERR_CHAR_TO_X
+//ERR_WRONG_TYPE
 int f() {
     char a;
-    a = '2';
+    char l;
+    a = l;
     int b;
     int c;
-    c = b + a;
+    a = b + c;
     return 0;
 }

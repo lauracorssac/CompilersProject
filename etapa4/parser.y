@@ -95,6 +95,7 @@ extern SyntacticalType lastDeclaredType;
 %type<node> OPERAND
 %type<node> EXPRESSION
 %type<node> DECIDENTIFIER
+%type<node> DECVECTOR
 
 %type<node> ATT
 %type<node> BLOCK
@@ -197,10 +198,22 @@ LITERALNUM: TK_LIT_INT { $$ = createNodeNoTypeWithSType($1, intSType); tableStac
 LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType);  }
 | TK_LIT_FALSE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); };
 
-/* Definição de um identificador declarado */
+/* Definição de um identificador declarado (aka variável) */
 DECIDENTIFIER: TK_IDENTIFICADOR { 
 	$$ = createNodeNoType($1); 
 	tableStack.verifyIdentificatorNode($$);
+}
+
+/* Definição de um vetor declarado */
+DECVECTOR: TK_IDENTIFICADOR '[' EXPRESSION ']' {
+
+	AST *rootNode = createNodeNoLexicalValue(indexerType);
+	AST *identNode = createNodeNoType($1);
+	appendChild(rootNode, identNode);
+	appendChild(rootNode, $3);
+	$$ = rootNode;
+
+	tableStack.verifyVectorNode(identNode, rootNode, $3);
 }
 
  /* definicao comandos simples */
@@ -220,15 +233,7 @@ SIMPLECMD1: BLOCK { $$ = $1; }
  /* definicao operandos aceitos em expressoes */
 OPERAND: LITERALNUM { $$ = $1; }
 | DECIDENTIFIER { $$ = $1; }
-| TK_IDENTIFICADOR '[' EXPRESSION ']' { 
-	AST *rootNode = createNodeNoLexicalValue(indexerType);
-	AST *identNode = createNodeNoType($1);
-	appendChild(rootNode, identNode);
-	appendChild(rootNode, $3);
-	$$ = rootNode;
-
-	tableStack.verifyVectorNode(identNode, rootNode, $3);
-} 
+| DECVECTOR { $$ = $1; } 
 | FCALL { $$ = $1; }
 | LITERALBOOL { $$ = $1; }; 
  
@@ -530,33 +535,25 @@ LOCAL4: DECIDENTIFIER { $$ = $1; }
  */
 
 ATT: 
-TK_IDENTIFICADOR '=' ATT1 { 
+DECIDENTIFIER '=' ATT1 { 
 	
 	AST *rootNode = createNodeWithLexicalTypeAndValue(attributionType, $2); 
-	AST *identNode = createNodeNoType($1);
 	
 	appendChild(rootNode, $3);
-	prependChild(rootNode, identNode);
+	prependChild(rootNode, $1);
 	$$ = rootNode;
 
-	tableStack.verifyIdentificatorNode(identNode);
-	tableStack.makeAttributionVariable(identNode, rootNode, $3);
+	tableStack.makeAttributionVariable($1, rootNode, $3);
 
 }
-| TK_IDENTIFICADOR '[' EXPRESSION ']' '=' ATT1 { 
+| DECVECTOR '=' ATT1 { 
 
-	AST *rootNode = createNodeWithLexicalTypeAndValue(attributionType, $5); 
-	AST *indexerNode = createNodeNoLexicalValue(indexerType);
-	AST *identNode = createNodeNoType($1);
-	
-	appendChild(rootNode, indexerNode);
-	appendChild(indexerNode, identNode);
-	appendChild(indexerNode, $3);
-	appendChild(rootNode, $6);
+	AST *rootNode = createNodeWithLexicalTypeAndValue(attributionType, $2); 
+	appendChild(rootNode, $1);
+	appendChild(rootNode, $3);
 	$$ = rootNode;
 
-	tableStack.verifyVectorNode(identNode, indexerNode, $3);
-	tableStack.makeAttributionVector(identNode, rootNode, $6, indexerNode);
+	tableStack.makeAttributionVector(rootNode, $3, $1);
 };
 ATT1: EXPRESSION { $$ = $1; };
 
@@ -629,28 +626,21 @@ FCALL1: EXPRESSION { $$ = $1; }
 
 SHIFT: DECIDENTIFIER opShift SHIFT1 {
 
-	appendChild($2, $1); // IDENTIFIER
-	appendChild($2, $3); //S2
+	appendChild($2, $1);
+	appendChild($2, $3); 
 
-	$$ = $2; //opShift
+	$$ = $2;
 
 	tableStack.makeShift($2, $3);
 } 
-| TK_IDENTIFICADOR '[' EXPRESSION ']' opShift SHIFT1 { 
+| DECVECTOR opShift SHIFT1 { 
 
-	AST *identNode = createNodeNoType($1);
-	AST *indexerNode = createNodeNoLexicalValue(indexerType);
+	appendChild($2, $1);
+	appendChild($2, $3);
 
-	appendChild(indexerNode, identNode); 
-	appendChild(indexerNode, $3); //expressao
+	$$ = $2;
 
-	appendChild($5, indexerNode);
-	appendChild($5, $6); //S2
-
-	$$ = $5; //opShift
-
-	tableStack.verifyVectorNode(identNode, indexerNode, $6);
-	tableStack.makeShift($5, $6);
+	tableStack.makeShift($2, $3);
 };
 SHIFT1: TK_LIT_INT { 
 	$$ = createNodeNoType($1);

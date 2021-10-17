@@ -37,7 +37,7 @@ public:
     static void errorWrongType(AST *attributionNode, SyntacticalType expectedType);
     static void errorInput(AST *inputNode);
     static void errorOutput(AST *outputNode);
-    static void errorShift(AST *shiftNode);
+    static void errorShift(AST *shiftWrongNode);
     static void errorFunctionString(AST *functionNode);
     static void errorReturn(AST *returnNode, string functionName, SyntacticalType functionType, int functionLine);
     static void errorFunctionStringParameter(string parameterName);

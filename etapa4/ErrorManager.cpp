@@ -160,8 +160,8 @@ void ErrorManager::errorOutput(AST *outputNode) {
     ErrorManager::shutDown(ERR_WRONG_PAR_OUTPUT);
 }
 
-void ErrorManager::errorShift(AST *shiftNode) {
-    string element = ErrorManager::stringFromExpression(shiftNode);
+void ErrorManager::errorShift(AST *shiftWrongNode) {
+    string element = ErrorManager::stringFromExpression(shiftWrongNode);
     cout << "Não é possível realizar a operação de shift com " << element << ", pois ele possui valor maior que 16" << endl;
     
     ErrorManager::shutDown(ERR_WRONG_PAR_SHIFT);
