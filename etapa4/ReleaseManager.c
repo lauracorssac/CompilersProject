@@ -1,3 +1,8 @@
+/*
+
+	LAURA BRAGANTE CORSSAC - 00274694
+
+*/
 
 #include "ReleaseManager.h"
 #include <stdlib.h>
