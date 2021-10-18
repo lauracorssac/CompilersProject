@@ -128,10 +128,10 @@ SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, Lexica
     return value;
 }
 
-SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, int offset) {
 
     SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= sType,
-    .size= getSizeForSyntacticalType(sType), .lexicalValue= lexicalValue };
+    .size= getSizeForSyntacticalType(sType), .lexicalValue= lexicalValue, .offset= offset };
 
     lexicalValue->referenceCounter += 1;
 

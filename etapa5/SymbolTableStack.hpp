@@ -46,6 +46,7 @@ public:
     SearchResult findInScope(string element);
     void endLastScope();
     void endAllScopes();
+    int getOffsetNewScope();
     
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     

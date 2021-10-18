@@ -25,9 +25,19 @@ SymbolTableStack::SymbolTableStack() {
     this->beginNewScope(); 
 }
 
+int SymbolTableStack::getOffsetNewScope() {
+    int size = this->listOfTables.size();
+
+    // caso esteja começando uma função no escopo global ou o próprio
+    if ( size == 0 || size == 1) { return 0; }
+
+    // caso esteja começando um escopo alinhado
+    return this->listOfTables.front().getOffset();
+}
+
 void SymbolTableStack::beginNewScope() {
 
-    SymbolTable newSymbolTable;
+    SymbolTable newSymbolTable = SymbolTable(this->getOffsetNewScope());
     this->listOfTables.push_front(newSymbolTable);
     
 }
@@ -63,6 +73,8 @@ void SymbolTableStack::endLastScope() {
 
     if (this->listOfTables.empty()) { return; }
     SymbolTable lastScope = this->listOfTables.front();
+    int lastOffset = lastScope.getOffset();
+    
     /* frees identifiers's table */
     for (pair<string, SymbolTableValue> kv : lastScope.getTableVariables()) {
         
@@ -74,6 +86,12 @@ void SymbolTableStack::endLastScope() {
         freeLexicalValue(kv.second.lexicalValue);
     }
     this->listOfTables.pop_front();
+    
+    int size = this->listOfTables.size();
+    if (size > 1) {
+        this->listOfTables.front().incrementOffset(lastOffset);
+    }
+
 }
 
 void SymbolTableStack::endAllScopes() {
@@ -236,6 +254,7 @@ void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributi
         ErrorManager::errorWrongType(attributionNode, variableNode->sType);
         
     }
+
 
     attributionSymbolNode->sType = variableNode->sType;
 
@@ -529,7 +548,10 @@ void SymbolTableStack::insertVariableWithType(int line, int column, LexicalValue
         ErrorManager::errorDeclared(key, searchResult.valueFound);
     }
 
-    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType);
+    SymbolTable currentScope = this->listOfTables.front();
+    int currentScopeOffset = currentScope.getOffset();
+    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, currentScopeOffset);
+    currentScope.incrementOffset(newValue.size);
     this->insertNewItem(key, newValue);
 }
 

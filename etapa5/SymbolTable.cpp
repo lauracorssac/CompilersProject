@@ -9,7 +9,17 @@
 #include <unordered_map>
 #include <list>
 
-SymbolTable::SymbolTable() {}
+SymbolTable::SymbolTable(int offset) {
+	this->offset = offset;
+}
+
+int SymbolTable::getOffset() {
+	return this->offset;
+}
+
+void SymbolTable::incrementOffset(int increment){
+	this->offset += increment;
+}
 
 void SymbolTable::insertNewItem(string key, SymbolTableValue value) {
 	if (value.kind == literalKind) {

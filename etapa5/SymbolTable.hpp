@@ -21,12 +21,16 @@ class SymbolTable {
     private:
     unordered_map<string, SymbolTableValue> symbolTableLiterals;
     unordered_map<string, SymbolTableValue> symbolTableVariables;
+    /* deslocamento em relacao ao rbss ou rfp */
+    int offset;
     public:
+    int getOffset();
+    void incrementOffset(int increment);
     void insertNewItem(string key, SymbolTableValue value);
     bool hasKeyLiterals(string key);
     bool hasKeyVariables(string key);
     SymbolTableValue getValueForKey(string key);
-    SymbolTable();
+    SymbolTable(int offset);
     unordered_map<string, SymbolTableValue> getTableVariables();
     unordered_map<string, SymbolTableValue> getTableLiterals();
     void updateType(string key, SyntacticalType type);

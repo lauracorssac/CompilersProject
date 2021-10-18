@@ -48,6 +48,8 @@ typedef struct AST {
     struct AST *child; //(optional) pointer to first child
     struct AST *sister; //(optional) pointer to its parent's next child.
 
+    struct Code *code;
+
 } AST;
 
 

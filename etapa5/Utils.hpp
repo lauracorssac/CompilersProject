@@ -16,5 +16,6 @@ extern "C" {
 using namespace std;
 
 string stringFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
+void copyStringToCharPointer(string string, char *charBuffer);
 
 #endif

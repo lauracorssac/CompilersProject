@@ -40,6 +40,7 @@ typedef struct {
     int size; //spec: E4 2.1 d
     list<Parameter> listOfParameters; //spec: E4 2.1 e
     LexicalValue *lexicalValue; //spec E4 2.1 f
+    int offset; //deslocamento em relação a rbss ou rfp
 
 } SymbolTableValue;
 
@@ -49,7 +50,7 @@ void printListOfParameters(list<Parameter> listOfParameters);
 void printSyntacticalType(SyntacticalType sType);
 SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
 SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
-SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
+SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, int offset);
 SymbolTableValue createVariableWithInitialization(int line, int column, SyntacticalType type, 
 LexicalValue *lexicalValueIdentifier, 
 LexicalValue *lexicalValueInitialization);
