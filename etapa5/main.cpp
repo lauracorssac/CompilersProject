@@ -10,6 +10,7 @@
 #include "SymbolTableStack.hpp"
 #include "SyntacticalType.hpp"
 #include "ReleaseManager.hpp"
+#include "CodePrinter.hpp"
 extern "C"
 {
  
@@ -22,6 +23,7 @@ extern "C"
 void *arvore = NULL;
 ReleaseManager releaseManager;
 SymbolTableStack tableStack;
+CodePrinter codePrinter;
 void executeShutDownRoutine();
 using namespace std;
 
@@ -34,7 +36,8 @@ int main (int argc, char **argv)
 }
 
 void executeShutDownRoutine() {
-  exporta (arvore);
+  codePrinter.printTree(arvore);
+  //exporta (arvore);
     // cout << "loadI 1024 => rfp" << endl;
     // cout << "loadI 1024 => rsp" << endl;
     // cout << "loadI 7 => rbss" << endl;

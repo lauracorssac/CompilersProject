@@ -17,7 +17,8 @@ void printOperands(list<CodeOperand> operands);
 void printOperand(CodeOperand operand);
 
 public:
-void printTree(AST *rootNode);
+CodePrinter();
+void printTree(void *tree);
 
 
 

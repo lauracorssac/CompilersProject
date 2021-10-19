@@ -12,8 +12,11 @@
 
 using namespace std;
 
+CodePrinter::CodePrinter() { }
 
-void CodePrinter::printTree(AST *rootNode) {
+void CodePrinter::printTree(void *tree) {
+
+    AST *rootNode = (AST *) tree;
 
     list<Code>::iterator it;
 
@@ -52,7 +55,6 @@ void CodePrinter::printOperand(CodeOperand operand) {
     case number:
         cout << numbericalValueString << ":";
         break;
-    
     default:
         break;
     }
