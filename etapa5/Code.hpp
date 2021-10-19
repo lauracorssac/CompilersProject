@@ -6,6 +6,25 @@
 
 #ifndef CODE_HPP
 #define CODE_HPP
+#include <list>
+
+using namespace std;
+
+typedef enum {
+
+    rfp =0,
+    rsp,
+    rbss
+
+} RegisterPointerType;
+
+typedef enum {
+
+    global =0,
+    local
+    
+
+} VariableType;
 
 typedef enum {
 
@@ -13,7 +32,7 @@ typedef enum {
     add = 1,
     sub,
     mult,
-    div,
+    _div,
     addI,
     subI,
     rsubI,
@@ -72,18 +91,17 @@ typedef enum {
 typedef struct {
 
     CodeOperandType operandType;
-    int number;
-    struct CodeOperand *next;
+    int numericalValue;
 
 } CodeOperand;
 
-typedef struct Code {
+typedef struct {
 
     InstructionType instructionType;
-    /* list of operands in the right side of the arrow */
-    struct CodeOperand *rightOperands;
     /* list of operands in the left side of the arrow */
-    struct CodeOperand *leftOperands;
+    list<CodeOperand> leftOperands;
+    /* list of operands in the right side of the arrow */
+    list<CodeOperand> rightOperands;
   
 } Code;
 

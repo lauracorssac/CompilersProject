@@ -7,10 +7,11 @@
 #ifndef SYMBOLTABLESTACK_HPP
 #define SYMBOLTABLESTACK_HPP
 
+#include "SyntacticalType.hpp"
+#include "LexicalValue.hpp"
+#include "AST.hpp"
 extern "C" {
-    #include "SyntacticalType.h"
-    #include "LexicalValue.h"
-    #include "AST.h"
+    
 }
 
 #include "SymbolTable.hpp"

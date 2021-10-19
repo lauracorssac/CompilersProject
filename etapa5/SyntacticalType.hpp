@@ -4,8 +4,8 @@
 
 */
 
-#ifndef SYNTACTICALTYPE_H
-#define SYNTACTICALTYPE_H
+#ifndef SYNTACTICALTYPE_HPP
+#define SYNTACTICALTYPE_HPP
 
 typedef enum SyntacticalType {
     stringSType = 0,

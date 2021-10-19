@@ -12,9 +12,10 @@
 
 using namespace std;
 
+#include "SyntacticalType.hpp"
+#include "LexicalValue.hpp"
 extern "C" {
-    #include "SyntacticalType.h"
-    #include "LexicalValue.h"
+   
 }
 
 // Natureza

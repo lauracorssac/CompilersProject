@@ -4,18 +4,22 @@
 
 */
 
-#include "ReleaseManager.h"
+#include "ReleaseManager.hpp"
 #include <stdlib.h>
 
-void insertNewNode(AST *newNode) {
+ReleaseManager::ReleaseManager() {
+  
+}
+
+void ReleaseManager::insertNewNode(AST *newNode) {
     DeletionHelp delHelp = {.nodeRef = newNode, .next = releasePool};
 
-    DeletionHelp *delHelpPointer = malloc(sizeof(DeletionHelp));
+    DeletionHelp *delHelpPointer = (DeletionHelp *) malloc(sizeof(DeletionHelp));
     *delHelpPointer = delHelp;
     releasePool = delHelpPointer;
 }
 
-void freeReleasePool() {
+void ReleaseManager::freeReleasePool() {
   
   while (releasePool != NULL) {
     DeletionHelp *temp = releasePool->next;

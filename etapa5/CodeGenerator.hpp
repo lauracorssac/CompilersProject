@@ -9,22 +9,23 @@
 
 using namespace std;
 #include <string>
+#include "AST.hpp"
 
 class CodeGenerator
 {
 private:
     int registerNumber;
-    string generateRegister();
+    int getRegister();
+    int labelNumber;
+    int getLabel();
+
 public:
     CodeGenerator();
-    string CodeGenerator::makeLiteralCode(AST *literalNode);
-
-
-
+    void makeLiteralCode(AST *literalNode);
+    void makeAttributionLocalVariable(AST *variableNode, AST *attSymbolNode, AST *attributionNode, 
+    int offset, VariableType varType);
+    void makeLocalVariableDeclaration(AST *variableNode);
 };
-
-
-
 
 
 #endif

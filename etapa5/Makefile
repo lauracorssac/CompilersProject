@@ -7,11 +7,13 @@ main:
 	bison -d parser.y
 	flex scanner.l
 	g++ -std=c++11 -c SymbolTable.cpp SymbolTableStack.cpp SymbolTableValue.cpp \
-	ErrorManager.cpp Utils.cpp
-	gcc -c LexicalValue.c AST.c SyntacticalType.c ReleaseManager.c
+	ErrorManager.cpp Utils.cpp \
+	LexicalValue.cpp AST.cpp SyntacticalType.cpp ReleaseManager.cpp \
+	CodeGenerator.cpp Code.cpp CodePrinter.cpp
 	g++ -std=c++11 -c lex.yy.c parser.tab.c main.cpp
 	g++ -std=c++11 -o etapa5 lex.yy.o parser.tab.o main.o \
 	LexicalValue.o AST.o SymbolTable.o SymbolTableStack.o SymbolTableValue.o \
+	CodePrinter.o Code.o CodeGenerator.o \
 	ErrorManager.o SyntacticalType.o Utils.o ReleaseManager.o -lfl
 
 clean:

@@ -4,11 +4,13 @@
 
 */
 
-#include "AST.h"
-#include "LexicalValue.h"
-#include "ReleaseManager.h"
-#include <stdio.h>
+#include "AST.hpp"
+#include "LexicalValue.hpp"
+#include "ReleaseManager.hpp"
+#include <cstdio>
+#include <cstring>
 #include <stdlib.h>
+extern ReleaseManager releaseManager;
 
 AST* createNodeNoType(LexicalValue *value) {
 
@@ -21,8 +23,8 @@ AST* createNodeNoType(LexicalValue *value) {
 
     value->referenceCounter += 1;
   
-    AST *newNodePointer = malloc(sizeof(newNode));
-    insertNewNode(newNodePointer);
+    AST *newNodePointer = (AST *) malloc(sizeof(newNode));
+    releaseManager.insertNewNode(newNodePointer);
 
     *newNodePointer = newNode;
     return newNodePointer;
@@ -31,6 +33,7 @@ AST* createNodeNoType(LexicalValue *value) {
 AST* createNodeNoTypeWithSType(LexicalValue *value, SyntacticalType sType) {
     AST* newNode = createNodeNoType(value);
     newNode->sType = sType;
+    return newNode;
 }
 
 AST* createNodeNoLexicalValue(NodeType type) {
@@ -42,8 +45,8 @@ AST* createNodeNoLexicalValue(NodeType type) {
     newNode.sister = NULL;
     newNode.sType = undefinedSType;
  
-    AST *newNodePointer = malloc(sizeof(newNode));
-    insertNewNode(newNodePointer);
+    AST *newNodePointer = (AST *) malloc(sizeof(newNode));
+    releaseManager.insertNewNode(newNodePointer);
 
     *newNodePointer = newNode;
     return newNodePointer;
@@ -58,8 +61,8 @@ AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value) {
     newNode.sister = NULL;
     newNode.sType = undefinedSType;
 
-    AST *newNodePointer = malloc(sizeof(AST));
-    insertNewNode(newNodePointer);
+    AST *newNodePointer = (AST *) malloc(sizeof(AST));
+    releaseManager.insertNewNode(newNodePointer);
     
     value->referenceCounter += 1;
     

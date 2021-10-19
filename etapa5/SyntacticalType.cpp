@@ -4,8 +4,8 @@
 
 */
 
-#include "SyntacticalType.h"
-#include "LexicalValue.h"
+#include "SyntacticalType.hpp"
+#include "LexicalValue.hpp"
 
 #include <string.h>
 
@@ -25,6 +25,7 @@ int getSizeForSyntacticalType(SyntacticalType type) {
     case undefinedSType:
         return 0;
     }
+    return -1;
 }
 
 int getSizeForStringType(char *stringLiteralValue) {

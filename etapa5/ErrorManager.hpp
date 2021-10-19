@@ -10,8 +10,9 @@
 #include "SymbolTableValue.hpp"
 #include <string>
 
+#include "AST.hpp"
 extern "C" {
-    #include "AST.h"
+    
 }
 
 using namespace std;

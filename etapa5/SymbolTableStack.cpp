@@ -11,13 +11,15 @@
 #include <string>
 #include <list>
 #include <iostream>
+#include <unordered_map>
 #include "errors.h"
 #include "Utils.hpp"
 
 using namespace std;
 
+#include "SyntacticalType.hpp"
 extern "C" {
-    #include "SyntacticalType.h"
+    
 }
 
 SymbolTableStack::SymbolTableStack() {
@@ -74,7 +76,7 @@ void SymbolTableStack::endLastScope() {
     if (this->listOfTables.empty()) { return; }
     SymbolTable lastScope = this->listOfTables.front();
     int lastOffset = lastScope.getOffset();
-    
+
     /* frees identifiers's table */
     for (pair<string, SymbolTableValue> kv : lastScope.getTableVariables()) {
         
@@ -531,7 +533,10 @@ void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValu
         ErrorManager::errorFunctionStringParameter(key);
     }
 
-    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType);
+    SymbolTable currentScope = this->listOfTables.front();
+    int currentScopeOffset = currentScope.getOffset();
+    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, currentScopeOffset);
+    currentScope.incrementOffset(newValue.size);
     this->insertNewItem(key, newValue);
     Parameter newParam = {.type = sType};
     this->pendantParameters.push_back(newParam);
@@ -646,12 +651,12 @@ void SymbolTableStack::printItself() {
     cout << "Printing total of " << this->listOfTables.size() << "tables" << endl;
     for (it = this->listOfTables.begin(); it != this->listOfTables.end(); ++it) {
         cout << "New Table:" << endl;
-        for (pair<string, SymbolTableValue> kv : it->getTableVariables()) {
+        for (auto kv : it->getTableVariables()) {
             cout << endl;
             cout << "Key: " << kv.first << " Value: " << endl;
             printValue(kv.second);
         }
-        for (pair<string, SymbolTableValue> kv : it->getTableLiterals()) {
+        for (auto kv : it->getTableLiterals()) {
             cout << endl;
             cout << "Key: " << kv.first << " Value: " << endl;
             printValue(kv.second);

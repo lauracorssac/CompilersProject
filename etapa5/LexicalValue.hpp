@@ -4,8 +4,8 @@
 
 */
 
-#ifndef LEXICALVALUE_H
-#define LEXICALVALUE_H
+#ifndef LEXICALVALUE_HPP
+#define LEXICALVALUE_HPP
 
 typedef union
 {

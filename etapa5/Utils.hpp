@@ -8,13 +8,11 @@
 #define UTILS_HPP
 
 #include <string>
-
-extern "C" {
-    #include "LexicalValue.h"
-}
+#include "LexicalValue.hpp"
 
 using namespace std;
 
+int integerFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
 string stringFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
 void copyStringToCharPointer(string string, char *charBuffer);
 

@@ -4,11 +4,13 @@
 
 */
 
-#ifndef AST_H
-#define AST_H
+#ifndef AST_HPP
+#define AST_HPP
 
-#include "LexicalValue.h"
-#include "SyntacticalType.h"
+#include "LexicalValue.hpp"
+#include "SyntacticalType.hpp"
+#include "Code.hpp"
+#include <list>
 
  /* definicao dos tipos de nodos existentes.
     noType é usado geralmente quando há um valor léxico no nodo, como literais, identificadores, 
@@ -43,12 +45,12 @@ typedef struct AST {
     // (optional) value of LexicalValue. 
     // Not NULL for leaves. 
     // Usually NULL for non-leaves. Exceptions are: operators, functions and function calls.
-    LexicalValue *value; 
+    struct LexicalValue *value; 
 
     struct AST *child; //(optional) pointer to first child
     struct AST *sister; //(optional) pointer to its parent's next child.
 
-    struct Code *code;
+    list<Code> code;
 
 } AST;
 

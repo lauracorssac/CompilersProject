@@ -12,10 +12,11 @@
 #include <iostream>
 #include <cctype>
 
+#include "AST.hpp"
+#include "LexicalValue.hpp"
+
 extern "C" {
     #include "errors.h"
-    #include "AST.h"
-    #include "LexicalValue.h"
 }
 
 using namespace std;

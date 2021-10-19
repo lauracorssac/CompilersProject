@@ -11,8 +11,9 @@
 #include <string>
 #include "SymbolTableValue.hpp"
 
+#include "SyntacticalType.hpp"
 extern "C" {
-    #include "SyntacticalType.h"
+    
 }
 
 using namespace std;

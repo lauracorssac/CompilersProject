@@ -9,9 +9,10 @@
 #include <iostream>
 #include <list>
 
+#include "LexicalValue.hpp"
+#include "SyntacticalType.hpp"
 extern "C" {
-    #include "LexicalValue.h"
-    #include "SyntacticalType.h"
+    
 }
 using namespace std;
 

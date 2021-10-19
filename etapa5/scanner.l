@@ -6,9 +6,9 @@
 
 %{
 
+#include "LexicalValue.hpp"
 extern "C"
-{
-    #include "LexicalValue.h"
+{ 
     int yylex(void);
     int yylex_destroy(void);
 }
@@ -17,7 +17,7 @@ extern "C"
 #include <stdlib.h>
 #include <string.h> 
 #include "parser.tab.h"
-#include "AST.h"
+#include "AST.hpp"
 int line_counter = 1;
 %}
 

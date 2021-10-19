@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "LexicalValue.h"
+#include "LexicalValue.hpp"
 
 /* funcao usada para debug */
 void print_lexical_value(LexicalValue lexicalValue) {
@@ -73,7 +73,7 @@ LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralT
     TokenType tokenType = literalType;
     LexicalValue lexicalValue = { lineCounter, tokenType, literalTokenValueAndType, 0 };
     
-    LexicalValue *valor_lexico = malloc(sizeof(lexicalValue)); 
+    LexicalValue *valor_lexico = (LexicalValue *) malloc(sizeof(lexicalValue)); 
     *valor_lexico = lexicalValue;
     return valor_lexico;
 
@@ -95,7 +95,7 @@ LexicalValue* lexicalValueFromNonLiteralToken(int lineCounter, char *text, Token
      .literalTokenValueAndType= literalTokenValueAndType, 
      .referenceCounter=0 };
     
-    LexicalValue *valor_lexico = malloc(sizeof(lexicalValue)); 
+    LexicalValue *valor_lexico = (LexicalValue *) malloc(sizeof(lexicalValue)); 
     *valor_lexico = lexicalValue;
     return valor_lexico;
 

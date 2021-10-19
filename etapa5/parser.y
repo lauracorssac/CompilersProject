@@ -14,10 +14,11 @@
 
 #define YYDEBUG 1
 
+#include "SyntacticalType.hpp"
+#include "AST.hpp"
+#include "LexicalValue.hpp"
 extern "C" {
-	#include "SyntacticalType.h"
-	#include "AST.h"
-	#include "LexicalValue.h"
+	
 	int yyparse(void);
 	int yylex(void);  
 	int yywrap() {
