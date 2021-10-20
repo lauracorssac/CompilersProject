@@ -77,11 +77,9 @@ SearchResult SymbolTableStack::findInScope(string element) {
 
 void SymbolTableStack::endLastScope() {
 
-    cout << "endLastScope" << endl;
     if (this->listOfTables.empty()) { return; }
     SymbolTable lastScope = this->listOfTables.front();
     int lastOffset = lastScope.getScopeAndOffset().offset;
-    cout << "last offset = " << lastOffset << endl;
 
     /* frees identifiers's table */
     for (pair<string, SymbolTableValue> kv : lastScope.getTableVariables()) {
@@ -102,7 +100,6 @@ void SymbolTableStack::endLastScope() {
         this->lastFunctionOffset = lastOffset;
     }
 
-    cout << "endLastScope" << endl;
 }
 
 int SymbolTableStack::getLastFunctionOffset() {
@@ -114,7 +111,6 @@ OffsetAndScope SymbolTableStack::getOffsetAndScopeForVariable(string variable) {
     if (!searchResult.found) {
         ErrorManager::errorElementNotFound(variable);
     }
-    cout << "getOffsetAndScopeForVariable scope = " << searchResult.valueFound.variableScope.scope << endl;
     return searchResult.valueFound.variableScope;
 }
 
@@ -490,7 +486,6 @@ void SymbolTableStack::insertVariableWithPendantType(int line, int column, Lexic
     }
     
     OffsetAndScope scope = this->listOfTables.front().getScopeAndOffset();
-    cout << "insertVariableWithPendantType = " << scope.scope;
     SymbolTableValue newValue = createVariableWithPendantType(line, column, lexicalValue, scope);
     this->variablesWithPendantTypes.push_back(key);
     this->insertNewItem(key, newValue);

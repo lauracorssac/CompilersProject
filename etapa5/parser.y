@@ -559,8 +559,6 @@ DECIDENTIFIER '=' ATT1 {
 	string variableName = stringFromLiteralValue($1->value->literalTokenValueAndType);
 	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable(variableName);
 	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope);
-	cout << "scope parsey = " << offsetAndScope.scope;
-
 
 }
 | DECVECTOR '=' ATT1 { 

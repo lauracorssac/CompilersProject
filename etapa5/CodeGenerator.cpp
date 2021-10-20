@@ -37,7 +37,6 @@ int CodeGenerator::getLabel() {
 //Exemplo: loadI 34 => r0
 void CodeGenerator::makeLiteralCode(AST *literalNode) {
 
-    cout << "makeLiteralCode" << endl;
     int nodeValue = integerFromLiteralValue(literalNode->value->literalTokenValueAndType);
     int registerValue = this->getRegister();
 
@@ -59,8 +58,6 @@ void CodeGenerator::makeLiteralCode(AST *literalNode) {
     
     literalNode->code = codeList;
     literalNode->resultRegister = rightOperand;
-
-    cout << "makeLiteralCode" << endl;
   
 }
 
@@ -92,7 +89,6 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
 
     CodeOperand leftOperand =  attributionNode->resultRegister;
     int registerDestination = (offsetAndScope.scope == global) ? rbss : rfp;
-    cout << "scope makeAttributionLocalVariable = " << offsetAndScope.scope;
     CodeOperand rightOperand1 = {.operandType=registerPointer, .numericalValue=registerDestination};
     CodeOperand rightOperand2 = {.operandType=number, .numericalValue=offsetAndScope.offset};
     
@@ -110,8 +106,6 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
     list<InstructionCode> codeList;
     codeList.insert(codeList.end(), attributionNode->code.begin(), attributionNode->code.end());
     codeList.push_back(code);
-    //codeList.insert(codeList.end(), nextNode->code.begin(), nextNode->code.end());
-
 
     attSymbolNode->code = codeList;
 
@@ -177,9 +171,6 @@ void CodeGenerator::makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, A
 
 void CodeGenerator::appendCode(AST *parent, AST*child) {
 
-    cout << "appendCode" << endl;
-    cout << "parent = " << stringFromLiteralValue(parent->value->literalTokenValueAndType) << endl;
-    //cout << "child = " << stringFromLiteralValue(parent->value->literalTokenValueAndType) << endl;
     list<InstructionCode> codeList;
     codeList.insert(codeList.end(), parent->code.begin(), parent->code.end());
     
@@ -188,5 +179,4 @@ void CodeGenerator::appendCode(AST *parent, AST*child) {
     }
     
     parent->code = codeList;
-    cout << "appendCode" << endl;
 }
