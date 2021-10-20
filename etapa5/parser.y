@@ -249,8 +249,8 @@ opShift: TK_OC_SL { $$ = createNodeNoType($1); }
 
  */
 opNivel1: '^' { $$ = createNodeNoType($1);};
-opNivel2: '*' { $$ = createNodeNoType($1); };
-| '/' { $$ = createNodeNoType($1); };
+opNivel2: '*' { $$ = createNodeNoType($1); $$->nodeInstructionType = mult; };
+| '/' { $$ = createNodeNoType($1); $$->nodeInstructionType = _div; };
 | '%' { $$ = createNodeNoType($1); };
 opNivel3: '+' { $$ = createNodeNoType($1); $$->nodeInstructionType = add; };
 | '-' { $$ = createNodeNoType($1); $$->nodeInstructionType = sub; };
@@ -372,6 +372,7 @@ EXP8: EXP9 { $$ = $1; }
 	$$ = $2;
 
 	tableStack.makeBinaryOperation($1, $2, $3);
+	codeGenerator.makeBinaryOperation($1, $2, $3);
 };
 EXP9: EXP10 { $$ = $1; }
 | EXP9 opNivel1 EXP10 { 
@@ -431,11 +432,9 @@ FUNC_HEADER: TYPE TK_IDENTIFICADOR {
 FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
 | FUNC1 { $$ = $1; };
 FUNC1: FUNC_HEADER FUNC3 {
-	cout << "aqui"<< endl;
 	appendChild($1, $2);
 	$$ = $1;
 	int offset = tableStack.getLastFunctionOffset();
-	cout << "offset " << offset << endl;
 	codeGenerator.makeFunction($$, $2, offset);
 };
 FUNC3: '(' ')' BLOCK  { $$ = $3; }
@@ -458,7 +457,7 @@ FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR {
 	$$ = NULL; 
 };
 
-FUNC_BLOCK: '{' BLOCK1 { cout << "aa" << endl; $$ = $2; };
+FUNC_BLOCK: '{' BLOCK1 { $$ = $2; };
 PARAM_LIST_BEGIN: '(' { tableStack.beginNewScope(); };
 PARAM_LIST_END: ')'  { tableStack.updateFunctionWithPendantParameters(); };
 
@@ -473,13 +472,11 @@ PARAM_LIST_END: ')'  { tableStack.updateFunctionWithPendantParameters(); };
 BLOCK_BEGIN: '{' { tableStack.beginNewScope(); };
 
 BLOCK: BLOCK_BEGIN BLOCK1 { 
-	cout << "bb" << endl; 
 	$$ = $2;
 };
 BLOCK1: '}' { 
 	$$ = NULL; 
 	tableStack.endLastScope();
-	cout << "cc" << endl; 
 
 }
 | SIMPLECMD BLOCK1 { 
