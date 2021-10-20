@@ -31,9 +31,8 @@ void CodePrinter::printTree(void *tree) {
 void CodePrinter::printCode(Code code) {
      
      if (code.prefixLabel != -1) {
-        cout << "L" << to_string(code.prefixLabel) << ":";
+        cout << "L" << to_string(code.prefixLabel) << ": ";
     }
-    cout << " ";
     printInstructionType(code.instructionType);
     if (code.leftOperands.size() > 0) {
         cout << " ";
@@ -53,6 +52,7 @@ void CodePrinter::printOperands(list<CodeOperand> operands) {
     list<CodeOperand>::iterator it;
     it = operands.begin();
     this->printOperand(*it);
+    it++;
 
     for (it; it != operands.end(); ++it) {
         cout << ", ";
@@ -64,9 +64,14 @@ void CodePrinter::printOperands(list<CodeOperand> operands) {
 void CodePrinter::printOperand(CodeOperand operand) {
 
     string numbericalValueString = to_string(operand.numericalValue);
+    RegisterPointerType type;
     switch (operand.operandType) {
     case _register:
         cout << "r" << numbericalValueString;
+        break;
+    case registerPointer:
+        type = (RegisterPointerType) operand.numericalValue;
+        this->printRegisterPointer(type);
         break;
     case label:
         cout << "L" << numbericalValueString;
@@ -80,12 +85,31 @@ void CodePrinter::printOperand(CodeOperand operand) {
 
 }
 
+void CodePrinter::printRegisterPointer(RegisterPointerType type) {
+
+
+    switch (type)
+    {
+    case rbss:
+        cout << "rbss";
+        break;
+    case rfp:
+        cout << "rfp";
+        break;
+    case rsp:
+        cout << "rsp";
+        break;
+    default:
+        break;
+    }
+}
+
 void CodePrinter::printInstructionType(InstructionType type) {
 
     switch (type)
     {
     case nop:
-    cout << "nop";
+        cout << "nop";
         break;
     case add:
         cout << "add";

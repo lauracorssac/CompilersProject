@@ -64,7 +64,7 @@ void CodeGenerator::makeLiteralCode(AST *literalNode) {
 //Exemplo: addI rsp, 4 => rsp
 Code CodeGenerator::makeOffsetLocalVariables(int offset) {
     
-    CodeOperand rspOperand = {.operandType=_register, .numericalValue=rsp};
+    CodeOperand rspOperand = {.operandType=registerPointer, .numericalValue=rsp};
     CodeOperand fourOperand = {.operandType=number, .numericalValue=offset};
 
     list<CodeOperand> leftList; 
@@ -117,12 +117,10 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
 //L0: nop
 void CodeGenerator::makeFunction(AST *functionNode, AST *nextNode, int offset) {
 
-    cout << "makeFunction" << endl;
     int _label;
     string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
     
     if (strcmp(functionName.c_str(), "main") == 0) {
-        cout << "a" << endl;
         if (this->mainWasDeclared) { ErrorManager::doubleDeclarationOfMain(); }
         this->mainWasDeclared = true;
         _label = 0;
@@ -145,8 +143,6 @@ void CodeGenerator::makeFunction(AST *functionNode, AST *nextNode, int offset) {
     codeList.insert(codeList.end(), nextNode->code.begin(), nextNode->code.end());
 
     functionNode->code = codeList;
-
-    cout << "makeFunction" << endl;
 
 }
 

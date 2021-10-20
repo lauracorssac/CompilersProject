@@ -89,6 +89,7 @@ typedef enum {
 
     //register is a reseved word, thats why the _
     _register = 0, 
+    registerPointer,
     label,
     number 
 
