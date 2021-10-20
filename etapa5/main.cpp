@@ -10,6 +10,7 @@
 #include "SymbolTableStack.hpp"
 #include "SyntacticalType.hpp"
 #include "ReleaseManager.hpp"
+#include "CodeGenerator.hpp"
 #include "CodePrinter.hpp"
 extern "C"
 {
@@ -24,6 +25,7 @@ void *arvore = NULL;
 ReleaseManager releaseManager;
 SymbolTableStack tableStack;
 CodePrinter codePrinter;
+CodeGenerator codeGenerator;
 void executeShutDownRoutine();
 using namespace std;
 

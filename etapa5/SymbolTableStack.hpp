@@ -38,8 +38,8 @@ private:
     void insertNewItem(string key, SymbolTableValue value);
     list<string> variablesWithPendantTypes;
     string lastDeclaredFunction;
+    int lastFunctionOffset;
     list<Parameter> pendantParameters;
-
 public:
     SymbolTableStack();
     void beginNewScope();
@@ -48,6 +48,8 @@ public:
     void endLastScope();
     void endAllScopes();
     int getOffsetNewScope();
+    int getLastFunctionOffset();
+    OffsetAndScope getOffsetAndScopeForVariable(string variable);
     
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     

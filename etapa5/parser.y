@@ -10,12 +10,14 @@
 #include "SymbolTable.hpp"
 #include "SymbolTableValue.hpp"
 #include "SymbolTableStack.hpp"
+#include "CodeGenerator.hpp"
 #include <iostream>
 
 #define YYDEBUG 1
 
 #include "SyntacticalType.hpp"
 #include "AST.hpp"
+#include "Utils.hpp"
 #include "LexicalValue.hpp"
 extern "C" {
 	
@@ -28,6 +30,7 @@ extern "C" {
 }
 
 int yyerror (char const *s);
+extern CodeGenerator codeGenerator;
 extern int get_line_number(void);
 extern void *arvore;
 extern SymbolTableStack tableStack;
@@ -187,17 +190,15 @@ TYPE : TK_PR_INT { $$ = intSType; }
 | TK_PR_STRING { $$ = stringSType; };
 
  /* definicao literais */
-LITERAL: TK_LIT_INT { $$ = createNodeNoTypeWithSType($1, intSType); tableStack.insertLiteral(get_line_number(), 0, $1, intSType); }
-| TK_LIT_FLOAT { $$ = createNodeNoTypeWithSType($1, floatSType); tableStack.insertLiteral(get_line_number(), 0, $1, floatSType); }
-| TK_LIT_FALSE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); }
-| TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); }
+LITERAL: LITERALNUM
+| LITERALBOOL
 | TK_LIT_CHAR { $$ = createNodeNoTypeWithSType($1, charSType); tableStack.insertLiteral(get_line_number(), 0, $1, charSType); }
 | TK_LIT_STRING { $$ = createNodeNoTypeWithSType($1, stringSType); tableStack.insertLiteral(get_line_number(), 0, $1, stringSType); };
 
-LITERALNUM: TK_LIT_INT { $$ = createNodeNoTypeWithSType($1, intSType); tableStack.insertLiteral(get_line_number(), 0, $1, intSType); }
-| TK_LIT_FLOAT { $$ = createNodeNoTypeWithSType($1, floatSType); tableStack.insertLiteral(get_line_number(), 0, $1, floatSType);};
-LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType);  }
-| TK_LIT_FALSE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); };
+LITERALNUM: TK_LIT_INT { $$ = createNodeNoTypeWithSType($1, intSType); tableStack.insertLiteral(get_line_number(), 0, $1, intSType); codeGenerator.makeLiteralCode($$);}
+| TK_LIT_FLOAT { $$ = createNodeNoTypeWithSType($1, floatSType); tableStack.insertLiteral(get_line_number(), 0, $1, floatSType); codeGenerator.makeLiteralCode($$);};
+LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); codeGenerator.makeLiteralCode($$);}
+| TK_LIT_FALSE { $$ = createNodeNoTypeWithSType($1, boolSType); tableStack.insertLiteral(get_line_number(), 0, $1, boolSType); codeGenerator.makeLiteralCode($$);};
 
 /* Definição de um identificador declarado (aka variável) */
 DECIDENTIFIER: TK_IDENTIFICADOR { 
@@ -429,9 +430,12 @@ FUNC_HEADER: TYPE TK_IDENTIFICADOR {
 FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
 | FUNC1 { $$ = $1; };
 FUNC1: FUNC_HEADER FUNC3 {
+	cout << "aqui"<< endl;
 	appendChild($1, $2);
 	$$ = $1;
-	
+	int offset = tableStack.getLastFunctionOffset();
+	cout << "offset " << offset << endl;
+	codeGenerator.makeFunction($$, $2, offset);
 };
 FUNC3: '(' ')' BLOCK  { $$ = $3; }
 | PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK  { $$ = $4; };
@@ -453,7 +457,7 @@ FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR {
 	$$ = NULL; 
 };
 
-FUNC_BLOCK: '{' BLOCK1 {$$ = $2;};
+FUNC_BLOCK: '{' BLOCK1 { cout << "aa" << endl; $$ = $2; };
 PARAM_LIST_BEGIN: '(' { tableStack.beginNewScope(); };
 PARAM_LIST_END: ')'  { tableStack.updateFunctionWithPendantParameters(); };
 
@@ -468,17 +472,23 @@ PARAM_LIST_END: ')'  { tableStack.updateFunctionWithPendantParameters(); };
 BLOCK_BEGIN: '{' { tableStack.beginNewScope(); };
 
 BLOCK: BLOCK_BEGIN BLOCK1 { 
+	cout << "bb" << endl; 
 	$$ = $2;
 };
 BLOCK1: '}' { 
 	$$ = NULL; 
 	tableStack.endLastScope();
+	cout << "cc" << endl; 
+
 }
 | SIMPLECMD BLOCK1 { 
 	if ($1 != NULL){
 		appendChild($1, $2);
+		codeGenerator.appendCode($1, $2);
 		$$ = $1;
 	} else {
+		cout << "TODO AAAA" << endl;
+		//TODO AAAA
 		$$ = $2;
 	}
 };
@@ -544,6 +554,11 @@ DECIDENTIFIER '=' ATT1 {
 	$$ = rootNode;
 
 	tableStack.makeAttributionVariable($1, rootNode, $3);
+
+	string variableName = stringFromLiteralValue($1->value->literalTokenValueAndType);
+	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable(variableName);
+	cout << "offset and type " << offsetAndScope.offset << " " << offsetAndScope.scope << endl;
+	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope);
 
 }
 | DECVECTOR '=' ATT1 { 

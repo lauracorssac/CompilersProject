@@ -73,9 +73,11 @@ SearchResult SymbolTableStack::findInScope(string element) {
 
 void SymbolTableStack::endLastScope() {
 
+    cout << "endLastScope" << endl;
     if (this->listOfTables.empty()) { return; }
     SymbolTable lastScope = this->listOfTables.front();
     int lastOffset = lastScope.getOffset();
+    cout << "last offset = " << lastOffset << endl;
 
     /* frees identifiers's table */
     for (pair<string, SymbolTableValue> kv : lastScope.getTableVariables()) {
@@ -92,8 +94,23 @@ void SymbolTableStack::endLastScope() {
     int size = this->listOfTables.size();
     if (size > 1) {
         this->listOfTables.front().incrementOffset(lastOffset);
+    } else {
+        this->lastFunctionOffset = lastOffset;
     }
 
+    cout << "endLastScope" << endl;
+}
+
+int SymbolTableStack::getLastFunctionOffset() {
+    return this->lastFunctionOffset;
+}
+
+OffsetAndScope SymbolTableStack::getOffsetAndScopeForVariable(string variable) {
+    SearchResult searchResult = this->find(variable);
+    if (!searchResult.found) {
+        ErrorManager::errorElementNotFound(variable);
+    }
+    return searchResult.valueFound.variableScope;
 }
 
 void SymbolTableStack::endAllScopes() {
@@ -171,10 +188,11 @@ void SymbolTableStack::verifyIdentificatorNode(AST *identificatorNode) {
     }
     // Verifies ERR FUNCTION
     if (resultVariable.valueFound.kind == functionKind) {
-         ErrorManager::printLine(identificatorNode->value->lineNumber);
+        ErrorManager::printLine(identificatorNode->value->lineNumber);
         ErrorManager::errorFunctionVariable(variableKey);
     }
-
+    cout << "verifyIdentificatorNode = " << endl;
+    printSyntacticalType(resultVariable.valueFound.type);
     identificatorNode->sType = resultVariable.valueFound.type;
     
 }
@@ -217,6 +235,7 @@ void SymbolTableStack::makeInitialization(AST *variableNode, AST *initialization
 
 void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode) {
 
+    cout << "makeAttributionVariable" << endl; 
     string variableKey = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
     string attKey = stringFromLiteralValue(attributionNode->value->literalTokenValueAndType);
     
@@ -535,7 +554,8 @@ void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValu
 
     SymbolTable currentScope = this->listOfTables.front();
     int currentScopeOffset = currentScope.getOffset();
-    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, currentScopeOffset);
+    OffsetAndScope offsetAndScope = {.scope = local, .offset=currentScopeOffset};
+    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, offsetAndScope);
     currentScope.incrementOffset(newValue.size);
     this->insertNewItem(key, newValue);
     Parameter newParam = {.type = sType};
@@ -555,13 +575,16 @@ void SymbolTableStack::insertVariableWithType(int line, int column, LexicalValue
 
     SymbolTable currentScope = this->listOfTables.front();
     int currentScopeOffset = currentScope.getOffset();
-    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, currentScopeOffset);
-    currentScope.incrementOffset(newValue.size);
+    OffsetAndScope offsetAndScope = {.scope=local, .offset=currentScopeOffset};
+    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, offsetAndScope);
+    this->listOfTables.front().incrementOffset(newValue.size);
     this->insertNewItem(key, newValue);
 }
 
 void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType type) {
     
+    int currentScopeOffset = this->listOfTables.front().getOffset();
+
     while (!this->variablesWithPendantTypes.empty()) {
         string varKey = this->variablesWithPendantTypes.front();
 
@@ -572,7 +595,9 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
             ErrorManager::printLine(value.line);
             ErrorManager::errorStringVector(varKey);
         }
-        this->listOfTables.front().updateType(varKey, type);
+        this->listOfTables.front().updateTypeAndOffset(varKey, type, currentScopeOffset);
+        SymbolTableValue updatedValue = this->listOfTables.front().getValueForKey(varKey);
+        this->listOfTables.front().incrementOffset(updatedValue.size);
         this->variablesWithPendantTypes.pop_front();
     }
 

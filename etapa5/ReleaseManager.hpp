@@ -8,6 +8,9 @@
 #define RELEASEMANAGER_HPP
 
 #include "AST.hpp"
+#include <list>
+
+using namespace std;
 
 typedef struct DeletionHelp{
   struct AST *nodeRef;
@@ -18,7 +21,7 @@ class ReleaseManager {
 
 private:
 /* list used to store all the AST nodes created */
-  DeletionHelp *releasePool;
+  list<AST *> releasePool;
 public:
 ReleaseManager();
 /* called in the shutdown routine, this method frees release pool */

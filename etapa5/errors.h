@@ -4,6 +4,9 @@
 
 */
 
+#ifndef ERRORS_H
+#define ERRORS_H
+
 #define ERR_UNDECLARED       10
 #define ERR_DECLARED         11
 #define ERR_VARIABLE         20
@@ -25,3 +28,5 @@
 
 #define SUCCESS 1
 #define GENERIC_ERROR -1
+
+#endif

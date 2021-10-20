@@ -24,7 +24,14 @@ typedef enum {
     local
     
 
-} VariableType;
+} VariableScope;
+
+typedef struct {
+
+    VariableScope scope;
+    int offset;
+
+} OffsetAndScope;
 
 typedef enum {
 
@@ -97,6 +104,7 @@ typedef struct {
 
 typedef struct {
 
+    int prefixLabel;
     InstructionType instructionType;
     /* list of operands in the left side of the arrow */
     list<CodeOperand> leftOperands;

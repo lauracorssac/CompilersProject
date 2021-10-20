@@ -263,3 +263,13 @@ void ErrorManager::shutDown(int errorCode) {
     executeShutDownRoutine();
     exit(errorCode);
 }
+
+void ErrorManager::doubleDeclarationOfMain() {
+    cout<< "Função main só pode ser declarada uma vez" << endl;
+    exit(GENERIC_ERROR);
+}
+
+void ErrorManager::noDeclarationOfMain() {
+    cout << "Função main não foi encontrada" << endl;
+    exit(GENERIC_ERROR);
+}

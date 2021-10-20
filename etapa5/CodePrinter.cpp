@@ -18,26 +18,45 @@ void CodePrinter::printTree(void *tree) {
 
     AST *rootNode = (AST *) tree;
 
+    cout << "code size = " << rootNode->code.size() << endl;
     list<Code>::iterator it;
 
     for (it = rootNode->code.begin(); it != rootNode->code.end(); ++it) {
 
-        printInstructionType(it->instructionType);
-        cout << " ";
-        printOperands(it->leftOperands);
-        cout << " => ";
-        printOperands(it->rightOperands);
-        cout << endl;
+       this->printCode(*it);
     }
     
+}
+
+void CodePrinter::printCode(Code code) {
+     
+     if (code.prefixLabel != -1) {
+        cout << "L" << to_string(code.prefixLabel) << ":";
+    }
+    cout << " ";
+    printInstructionType(code.instructionType);
+    if (code.leftOperands.size() > 0) {
+        cout << " ";
+        printOperands(code.leftOperands);
+    }
+    if (code.rightOperands.size() > 0) {
+        cout << " => ";
+        printOperands(code.rightOperands);
+    }
+    
+    cout << endl;
+
 }
 
 void CodePrinter::printOperands(list<CodeOperand> operands) {
 
     list<CodeOperand>::iterator it;
-    for (it = operands.begin(); it != operands.end(); ++it) {
-        this->printOperand(*it);
+    it = operands.begin();
+    this->printOperand(*it);
+
+    for (it; it != operands.end(); ++it) {
         cout << ", ";
+        this->printOperand(*it);
     }
 
 }
@@ -50,10 +69,10 @@ void CodePrinter::printOperand(CodeOperand operand) {
         cout << "r" << numbericalValueString;
         break;
     case label:
-        cout << "L" << numbericalValueString << ":";
+        cout << "L" << numbericalValueString;
         break;
     case number:
-        cout << numbericalValueString << ":";
+        cout << numbericalValueString;
         break;
     default:
         break;

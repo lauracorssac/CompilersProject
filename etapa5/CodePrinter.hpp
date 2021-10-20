@@ -19,6 +19,7 @@ void printOperand(CodeOperand operand);
 public:
 CodePrinter();
 void printTree(void *tree);
+void printCode(Code code);
 
 
 

@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <stdlib.h>
+#include <iostream>
 extern ReleaseManager releaseManager;
 
 AST* createNodeNoType(LexicalValue *value) {
@@ -23,7 +24,7 @@ AST* createNodeNoType(LexicalValue *value) {
 
     value->referenceCounter += 1;
   
-    AST *newNodePointer = (AST *) malloc(sizeof(newNode));
+    AST *newNodePointer = new AST;
     releaseManager.insertNewNode(newNodePointer);
 
     *newNodePointer = newNode;
@@ -45,7 +46,7 @@ AST* createNodeNoLexicalValue(NodeType type) {
     newNode.sister = NULL;
     newNode.sType = undefinedSType;
  
-    AST *newNodePointer = (AST *) malloc(sizeof(newNode));
+    AST *newNodePointer = new AST;
     releaseManager.insertNewNode(newNodePointer);
 
     *newNodePointer = newNode;
@@ -61,9 +62,8 @@ AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value) {
     newNode.sister = NULL;
     newNode.sType = undefinedSType;
 
-    AST *newNodePointer = (AST *) malloc(sizeof(AST));
+    AST *newNodePointer = new AST;
     releaseManager.insertNewNode(newNodePointer);
-    
     value->referenceCounter += 1;
     
     *newNodePointer = newNode;

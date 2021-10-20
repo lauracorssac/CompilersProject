@@ -6,27 +6,23 @@
 
 #include "ReleaseManager.hpp"
 #include <stdlib.h>
+#include <list>
+
+using namespace std;
 
 ReleaseManager::ReleaseManager() {
   
 }
 
 void ReleaseManager::insertNewNode(AST *newNode) {
-    DeletionHelp delHelp = {.nodeRef = newNode, .next = releasePool};
-
-    DeletionHelp *delHelpPointer = (DeletionHelp *) malloc(sizeof(DeletionHelp));
-    *delHelpPointer = delHelp;
-    releasePool = delHelpPointer;
+   this->releasePool.push_back(newNode);
 }
 
 void ReleaseManager::freeReleasePool() {
   
-  while (releasePool != NULL) {
-    DeletionHelp *temp = releasePool->next;
-    freeLexicalValue(releasePool->nodeRef->value);
-    free(releasePool->nodeRef);
-    free(releasePool);
-    releasePool = temp;
+  list<AST *>::iterator it;
+  for(it = this->releasePool.begin(); it != this->releasePool.end(); ++it) {
+    delete *it;
   }
 
 }

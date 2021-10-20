@@ -48,6 +48,8 @@ public:
     static void errorMaxString(AST *variableNode, AST *attributionNode, int variableSize);
     static void errorException();
     static void shutDown(int errorCode);
+    static void doubleDeclarationOfMain();
+    static void noDeclarationOfMain();
 };
 
 #endif

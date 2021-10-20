@@ -18,13 +18,15 @@ private:
     int getRegister();
     int labelNumber;
     int getLabel();
-
+    bool mainWasDeclared;
+    Code makeOffsetLocalVariables(int offset);
 public:
     CodeGenerator();
     void makeLiteralCode(AST *literalNode);
-    void makeAttributionLocalVariable(AST *variableNode, AST *attSymbolNode, AST *attributionNode, 
-    int offset, VariableType varType);
-    void makeLocalVariableDeclaration(AST *variableNode);
+    void makeAttributionLocalVariable(AST *attSymbolNode, AST *attributionNode, OffsetAndScope offsetAndScope);
+    void makeFunction(AST *functionNode, AST *nextNode, int offset);
+    void appendCode(AST *parent, AST*child);
+    
 };
 
 

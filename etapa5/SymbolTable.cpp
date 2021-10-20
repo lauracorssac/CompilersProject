@@ -8,6 +8,7 @@
 #include "SymbolTableValue.hpp"
 #include <unordered_map>
 #include <list>
+#include <iostream>
 
 SymbolTable::SymbolTable(int offset) {
 	this->offset = offset;
@@ -18,6 +19,7 @@ int SymbolTable::getOffset() {
 }
 
 void SymbolTable::incrementOffset(int increment){
+	cout << "incrementing = " << increment << endl;
 	this->offset += increment;
 }
 
@@ -47,8 +49,14 @@ unordered_map<string, SymbolTableValue> SymbolTable::getTableVariables() {
 unordered_map<string, SymbolTableValue> SymbolTable::getTableLiterals() {
 	return this->symbolTableLiterals;
 }
-void SymbolTable::updateType(string key, SyntacticalType type) {
+void SymbolTable::updateTypeAndOffset(string key, SyntacticalType type, int offset) {
+
+	cout << "updateTypeAndOffset" << endl;
+	printSyntacticalType(type);
+
 	this->symbolTableVariables[key].type = type;
+	this->symbolTableVariables[key].variableScope.offset = offset;
+
 	if (this->symbolTableVariables[key].kind == vectorKind) {
 		this->symbolTableVariables[key].size *= getSizeForSyntacticalType(type);
 	} else {
