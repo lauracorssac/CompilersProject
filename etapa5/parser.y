@@ -252,8 +252,8 @@ opNivel1: '^' { $$ = createNodeNoType($1);};
 opNivel2: '*' { $$ = createNodeNoType($1); };
 | '/' { $$ = createNodeNoType($1); };
 | '%' { $$ = createNodeNoType($1); };
-opNivel3: '+' { $$ = createNodeNoType($1); };
-| '-' { $$ = createNodeNoType($1); };
+opNivel3: '+' { $$ = createNodeNoType($1); $$->nodeInstructionType = add; };
+| '-' { $$ = createNodeNoType($1); $$->nodeInstructionType = sub; };
 
  /* relacionais */
 opNivel4: TK_OC_LE { $$ = createNodeNoType($1); }
@@ -363,6 +363,7 @@ EXP7: EXP8 { $$ = $1; }
 	$$ = $2;
 
 	tableStack.makeBinaryOperation($1, $2, $3);
+	codeGenerator.makeBinaryOperation($1, $2, $3);
 };
 EXP8: EXP9 { $$ = $1; }
 | EXP8 opNivel2 EXP9 { 
@@ -557,8 +558,9 @@ DECIDENTIFIER '=' ATT1 {
 
 	string variableName = stringFromLiteralValue($1->value->literalTokenValueAndType);
 	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable(variableName);
-	cout << "offset and type " << offsetAndScope.offset << " " << offsetAndScope.scope << endl;
 	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope);
+	cout << "scope parsey = " << offsetAndScope.scope;
+
 
 }
 | DECVECTOR '=' ATT1 { 

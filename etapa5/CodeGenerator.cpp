@@ -40,6 +40,7 @@ void CodeGenerator::makeLiteralCode(AST *literalNode) {
     cout << "makeLiteralCode" << endl;
     int nodeValue = integerFromLiteralValue(literalNode->value->literalTokenValueAndType);
     int registerValue = this->getRegister();
+
     CodeOperand leftOperand = {.operandType=number, .numericalValue=nodeValue};
     CodeOperand rightOperand = {.operandType=_register, .numericalValue=registerValue};
     
@@ -48,21 +49,23 @@ void CodeGenerator::makeLiteralCode(AST *literalNode) {
     list<CodeOperand> leftList; 
     leftList.push_back(leftOperand);
 
-    Code code = { .prefixLabel= -1, 
+    InstructionCode code = { .prefixLabel= -1, 
     .instructionType=loadI, 
     .leftOperands= leftList, 
     .rightOperands= rightList};
 
-    list<Code> codeList;
+    list<InstructionCode> codeList;
     codeList.push_back(code);
+    
     literalNode->code = codeList;
+    literalNode->resultRegister = rightOperand;
 
     cout << "makeLiteralCode" << endl;
   
 }
 
 //Exemplo: addI rsp, 4 => rsp
-Code CodeGenerator::makeOffsetLocalVariables(int offset) {
+InstructionCode CodeGenerator::makeOffsetLocalVariables(int offset) {
     
     CodeOperand rspOperand = {.operandType=registerPointer, .numericalValue=rsp};
     CodeOperand fourOperand = {.operandType=number, .numericalValue=offset};
@@ -74,7 +77,7 @@ Code CodeGenerator::makeOffsetLocalVariables(int offset) {
     list<CodeOperand> rightList; 
     rightList.push_back(rspOperand);
     
-    Code code = { .prefixLabel= -1, 
+    InstructionCode code = { .prefixLabel= -1, 
     .instructionType=addI, 
     .leftOperands= leftList, 
     .rightOperands= rightList};
@@ -87,10 +90,10 @@ Code CodeGenerator::makeOffsetLocalVariables(int offset) {
 void CodeGenerator::makeAttributionLocalVariable(AST *attSymbolNode, 
 AST *attributionNode, OffsetAndScope offsetAndScope) {
 
-    int registerOrigin = attributionNode->code.front().leftOperands.front().numericalValue;
-    CodeOperand leftOperand = {.operandType=_register, .numericalValue=registerOrigin};
-    int registerDestination = offsetAndScope.scope == global ? rbss : rfp;
-    CodeOperand rightOperand1 = {.operandType=_register, .numericalValue=registerDestination};
+    CodeOperand leftOperand =  attributionNode->resultRegister;
+    int registerDestination = (offsetAndScope.scope == global) ? rbss : rfp;
+    cout << "scope makeAttributionLocalVariable = " << offsetAndScope.scope;
+    CodeOperand rightOperand1 = {.operandType=registerPointer, .numericalValue=registerDestination};
     CodeOperand rightOperand2 = {.operandType=number, .numericalValue=offsetAndScope.offset};
     
     list<CodeOperand> leftList; 
@@ -99,12 +102,12 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
     rightList.push_back(rightOperand1);
     rightList.push_back(rightOperand2);
 
-    Code code = { .prefixLabel= -1, 
+    InstructionCode code = { .prefixLabel= -1, 
     .instructionType=storeAI, 
     .leftOperands= leftList, 
     .rightOperands= rightList};
 
-    list<Code> codeList;
+    list<InstructionCode> codeList;
     codeList.insert(codeList.end(), attributionNode->code.begin(), attributionNode->code.end());
     codeList.push_back(code);
     //codeList.insert(codeList.end(), nextNode->code.begin(), nextNode->code.end());
@@ -130,14 +133,14 @@ void CodeGenerator::makeFunction(AST *functionNode, AST *nextNode, int offset) {
 
     list<CodeOperand> leftList; 
     list<CodeOperand> rightList; 
-    Code code = { .prefixLabel= _label,
+    InstructionCode code = { .prefixLabel= _label,
     .instructionType=nop, 
     .leftOperands= leftList, 
     .rightOperands= rightList};
 
-    Code offsetVariables = this->makeOffsetLocalVariables(offset);
+    InstructionCode offsetVariables = this->makeOffsetLocalVariables(offset);
 
-    list<Code> codeList;
+    list<InstructionCode> codeList;
     codeList.push_back(code);
     codeList.push_back(offsetVariables);
     codeList.insert(codeList.end(), nextNode->code.begin(), nextNode->code.end());
@@ -146,18 +149,44 @@ void CodeGenerator::makeFunction(AST *functionNode, AST *nextNode, int offset) {
 
 }
 
+void CodeGenerator::makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {
+
+    int registerValue = this->getRegister();
+    CodeOperand rightOperandInstruction = {.operandType=_register, .numericalValue=registerValue};
+
+    list<CodeOperand> leftList; 
+    list<CodeOperand> rightList; 
+
+    leftList.push_back(leftOperandNode->resultRegister);
+    leftList.push_back(rightOperandNode->resultRegister);
+    rightList.push_back(rightOperandInstruction);
+
+    InstructionCode code = {
+        .prefixLabel =-1,
+    .instructionType=symbolNode->nodeInstructionType, 
+    .leftOperands= leftList, 
+    .rightOperands= rightList};
+
+    this->appendCode(symbolNode, leftOperandNode);
+    this->appendCode(symbolNode, rightOperandNode);
+    symbolNode->code.push_back(code);
+
+    symbolNode->resultRegister = rightOperandInstruction;
+
+}
+
 void CodeGenerator::appendCode(AST *parent, AST*child) {
 
     cout << "appendCode" << endl;
     cout << "parent = " << stringFromLiteralValue(parent->value->literalTokenValueAndType) << endl;
     //cout << "child = " << stringFromLiteralValue(parent->value->literalTokenValueAndType) << endl;
-    list<Code> codeList;
+    list<InstructionCode> codeList;
     codeList.insert(codeList.end(), parent->code.begin(), parent->code.end());
+    
     if (child != NULL ) {
         codeList.insert(codeList.end(), child->code.begin(), child->code.end());
     }
     
-
     parent->code = codeList;
     cout << "appendCode" << endl;
 }

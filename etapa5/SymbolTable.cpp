@@ -10,17 +10,17 @@
 #include <list>
 #include <iostream>
 
-SymbolTable::SymbolTable(int offset) {
-	this->offset = offset;
+SymbolTable::SymbolTable(OffsetAndScope scope) {
+	this->scope = scope;
 }
 
-int SymbolTable::getOffset() {
-	return this->offset;
+OffsetAndScope SymbolTable::getScopeAndOffset() {
+	return this->scope;
 }
 
 void SymbolTable::incrementOffset(int increment){
 	cout << "incrementing = " << increment << endl;
-	this->offset += increment;
+	this->scope.offset += increment;
 }
 
 void SymbolTable::insertNewItem(string key, SymbolTableValue value) {

@@ -21,7 +21,7 @@ void printRegisterPointer(RegisterPointerType type);
 public:
 CodePrinter();
 void printTree(void *tree);
-void printCode(Code code);
+void printCode(InstructionCode code);
 
 };
 

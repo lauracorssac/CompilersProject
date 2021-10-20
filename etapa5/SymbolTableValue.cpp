@@ -109,10 +109,10 @@ SymbolTableValue createLiteral(int line, int column, LexicalValue *lexicalValue,
     return value;
 }
 
-SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue) {
+SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue, OffsetAndScope scope) {
 
     SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= undefinedSType,
-    .size= 0, .lexicalValue= lexicalValue };
+    .size= 0, .lexicalValue= lexicalValue, .variableScope= scope };
 
     lexicalValue->referenceCounter += 1;
 

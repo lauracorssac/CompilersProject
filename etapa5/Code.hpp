@@ -112,7 +112,7 @@ typedef struct {
     /* list of operands in the right side of the arrow */
     list<CodeOperand> rightOperands;
   
-} Code;
+} InstructionCode;
 
 
 

@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include "errors.h"
 #include "Utils.hpp"
+#include "Code.hpp"
 
 using namespace std;
 
@@ -27,19 +28,22 @@ SymbolTableStack::SymbolTableStack() {
     this->beginNewScope(); 
 }
 
-int SymbolTableStack::getOffsetNewScope() {
+OffsetAndScope SymbolTableStack::getOffsetAndScopeNewScope() {
     int size = this->listOfTables.size();
 
-    // caso esteja começando uma função no escopo global ou o próprio
-    if ( size == 0 || size == 1) { return 0; }
+    // caso esteja começando o escopo global
+    if ( size == 0) { return { .scope=global, .offset=0}; }
+
+    // caso esteja começando uma funcao
+    if ( size == 1) { return {.scope=local, .offset=0}; }
 
     // caso esteja começando um escopo alinhado
-    return this->listOfTables.front().getOffset();
+    return this->listOfTables.front().getScopeAndOffset();
 }
 
 void SymbolTableStack::beginNewScope() {
 
-    SymbolTable newSymbolTable = SymbolTable(this->getOffsetNewScope());
+    SymbolTable newSymbolTable = SymbolTable(this->getOffsetAndScopeNewScope());
     this->listOfTables.push_front(newSymbolTable);
     
 }
@@ -76,7 +80,7 @@ void SymbolTableStack::endLastScope() {
     cout << "endLastScope" << endl;
     if (this->listOfTables.empty()) { return; }
     SymbolTable lastScope = this->listOfTables.front();
-    int lastOffset = lastScope.getOffset();
+    int lastOffset = lastScope.getScopeAndOffset().offset;
     cout << "last offset = " << lastOffset << endl;
 
     /* frees identifiers's table */
@@ -110,6 +114,7 @@ OffsetAndScope SymbolTableStack::getOffsetAndScopeForVariable(string variable) {
     if (!searchResult.found) {
         ErrorManager::errorElementNotFound(variable);
     }
+    cout << "getOffsetAndScopeForVariable scope = " << searchResult.valueFound.variableScope.scope << endl;
     return searchResult.valueFound.variableScope;
 }
 
@@ -484,7 +489,9 @@ void SymbolTableStack::insertVariableWithPendantType(int line, int column, Lexic
         ErrorManager::errorDeclared(key, searchResult.valueFound);
     }
     
-    SymbolTableValue newValue = createVariableWithPendantType(line, column, lexicalValue);
+    OffsetAndScope scope = this->listOfTables.front().getScopeAndOffset();
+    cout << "insertVariableWithPendantType = " << scope.scope;
+    SymbolTableValue newValue = createVariableWithPendantType(line, column, lexicalValue, scope);
     this->variablesWithPendantTypes.push_back(key);
     this->insertNewItem(key, newValue);
 }
@@ -553,8 +560,7 @@ void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValu
     }
 
     SymbolTable currentScope = this->listOfTables.front();
-    int currentScopeOffset = currentScope.getOffset();
-    OffsetAndScope offsetAndScope = {.scope = local, .offset=currentScopeOffset};
+    OffsetAndScope offsetAndScope = currentScope.getScopeAndOffset();
     SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, offsetAndScope);
     currentScope.incrementOffset(newValue.size);
     this->insertNewItem(key, newValue);
@@ -573,9 +579,7 @@ void SymbolTableStack::insertVariableWithType(int line, int column, LexicalValue
         ErrorManager::errorDeclared(key, searchResult.valueFound);
     }
 
-    SymbolTable currentScope = this->listOfTables.front();
-    int currentScopeOffset = currentScope.getOffset();
-    OffsetAndScope offsetAndScope = {.scope=local, .offset=currentScopeOffset};
+    OffsetAndScope offsetAndScope = this->listOfTables.front().getScopeAndOffset();
     SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, offsetAndScope);
     this->listOfTables.front().incrementOffset(newValue.size);
     this->insertNewItem(key, newValue);
@@ -583,7 +587,7 @@ void SymbolTableStack::insertVariableWithType(int line, int column, LexicalValue
 
 void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType type) {
     
-    int currentScopeOffset = this->listOfTables.front().getOffset();
+    int currentScopeOffset = this->listOfTables.front().getScopeAndOffset().offset;
 
     while (!this->variablesWithPendantTypes.empty()) {
         string varKey = this->variablesWithPendantTypes.front();

@@ -50,7 +50,7 @@ void printValue(SymbolTableValue symbolTableValue);
 void printKind(Kind kind);
 void printListOfParameters(list<Parameter> listOfParameters);
 void printSyntacticalType(SyntacticalType sType);
-SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue);
+SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue, OffsetAndScope scope);
 SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
 SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, OffsetAndScope scope);
 SymbolTableValue createVariableWithInitialization(int line, int column, SyntacticalType type, 

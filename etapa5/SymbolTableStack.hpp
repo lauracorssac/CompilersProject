@@ -47,7 +47,7 @@ public:
     SearchResult findInScope(string element);
     void endLastScope();
     void endAllScopes();
-    int getOffsetNewScope();
+    OffsetAndScope getOffsetAndScopeNewScope();
     int getLastFunctionOffset();
     OffsetAndScope getOffsetAndScopeForVariable(string variable);
     

@@ -19,7 +19,7 @@ void CodePrinter::printTree(void *tree) {
     AST *rootNode = (AST *) tree;
 
     cout << "code size = " << rootNode->code.size() << endl;
-    list<Code>::iterator it;
+    list<InstructionCode>::iterator it;
 
     for (it = rootNode->code.begin(); it != rootNode->code.end(); ++it) {
 
@@ -28,7 +28,7 @@ void CodePrinter::printTree(void *tree) {
     
 }
 
-void CodePrinter::printCode(Code code) {
+void CodePrinter::printCode(InstructionCode code) {
      
      if (code.prefixLabel != -1) {
         cout << "L" << to_string(code.prefixLabel) << ": ";

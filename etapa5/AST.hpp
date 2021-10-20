@@ -41,6 +41,7 @@ typedef struct AST {
 
     SyntacticalType sType; // acrescentando devido E4
     NodeType nodeType;
+    InstructionType nodeInstructionType; //
 
     // (optional) value of LexicalValue. 
     // Not NULL for leaves. 
@@ -50,7 +51,8 @@ typedef struct AST {
     struct AST *child; //(optional) pointer to first child
     struct AST *sister; //(optional) pointer to its parent's next child.
 
-    list<Code> code;
+    list<InstructionCode> code;
+    CodeOperand resultRegister; //the register where the result is located 
 
 } AST;
 
