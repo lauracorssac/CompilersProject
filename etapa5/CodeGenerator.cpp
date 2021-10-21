@@ -84,10 +84,11 @@ InstructionCode CodeGenerator::makeOffsetLocalVariables(int offset) {
     return code;
 }
 
-list<InstructionCode> CodeGenerator::createBoolFlow(AST *node, CodeOperand destinationLabel, CodeOperand destinationRegister) {
+list<InstructionCode> CodeGenerator::createBoolFlow(AST *node, int destinationLabel, CodeOperand destinationRegister) {
 
     list <CodeOperand> leftOperands;
-    leftOperands.push_back(destinationLabel);
+    CodeOperand jumpDestinationLabel = {.operandType=label, .numericalValue=destinationLabel};
+    leftOperands.push_back(jumpDestinationLabel);
 
     InstructionCode jumpInst = {.prefixLabel=-1,
     .instructionType=jumpI,
@@ -167,6 +168,20 @@ InstructionCode CodeGenerator::loadBooleanCode(bool boolean, CodeOperand registe
 }
 
 //Exemplo: storeAI r0 => rfp, 0
+//Exemplo: storeAI op1 => op2, op3
+InstructionCode CodeGenerator::makeStoreCode(int prefixLabel, CodeOperand op1, CodeOperand op2, CodeOperand op3) {
+    
+    InstructionCode storeCode = { .prefixLabel= prefixLabel, 
+    .instructionType=storeAI, 
+    .leftOperands= {op1}, 
+    .rightOperands= {op2, op3}};
+
+    return storeCode;
+
+}
+
+
+//Exemplo: storeAI r0 => rfp, 0
 //Memoria(rfp + 0) = r0
 void CodeGenerator::makeAttributionLocalVariable(AST *attSymbolNode, 
 AST *attributionNode, OffsetAndScope offsetAndScope) {
@@ -175,32 +190,24 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
     int registerDestination = (offsetAndScope.scope == global) ? rbss : rfp;
     CodeOperand rightOperand1 = {.operandType=registerPointer, .numericalValue=registerDestination};
     CodeOperand rightOperand2 = {.operandType=number, .numericalValue=offsetAndScope.offset};
-    int storeLabel = this->getLabel();
-    CodeOperand storeLabelOperand = {.operandType=label, .numericalValue=storeLabel};
+    int storeLabel;
     list<InstructionCode> codeList;
-    
+
     if (attributionNode->hasPatchworks) {
+        storeLabel = this->getLabel();
         int newRegister = getRegister();
         leftOperand = {.operandType=_register, .numericalValue=newRegister};
-        list<InstructionCode> newCode = this->createBoolFlow(attributionNode, storeLabelOperand, leftOperand);
+        list<InstructionCode> newCode = this->createBoolFlow(attributionNode, storeLabel, leftOperand);
         codeList.insert(codeList.end(), attributionNode->code.begin(), attributionNode->code.end());
         codeList.insert(codeList.end(), newCode.begin(), newCode.end());
     } else {
+        storeLabel = -1;
         leftOperand = attributionNode->resultRegister;
         codeList.insert(codeList.end(), attributionNode->code.begin(), attributionNode->code.end());
     }
 
-    list<CodeOperand> leftList; 
-    leftList.push_back(leftOperand);
-    list<CodeOperand> rightList; 
-    rightList.push_back(rightOperand1);
-    rightList.push_back(rightOperand2);
-    
-    InstructionCode storeCode = { .prefixLabel= storeLabel, 
-    .instructionType=storeAI, 
-    .leftOperands= leftList, 
-    .rightOperands= rightList};
-
+    InstructionCode storeCode = makeStoreCode(storeLabel, leftOperand, rightOperand1, rightOperand2);
+   
     codeList.push_back(storeCode);
     attSymbolNode->code = codeList;
 
@@ -349,30 +356,71 @@ void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOpe
 
 }
 
-
-void CodeGenerator::makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {
-
-    int registerValue = this->getRegister();
-    CodeOperand rightOperandInstruction = {.operandType=_register, .numericalValue=registerValue};
+//EX.: add r1, r2 => r3
+InstructionCode CodeGenerator::makeBinaryInstruction(InstructionType instructionType, int prefixLabel, CodeOperand r1Operand, CodeOperand r2Operand, CodeOperand r3Operand) {
 
     list<CodeOperand> leftList; 
     list<CodeOperand> rightList; 
 
-    leftList.push_back(leftOperandNode->resultRegister);
-    leftList.push_back(rightOperandNode->resultRegister);
-    rightList.push_back(rightOperandInstruction);
+    leftList.push_back(r1Operand);
+    leftList.push_back(r2Operand);
+    rightList.push_back(r3Operand);
 
     InstructionCode code = {
-        .prefixLabel =-1,
-    .instructionType=symbolNode->nodeInstructionType, 
+        .prefixLabel =prefixLabel,
+    .instructionType=instructionType, 
     .leftOperands= leftList, 
     .rightOperands= rightList};
 
-    this->appendCode(symbolNode, leftOperandNode);
-    this->appendCode(symbolNode, rightOperandNode);
-    symbolNode->code.push_back(code);
+    return code;
 
-    symbolNode->resultRegister = rightOperandInstruction;
+}
+
+//Ex.: add r1, r2 => r3
+void CodeGenerator::makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {
+
+    list<InstructionCode> codeList;
+    int r3 = this->getRegister();
+    int addLabel;
+    CodeOperand r3Operand = {.operandType=_register, .numericalValue=r3};
+    CodeOperand r1Operand;
+    CodeOperand r2Operand;
+
+    if (!leftOperandNode->hasPatchworks && !rightOperandNode->hasPatchworks) {
+        addLabel = -1;
+    }else {
+        addLabel = this->getLabel();
+    }
+
+    if (leftOperandNode->hasPatchworks) {
+        int r1 = this->getRegister();
+        r1Operand = {.operandType=_register, .numericalValue=r1};
+        list<InstructionCode> newCode = this->createBoolFlow(leftOperandNode, addLabel, r1Operand);
+        codeList.insert(codeList.end(), leftOperandNode->code.begin(), leftOperandNode->code.end());
+        codeList.insert(codeList.end(), newCode.begin(), newCode.end());
+    
+    } else {
+        r1Operand = leftOperandNode->resultRegister;
+        codeList.insert(codeList.end(), leftOperandNode->code.begin(), leftOperandNode->code.end());
+    }
+
+    if (rightOperandNode->hasPatchworks) {
+        int r2 = this->getRegister();
+        r2Operand = {.operandType=_register, .numericalValue=r2};
+        list<InstructionCode> newCode = this->createBoolFlow(rightOperandNode, addLabel, r2Operand);
+        codeList.insert(codeList.end(), rightOperandNode->code.begin(), rightOperandNode->code.end());
+        codeList.insert(codeList.end(), newCode.begin(), newCode.end());
+    
+    } else {
+        r2Operand = rightOperandNode->resultRegister;
+        codeList.insert(codeList.end(), rightOperandNode->code.begin(), rightOperandNode->code.end());
+    }
+
+    InstructionCode addCode = this->makeBinaryInstruction(symbolNode->nodeInstructionType, addLabel, r1Operand, r2Operand, r3Operand);
+    codeList.push_back(addCode);
+    symbolNode->code = codeList;
+    symbolNode->resultRegister = r3Operand;
+    symbolNode->hasPatchworks = false;
 
 }
 

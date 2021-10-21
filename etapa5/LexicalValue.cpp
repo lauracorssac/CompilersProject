@@ -60,7 +60,7 @@ LexicalValue* lexicalValueFromLiteralToken(int lineCounter, char *text, LiteralT
         litValue.floatValue = atof(text);
         break;
     case boolType:
-        litValue.boolValue = (strncmp (text,"true",4) == 1);
+        litValue.boolValue = (strncmp (text,"true",4) == 0);
         break;
     case charType:
         strncpy(&litValue.charValue, removeFirstAndLast(text), 1);

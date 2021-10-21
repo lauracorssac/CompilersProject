@@ -28,7 +28,8 @@ private:
     list<InstructionCode> makeCMPGE(CodeOperand r1Operand, CodeOperand r3Operand);
     void coverPatchworks(list<InstructionCode> &code, CodeOperand labelOperand, bool patchworkType);
     InstructionCode loadConstant(int constant, CodeOperand registerDestination);
-
+    InstructionCode makeBinaryInstruction(InstructionType instructionType, int prefixLabel, CodeOperand r1Operand, CodeOperand r2Operand, CodeOperand r3Operand);
+    InstructionCode makeStoreCode(int prefixLabel, CodeOperand op1, CodeOperand op2, CodeOperand op3);
 
 public:
     CodeGenerator();
@@ -41,7 +42,7 @@ public:
     
     //aka remenda
     void coverPatchworks(AST *node, CodeOperand labelOperand, bool patchworkType);
-    list<InstructionCode> createBoolFlow(AST *node, CodeOperand destinationLabel, CodeOperand destinationRegister);
+    list<InstructionCode> createBoolFlow(AST *node, int destinationLabel, CodeOperand destinationRegister);
     InstructionCode loadBooleanCode(bool boolean, CodeOperand registerDestination);
     
 
