@@ -312,6 +312,7 @@ EXP1: EXP2 { $$ = $1; }
 	$$ = $2;
 
 	tableStack.makeBinaryOperation($1, $2, $3);
+	codeGenerator.makeOr($1, $2, $3);
 };
 EXP2: EXP3 { $$ = $1; }
 | EXP2 opNivel8 EXP3 { 
@@ -486,7 +487,7 @@ BLOCK1: '}' {
 		codeGenerator.appendCode($1, $2);
 		$$ = $1;
 	} else {
-		cout << "TODO AAAA" << endl;
+		
 		//TODO AAAA
 		$$ = $2;
 	}

@@ -3,7 +3,7 @@ import subprocess
 
 os.system("cd etapa5 && make --silent")
 
-fileName = "simple"
+fileName = "testeE5Lau/t3.txt"
 command = "./etapa5/etapa5 < " + fileName + " > saida"
 exitCode = subprocess.call(command, shell=True)
 

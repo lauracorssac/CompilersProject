@@ -23,6 +23,7 @@ private:
     InstructionCode makeOffsetLocalVariables(int offset);
     InstructionCode makeNop(int label);
     void appendCode(AST *parent, list<InstructionCode> newCode);
+    void prependCode(AST *node, list<InstructionCode> newCode);
     list<InstructionCode> makeCompare(CodeOperand r1Operand, CodeOperand labelTrue, CodeOperand labelFalse);
     InstructionCode makeCBR(CodeOperand r3Operand, CodeOperand labelTrue, CodeOperand labelFalse);
     list<InstructionCode> makeCMPGE(CodeOperand r1Operand, CodeOperand r3Operand);
@@ -30,6 +31,9 @@ private:
     InstructionCode loadConstant(int constant, CodeOperand registerDestination);
     InstructionCode makeBinaryInstruction(InstructionType instructionType, int prefixLabel, CodeOperand r1Operand, CodeOperand r2Operand, CodeOperand r3Operand);
     InstructionCode makeStoreCode(int prefixLabel, CodeOperand op1, CodeOperand op2, CodeOperand op3);
+    InstructionCode makeJumpInstruction(CodeOperand destinationLabel);
+    InstructionCode makeHalt();
+    list<InstructionCode> makeInitialCode(int preliminaryCodeSize);
 
 public:
     CodeGenerator();
@@ -39,11 +43,15 @@ public:
     void appendCode(AST *parent, AST*child);
     void makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
     void makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
+    void makeOr(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
     
     //aka remenda
     void coverPatchworks(AST *node, CodeOperand labelOperand, bool patchworkType);
     list<InstructionCode> createBoolFlow(AST *node, int destinationLabel, CodeOperand destinationRegister);
     InstructionCode loadBooleanCode(bool boolean, CodeOperand registerDestination);
+
+    void generateFinalCode(AST *finalTree);
+    void generateInitialCode(AST *finalTree);
     
 
 

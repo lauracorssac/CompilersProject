@@ -38,14 +38,11 @@ int main (int argc, char **argv)
 }
 
 void executeShutDownRoutine() {
+
+  codeGenerator.generateFinalCode((AST*)arvore);
+  codeGenerator.generateInitialCode((AST*)arvore);
   codePrinter.printTree(arvore);
   //exporta (arvore);
-    // cout << "loadI 1024 => rfp" << endl;
-    // cout << "loadI 1024 => rsp" << endl;
-    // cout << "loadI 7 => rbss" << endl;
-    // cout << "jumpI => L0" << endl;
-    // cout << "L0: addI rsp, 0 => rsp" << endl;
-    // cout << "halt" << endl;
   releaseManager.freeReleasePool();
   arvore = NULL;
   tableStack.endAllScopes();

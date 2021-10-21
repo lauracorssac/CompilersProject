@@ -18,7 +18,6 @@ void CodePrinter::printTree(void *tree) {
 
     AST *rootNode = (AST *) tree;
 
-    cout << "code size = " << rootNode->code.size() << endl;
     list<InstructionCode>::iterator it;
 
     for (it = rootNode->code.begin(); it != rootNode->code.end(); ++it) {

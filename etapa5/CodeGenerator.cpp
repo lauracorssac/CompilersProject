@@ -36,6 +36,58 @@ int CodeGenerator::getLabel() {
     return this->labelNumber++;
 }
 
+//loadI 1024 => rfp
+//loadI 1024 => rsp
+//loadI preliminaryCodeSize + 5 => rbss
+//jumpI => L0
+//preliminaryCodeSize is the size before adding these four instructions
+list<InstructionCode> CodeGenerator::makeInitialCode(int preliminaryCodeSize) {
+
+    list<InstructionCode> codeList;
+
+    CodeOperand rfpOperand = {.operandType=registerPointer, .numericalValue=rfp};
+    CodeOperand rspOperand = {.operandType=registerPointer, .numericalValue=rsp};
+    CodeOperand rbssOperand = {.operandType=registerPointer, .numericalValue=rbss};
+    CodeOperand LO = {.operandType=label, .numericalValue=0};
+    
+    codeList.push_back(loadConstant(1024, rfpOperand));
+    codeList.push_back(loadConstant(1024, rspOperand));
+    codeList.push_back(loadConstant(preliminaryCodeSize + 5, rspOperand));
+    codeList.push_back(makeJumpInstruction(LO));
+    
+    return codeList;
+}
+
+InstructionCode CodeGenerator::makeHalt() {
+
+    return {
+        .prefixLabel= -1, 
+        .instructionType=halt, 
+        .leftOperands= list<CodeOperand>(), 
+        .rightOperands= list<CodeOperand>()
+    };
+
+}
+void CodeGenerator::generateInitialCode(AST *finalTree) {
+    int preliminarySize = finalTree->code.size();
+    prependCode(finalTree, makeInitialCode(preliminarySize));
+}
+
+void CodeGenerator::generateFinalCode(AST *finalTree) {
+    appendCode(finalTree, { makeHalt() });
+}
+
+InstructionCode CodeGenerator::makeJumpInstruction(CodeOperand destinationLabel) {
+
+    return {
+        .prefixLabel= -1, 
+        .instructionType=jumpI, 
+        .leftOperands= list<CodeOperand>(), 
+        .rightOperands= {destinationLabel}
+    };
+
+}
+
 //Exemplo: loadI 34 => r0
 void CodeGenerator::makeLiteralCode(AST *literalNode) {
 
@@ -86,15 +138,9 @@ InstructionCode CodeGenerator::makeOffsetLocalVariables(int offset) {
 
 list<InstructionCode> CodeGenerator::createBoolFlow(AST *node, int destinationLabel, CodeOperand destinationRegister) {
 
-    list <CodeOperand> leftOperands;
     CodeOperand jumpDestinationLabel = {.operandType=label, .numericalValue=destinationLabel};
-    leftOperands.push_back(jumpDestinationLabel);
 
-    InstructionCode jumpInst = {.prefixLabel=-1,
-    .instructionType=jumpI,
-    .leftOperands= leftOperands,
-    .rightOperands= list<CodeOperand>()
-    };
+    InstructionCode jumpInst = makeJumpInstruction(jumpDestinationLabel);
 
     InstructionCode codeTrue = loadBooleanCode(true, destinationRegister);
     CodeOperand codeTrueLabel = {.operandType=label, .numericalValue=codeTrue.prefixLabel};
@@ -313,6 +359,42 @@ list<InstructionCode> CodeGenerator::makeCompare(CodeOperand r1Operand, CodeOper
     return code;
 }
 
+void CodeGenerator::makeOr(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {
+
+    int labelNumValue = this->getLabel();
+    CodeOperand labelNextOP = {.operandType=label, .numericalValue= labelNumValue};
+    CodeOperand labelPatchworkTrue = {.operandType=patchworkTrue, .numericalValue=-1};
+    CodeOperand labelPatchworkFalse = {.operandType=patchworkFalse, .numericalValue=-1};
+
+    symbolNode->hasPatchworks = true;
+    
+    //se tem remendos, é uma expressão booleana. Remenda
+    if (leftOperandNode->hasPatchworks) {
+        
+        this->coverPatchworks(leftOperandNode, labelNextOP, false);
+        this->appendCode(symbolNode,leftOperandNode);
+        
+    } 
+    // se não, compara
+    else {
+        this->appendCode(symbolNode,leftOperandNode);
+        CodeOperand r1Operand = leftOperandNode->resultRegister;
+        list<InstructionCode> compareCode = makeCompare(r1Operand, labelPatchworkTrue, labelNextOP);
+        this->coverPatchworks(compareCode, labelNextOP, false);
+        appendCode(symbolNode, compareCode);
+    }
+
+    symbolNode->code.push_back(this->makeNop(labelNumValue));
+    this->appendCode(symbolNode, rightOperandNode);
+
+    if (!rightOperandNode->hasPatchworks) {
+        CodeOperand r1Operand = rightOperandNode->resultRegister;
+        list<InstructionCode> compareCode = makeCompare(r1Operand, labelPatchworkTrue, labelPatchworkFalse);
+        appendCode(symbolNode, compareCode);
+    }
+
+}
+
 void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {
 
     int labelNumValue = this->getLabel();
@@ -321,7 +403,6 @@ void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOpe
 
     symbolNode->hasPatchworks = true;
     
-
     //se tem remendos, é uma expressão booleana. Remenda
     if (leftOperandNode->hasPatchworks) {
         
@@ -346,13 +427,6 @@ void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOpe
         list<InstructionCode> compareCode = makeCompare(r1Operand, {.operandType=patchworkTrue, .numericalValue=-1}, labelFalse);
         appendCode(symbolNode, compareCode);
     }
-    
-    cout << "----------" << endl;
-    cout << "----------" << endl;
-    codePrinter.printTree((void *)symbolNode);
-    cout << "----------" << endl;
-    cout << "----------" << endl;
-   
 
 }
 
@@ -437,6 +511,12 @@ void CodeGenerator::appendCode(AST *parent, list<InstructionCode> newCode) {
     if (parent == NULL) { return; }
 
     parent->code.insert(parent->code.end(), newCode.begin(), newCode.end());
+    
+}
+void CodeGenerator::prependCode(AST *node, list<InstructionCode> newCode) {
 
+    if (node == NULL) { return; }
+
+    node->code.insert(node->code.begin(), newCode.begin(), newCode.end());
     
 }
