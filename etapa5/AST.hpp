@@ -53,6 +53,7 @@ typedef struct AST {
 
     list<InstructionCode> code;
     CodeOperand resultRegister; //the register where the result is located 
+    bool hasPatchworks;
 
 } AST;
 

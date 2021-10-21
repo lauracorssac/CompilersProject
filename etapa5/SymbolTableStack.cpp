@@ -192,8 +192,6 @@ void SymbolTableStack::verifyIdentificatorNode(AST *identificatorNode) {
         ErrorManager::printLine(identificatorNode->value->lineNumber);
         ErrorManager::errorFunctionVariable(variableKey);
     }
-    cout << "verifyIdentificatorNode = " << endl;
-    printSyntacticalType(resultVariable.valueFound.type);
     identificatorNode->sType = resultVariable.valueFound.type;
     
 }
@@ -236,7 +234,6 @@ void SymbolTableStack::makeInitialization(AST *variableNode, AST *initialization
 
 void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode) {
 
-    cout << "makeAttributionVariable" << endl; 
     string variableKey = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
     string attKey = stringFromLiteralValue(attributionNode->value->literalTokenValueAndType);
     

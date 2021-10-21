@@ -23,7 +23,6 @@ typedef enum {
     global =0,
     local
     
-
 } VariableScope;
 
 typedef struct {
@@ -91,7 +90,9 @@ typedef enum {
     _register = 0, 
     registerPointer,
     label,
-    number 
+    number,
+    patchworkTrue,
+    patchworkFalse,
 
 } CodeOperandType;
 

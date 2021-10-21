@@ -19,7 +19,6 @@ OffsetAndScope SymbolTable::getScopeAndOffset() {
 }
 
 void SymbolTable::incrementOffset(int increment){
-	cout << "incrementing = " << increment << endl;
 	this->scope.offset += increment;
 }
 
@@ -50,9 +49,6 @@ unordered_map<string, SymbolTableValue> SymbolTable::getTableLiterals() {
 	return this->symbolTableLiterals;
 }
 void SymbolTable::updateTypeAndOffset(string key, SyntacticalType type, int offset) {
-
-	cout << "updateTypeAndOffset" << endl;
-	printSyntacticalType(type);
 
 	this->symbolTableVariables[key].type = type;
 	this->symbolTableVariables[key].variableScope.offset = offset;

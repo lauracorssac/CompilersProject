@@ -320,6 +320,7 @@ EXP2: EXP3 { $$ = $1; }
 	$$ = $2;
 
 	tableStack.makeBinaryOperation($1, $2, $3);
+	codeGenerator.makeAnd($1, $2, $3); 
 };
 EXP3: EXP4 { $$ = $1; }
 | EXP3 opNivel7 EXP4 { 
