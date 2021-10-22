@@ -562,9 +562,83 @@ void CodeGenerator::makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *els
 
 }
 
+//x:
+//expNode
+//y:
+//whileBlock
+//jump x
+//z:
+
 void CodeGenerator::makeWhile(AST *whileNode, AST *expNode, AST *whileBlockNode) {
 
+    int xLabel = this->getLabel();
+    int yLabel = this->getLabel();
+    int zLabel = this->getLabel();
+    CodeOperand xLabelOperand = {.operandType=label, .numericalValue=xLabel};
+    CodeOperand yLabelOperand = {.operandType=label, .numericalValue=yLabel};
+    CodeOperand zLabelOperand = {.operandType=label, .numericalValue=zLabel};
+    InstructionCode nopX = makeNop(xLabel);
+    InstructionCode nopY = makeNop(yLabel);
+    InstructionCode nopZ = makeNop(zLabel);
+
+    //where it jumps in case expNode is true
+    CodeOperand labelTrue = yLabelOperand;
+
+    //where it jumps in case expNode is false
+    CodeOperand labelFalse = zLabelOperand;
+
+    InstructionCode jumpXInstruction = makeJumpInstruction(xLabelOperand);
+
+    appendCode(whileNode, {nopX});
+
+    if (expNode->hasPatchworks) {
+
+        coverPatchworks(expNode, labelTrue, true);
+        coverPatchworks(expNode, labelFalse, false);
+        appendCode(whileNode, expNode);
+        
+    } else {
+
+        CodeOperand r1Operand = expNode->resultRegister;
+        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
+        appendCode(whileNode, expNode);
+        appendCode(whileNode, compareCode);
+
+    }
+
+    appendCode(whileNode, {nopY});
+    appendCode(whileNode, whileBlockNode);
+    appendCode(whileNode, {jumpXInstruction});
+    appendCode(whileNode, {nopZ});
+
+
 }
+
+//loadAI originRegister, originOffset => resultRegister // r3 = Memoria(r1 + c2)
+void CodeGenerator::makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope) {
+
+    int originRegister = (offsetAndScope.scope == global) ? rbss : rfp;
+    int originOffset = offsetAndScope.offset;
+    int resultRegister = this->getRegister(); 
+
+    CodeOperand originRegisterOperand =  {.operandType=registerPointer, .numericalValue=originRegister};
+    CodeOperand originOffsetOperand =  {.operandType=number, .numericalValue=originOffset};
+    CodeOperand resultRegisterOperand =  {.operandType=_register, .numericalValue=resultRegister};
+    
+    
+    InstructionCode loadInstruction = {.prefixLabel=-1,
+    .instructionType=loadAI,
+    .leftOperands= {originRegisterOperand, originOffsetOperand},
+    .rightOperands= {resultRegisterOperand}
+    };
+
+    appendCode(variableNode, {loadInstruction});
+
+    variableNode->hasPatchworks = false;
+    variableNode->resultRegister = resultRegisterOperand;
+
+}
+
 void CodeGenerator::appendCode(AST *parent, AST*child) {
 
     if (parent == NULL || child ==  NULL) { return; }

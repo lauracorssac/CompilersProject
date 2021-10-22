@@ -49,7 +49,7 @@ public:
     void endAllScopes();
     OffsetAndScope getOffsetAndScopeNewScope();
     int getLastFunctionOffset();
-    OffsetAndScope getOffsetAndScopeForVariable(string variable);
+    OffsetAndScope getOffsetAndScopeForVariable(AST *variableNode);
     
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     

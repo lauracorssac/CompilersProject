@@ -106,10 +106,12 @@ int SymbolTableStack::getLastFunctionOffset() {
     return this->lastFunctionOffset;
 }
 
-OffsetAndScope SymbolTableStack::getOffsetAndScopeForVariable(string variable) {
-    SearchResult searchResult = this->find(variable);
+OffsetAndScope SymbolTableStack::getOffsetAndScopeForVariable(AST *variableNode) {
+
+    string variableName = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
+    SearchResult searchResult = this->find(variableName);
     if (!searchResult.found) {
-        ErrorManager::errorElementNotFound(variable);
+        ErrorManager::errorElementNotFound(variableName);
     }
     return searchResult.valueFound.variableScope;
 }

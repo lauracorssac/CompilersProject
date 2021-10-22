@@ -46,6 +46,7 @@ public:
     void makeOr(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
     void makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *elseBlockNode);
     void makeWhile(AST *whileNode, AST *expNode, AST *whileBlockNode);
+    void makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope);
     
     //aka remenda
     void coverPatchworks(AST *node, CodeOperand labelOperand, bool patchworkType);
@@ -54,9 +55,6 @@ public:
 
     void generateFinalCode(AST *finalTree);
     void generateInitialCode(AST *finalTree);
-    
-
-
     
 };
 

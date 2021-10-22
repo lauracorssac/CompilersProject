@@ -204,6 +204,8 @@ LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableS
 DECIDENTIFIER: TK_IDENTIFICADOR { 
 	$$ = createNodeNoType($1); 
 	tableStack.verifyIdentificatorNode($$);
+	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable($$);
+	codeGenerator.makeDeclaredVariable($$, offsetAndScope);
 }
 
 /* Definição de um vetor declarado */
@@ -555,8 +557,7 @@ DECIDENTIFIER '=' ATT1 {
 
 	tableStack.makeAttributionVariable($1, rootNode, $3);
 
-	string variableName = stringFromLiteralValue($1->value->literalTokenValueAndType);
-	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable(variableName);
+	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable($1);
 	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope);
 
 }
@@ -720,6 +721,8 @@ WHILE: TK_PR_WHILE '(' EXPRESSION ')' TK_PR_DO BLOCK {
 	appendChild(rootNode, $3);
 	appendChild(rootNode, $6);
 	$$ = rootNode;
+
+	codeGenerator.makeWhile(rootNode, $3, $6);
 };
 
  /*    def FOR    
