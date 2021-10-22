@@ -258,14 +258,14 @@ opNivel3: '+' { $$ = createNodeNoType($1); $$->nodeInstructionType = add; };
 | '-' { $$ = createNodeNoType($1); $$->nodeInstructionType = sub; };
 
  /* relacionais */
-opNivel4: TK_OC_LE { $$ = createNodeNoType($1); }
-| TK_OC_GE { $$ = createNodeNoType($1); }
-| '<' { $$ = createNodeNoType($1); }
-| '>' { $$ = createNodeNoType($1); };
+opNivel4: TK_OC_LE { $$ = createNodeNoType($1); $$->nodeInstructionType = cmp_LE; }
+| TK_OC_GE { $$ = createNodeNoType($1); $$->nodeInstructionType = cmp_GE; }
+| '<' { $$ = createNodeNoType($1); $$->nodeInstructionType = cmp_LT; }
+| '>' { $$ = createNodeNoType($1); $$->nodeInstructionType = cmp_GT; };
 
 /* equalidade */
-opNivel5: TK_OC_EQ { $$ = createNodeNoType($1); }
-| TK_OC_NE { $$ = createNodeNoType($1); };
+opNivel5: TK_OC_EQ { $$ = createNodeNoType($1); $$->nodeInstructionType = cmp_EQ;}
+| TK_OC_NE { $$ = createNodeNoType($1); $$->nodeInstructionType = cmp_NE; };
 
  /* bitwise and */
 opNivel6: '&' { $$ = createNodeNoType($1); };
@@ -351,6 +351,7 @@ EXP5: EXP6 { $$ = $1; }
 	$$ = $2;
 
 	tableStack.makeBinaryOperation($1, $2, $3);
+	codeGenerator.makeBinaryOperation($1, $2, $3);
 };
 EXP6: EXP7 { $$ = $1; }
 | EXP6 opNivel4 EXP7 {
@@ -359,6 +360,7 @@ EXP6: EXP7 { $$ = $1; }
 	$$ = $2;
 
 	tableStack.makeBinaryOperation($1, $2, $3);
+	codeGenerator.makeBinaryOperation($1, $2, $3);
 };
 EXP7: EXP8 { $$ = $1; }
 | EXP7 opNivel3 EXP8 { 
