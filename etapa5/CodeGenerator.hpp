@@ -46,6 +46,7 @@ public:
     void makeOr(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
     void makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *elseBlockNode);
     void makeWhile(AST *whileNode, AST *expNode, AST *whileBlockNode);
+    void makeFor(AST *forNode, AST *att1Node, AST *expNode, AST *att2Node, AST *forBlockNode);
     void makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope);
     
     //aka remenda

@@ -1,17 +1,19 @@
 loadI 1024 => rfp
 loadI 1024 => rsp
-loadI 20 => rsp
+loadI 22 => rsp
 jumpI => L0
 L0: nop
 addI rsp, 8 => rsp
 loadI 0 => r1
 storeAI r1 => rfp, 0
 L1: nop
-loadAI rfp, 0 => r2
-loadI 0 => r6
-cmp_NE r2, r6 => r5
-cbr r5 => L2, L3
+loadI 0 => r2
+loadI 0 => r8
+cmp_NE r2, r8 => r7
+cbr r7 => L2, L3
 L2: nop
+loadI 10 => r6
+storeAI r6 => rfp, 0
 loadI 1 => r4
 storeAI r4 => rfp, 0
 jumpI => L1

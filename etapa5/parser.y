@@ -739,6 +739,8 @@ FOR: TK_PR_FOR '(' ATT ':' EXPRESSION ':' ATT ')' BLOCK {
 	appendChild(rootNode, $7); //ATT
 	appendChild(rootNode, $9); //BLOCO
 	$$ = rootNode;
+
+	codeGenerator.makeFor(rootNode, $3, $5, $7, $9);
 };
 
 %%

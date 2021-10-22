@@ -614,6 +614,58 @@ void CodeGenerator::makeWhile(AST *whileNode, AST *expNode, AST *whileBlockNode)
 
 }
 
+//att1Node
+//x:nop
+//expNode
+//y:nop
+//forBlockNode
+//att2Node
+//jump x
+//z:nop
+
+void CodeGenerator::makeFor(AST *forNode, AST *att1Node, AST *expNode, AST *att2Node, AST *forBlockNode)  {
+
+    int xLabel = this->getLabel();
+    int yLabel = this->getLabel();
+    int zLabel = this->getLabel();
+    CodeOperand xLabelOperand = {.operandType=label, .numericalValue=xLabel};
+    CodeOperand yLabelOperand = {.operandType=label, .numericalValue=yLabel};
+    CodeOperand zLabelOperand = {.operandType=label, .numericalValue=zLabel};
+    InstructionCode nopX = makeNop(xLabel);
+    InstructionCode nopY = makeNop(yLabel);
+    InstructionCode nopZ = makeNop(zLabel);
+
+    //where it jumps in case expNode is true
+    CodeOperand labelTrue = yLabelOperand;
+
+    //where it jumps in case expNode is false
+    CodeOperand labelFalse = zLabelOperand;
+
+    InstructionCode jumpXInstruction = makeJumpInstruction(xLabelOperand);
+
+    appendCode(forNode, att1Node);
+    appendCode(forNode, {nopX});
+
+    if (expNode->hasPatchworks) {
+        coverPatchworks(expNode, labelTrue, true);
+        coverPatchworks(expNode, labelFalse, false);
+        appendCode(forNode, expNode);
+
+    } else {
+        CodeOperand r1Operand = expNode->resultRegister;
+        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
+        appendCode(forNode, expNode);
+        appendCode(forNode, compareCode);
+    }
+
+    appendCode(forNode, {nopY});
+    appendCode(forNode, forBlockNode);
+    appendCode(forNode, att2Node);
+    appendCode(forNode, {jumpXInstruction});
+    appendCode(forNode, {nopZ});
+
+}
+
 //loadAI originRegister, originOffset => resultRegister // r3 = Memoria(r1 + c2)
 void CodeGenerator::makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope) {
 
