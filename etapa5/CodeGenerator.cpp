@@ -301,8 +301,8 @@ InstructionCode CodeGenerator::makeNop(int label) {
 
 }
 
-//load 1 -> r2
-//cmp_GE r1, r2 -> r3 // r3 = true se r1 >= r2, senão r3 = false
+//load 0 -> r2
+//cmp_NE r1, r2 -> r3 // r3 = true se r1 >= r2, senão r3 = false
 list<InstructionCode> CodeGenerator::makeCMPGE(CodeOperand r1Operand, CodeOperand r3Operand) {
 
     list<InstructionCode> code; 
@@ -311,7 +311,7 @@ list<InstructionCode> CodeGenerator::makeCMPGE(CodeOperand r1Operand, CodeOperan
 
     int r2 = this->getRegister();
     CodeOperand r2Operand = {.operandType=_register, .numericalValue=r2}; //r2
-    InstructionCode loadCode = this->loadConstant(1, r2Operand);
+    InstructionCode loadCode = this->loadConstant(0, r2Operand);
     code.push_back(loadCode);
 
     leftList.push_back(r1Operand); //r1
@@ -319,7 +319,7 @@ list<InstructionCode> CodeGenerator::makeCMPGE(CodeOperand r1Operand, CodeOperan
     rightList.push_back(r3Operand); //r3
 
     InstructionCode compareCode = {.prefixLabel= -1,
-    .instructionType=cmp_GE, 
+    .instructionType=cmp_NE, 
     .leftOperands= leftList, 
     .rightOperands= rightList};
 
@@ -347,9 +347,9 @@ InstructionCode CodeGenerator::makeCBR(CodeOperand r3Operand, CodeOperand labelT
     return code;
 }
 
-// load 1 -> r2
-// cmp_GE r1, r2 -> r3 
-// cbr r3 -> labelTrue, labelFalse // PC = endereço(l2) se r1 = true, senão PC = endereço(l3)
+// load 0 -> r2
+// cmp_NE r1, r2 -> r3 
+// cbr r3 -> labelTrue, labelFalse 
 list<InstructionCode> CodeGenerator::makeCompare(CodeOperand r1Operand, CodeOperand labelTrue, CodeOperand labelFalse) {
 
     int r3 = this->getRegister(); //r3
@@ -562,6 +562,9 @@ void CodeGenerator::makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *els
 
 }
 
+void CodeGenerator::makeWhile(AST *whileNode, AST *expNode, AST *whileBlockNode) {
+
+}
 void CodeGenerator::appendCode(AST *parent, AST*child) {
 
     if (parent == NULL || child ==  NULL) { return; }
