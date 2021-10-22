@@ -44,6 +44,7 @@ public:
     void makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
     void makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
     void makeOr(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode);
+    void makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *elseBlockNode);
     
     //aka remenda
     void coverPatchworks(AST *node, CodeOperand labelOperand, bool patchworkType);

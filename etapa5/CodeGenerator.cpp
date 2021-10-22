@@ -498,6 +498,70 @@ void CodeGenerator::makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, A
 
 }
 
+//exp code
+//x:nop
+//ifblocknode code
+//jump z
+//y:nop
+//elseBlockNode code
+//z:nop
+
+//ou
+
+//exp code
+//x:nop
+//ifblocknode code
+//z:nop
+void CodeGenerator::makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *elseBlockNode) {
+
+    int xLabel = this->getLabel();
+    int yLabel = this->getLabel();
+    int zLabel = this->getLabel();
+    CodeOperand xLabelOperand = {.operandType=label, .numericalValue=xLabel};
+    CodeOperand yLabelOperand = {.operandType=label, .numericalValue=yLabel};
+    CodeOperand zLabelOperand = {.operandType=label, .numericalValue=zLabel};
+    InstructionCode nopX = makeNop(xLabel);
+    InstructionCode nopY = makeNop(yLabel);
+    InstructionCode nopZ = makeNop(zLabel);
+
+    //where it jumps in case expNode is true
+    CodeOperand labelTrue = xLabelOperand;
+
+    //where it jumps in case expNode is false
+    CodeOperand labelFalse = (elseBlockNode == NULL) ? zLabelOperand : yLabelOperand;
+    
+    InstructionCode jumpZInstruction = makeJumpInstruction(zLabelOperand);
+    
+    if (expNode->hasPatchworks) {
+
+        coverPatchworks(expNode, labelTrue, true);
+        coverPatchworks(expNode, labelFalse, false);
+        appendCode(ifNode, expNode);
+        
+    } else {
+
+        CodeOperand r1Operand = expNode->resultRegister;
+        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
+        appendCode(ifNode, expNode);
+        appendCode(ifNode, compareCode);
+
+    }
+
+    appendCode(ifNode, {nopX});
+    appendCode(ifNode, ifBlockNode);
+    
+    if (elseBlockNode != NULL) {
+        
+        appendCode(ifNode, {jumpZInstruction});
+        appendCode(ifNode, {nopY});
+        appendCode(ifNode, elseBlockNode);
+        
+    }
+
+    appendCode(ifNode, {nopZ});
+
+}
+
 void CodeGenerator::appendCode(AST *parent, AST*child) {
 
     if (parent == NULL || child ==  NULL) { return; }

@@ -1,0 +1,6 @@
+int main() {
+int x;
+if (true and false) {
+x = 10;
+}
+}

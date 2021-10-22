@@ -691,6 +691,9 @@ IF: TK_PR_IF '(' EXPRESSION ')' BLOCK {
 	appendChild(rootNode, $3);
 	appendChild(rootNode, $5);
 	$$ = rootNode;
+
+	codeGenerator.makeIf(rootNode, $3, $5, NULL);
+
 }
 | TK_PR_IF '(' EXPRESSION ')' BLOCK IF1 { 
 	AST *rootNode = createNodeNoLexicalValue(ifType);
@@ -698,6 +701,8 @@ IF: TK_PR_IF '(' EXPRESSION ')' BLOCK {
 	appendChild(rootNode, $5);
 	appendChild(rootNode, $6);
 	$$ = rootNode;
+
+	codeGenerator.makeIf(rootNode, $3, $5, $6);
 };
 IF1: TK_PR_ELSE BLOCK {
 	$$ = $2;
