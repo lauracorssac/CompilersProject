@@ -1,0 +1,15 @@
+int f(int x, int y) {
+	int z;
+	z = x + y;
+	int w;
+	w = z + z;
+	return w;
+}
+
+int main() {
+	int x;
+	int y;
+	x = 5;
+	y = 7;
+	x = f(x,y);	
+}
