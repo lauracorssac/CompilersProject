@@ -43,6 +43,8 @@ typedef struct {
     list<Parameter> listOfParameters; //spec: E4 2.1 e
     LexicalValue *lexicalValue; //spec E4 2.1 f
     OffsetAndScope variableScope; //deslocamento em relação a rbss ou rfp
+    int functionLabel; //label da função. main é sempre L0. 
+    int sizeOfParameters; //o total de espaço ocupado por todos os parametros da funcao
 
 } SymbolTableValue;
 
@@ -51,7 +53,7 @@ void printKind(Kind kind);
 void printListOfParameters(list<Parameter> listOfParameters);
 void printSyntacticalType(SyntacticalType sType);
 SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue, OffsetAndScope scope);
-SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType);
+SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, int label);
 SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, OffsetAndScope scope);
 SymbolTableValue createVariableWithInitialization(int line, int column, SyntacticalType type, 
 LexicalValue *lexicalValueIdentifier, 

@@ -22,6 +22,10 @@ void SymbolTable::incrementOffset(int increment){
 	this->scope.offset += increment;
 }
 
+void SymbolTable::setOffset(int offset){
+	this->scope.offset = offset;
+}
+
 void SymbolTable::insertNewItem(string key, SymbolTableValue value) {
 	if (value.kind == literalKind) {
 		if (this->hasKeyLiterals(key)) {
@@ -59,9 +63,16 @@ void SymbolTable::updateTypeAndOffset(string key, SyntacticalType type, int offs
 		this->symbolTableVariables[key].size = getSizeForSyntacticalType(type);
 	}
 }
+void SymbolTable::updateOffset(string key, int offset) {
+
+	this->symbolTableVariables[key].variableScope.offset = offset;
+}
+
 void SymbolTable::updateSizeString(string key, char *initializationString) {
 	this->symbolTableVariables[key].size = getSizeForStringType(initializationString);
 }
 void SymbolTable::updateParameters(list<Parameter> parameters, string functionIdentifier) {
 	this->symbolTableVariables[functionIdentifier].listOfParameters = parameters;
+	// como estamos trabalhando somente com inteiros, o tamanho total dos parâmetros é o número de item * 4
+	this->symbolTableVariables[functionIdentifier].sizeOfParameters = parameters.size() * 4;
 }

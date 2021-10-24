@@ -119,10 +119,13 @@ SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValu
     return value;
 }
 
-SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType) {
+SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, int functionLabel) {
 
-    SymbolTableValue value = {.line= line, .column= column, .kind= functionKind, .type= sType,
-    .size= getSizeForSyntacticalType(sType), .lexicalValue= lexicalValue };
+    SymbolTableValue value = {
+        .line= line, .column= column, .kind= functionKind, .type= sType,
+        .size= getSizeForSyntacticalType(sType), 
+        .lexicalValue= lexicalValue, .functionLabel= functionLabel
+    };
 
     lexicalValue->referenceCounter += 1;
 

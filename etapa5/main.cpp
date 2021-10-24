@@ -32,6 +32,7 @@ using namespace std;
 
 int main (int argc, char **argv)
 {
+  tableStack.beginNewScope();
   int ret = yyparse();
   executeShutDownRoutine();
   return ret;

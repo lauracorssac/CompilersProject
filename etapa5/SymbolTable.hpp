@@ -23,10 +23,15 @@ class SymbolTable {
     unordered_map<string, SymbolTableValue> symbolTableLiterals;
     unordered_map<string, SymbolTableValue> symbolTableVariables;
     /* deslocamento em relacao ao rbss ou rfp */
+    /* o deslocamento aqui é como o "indice" da variavel local */
+    /* a primeira declaracao, podendo ser parametro ou nao, possui offset = 0 */
     OffsetAndScope scope;
+    
     public:
     OffsetAndScope getScopeAndOffset();
+    void updateOffset(string key, int offset);
     void incrementOffset(int increment);
+    void setOffset(int offset); 
     void insertNewItem(string key, SymbolTableValue value);
     bool hasKeyLiterals(string key);
     bool hasKeyVariables(string key);

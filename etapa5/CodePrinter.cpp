@@ -98,6 +98,9 @@ void CodePrinter::printRegisterPointer(RegisterPointerType type) {
     case rsp:
         cout << "rsp";
         break;
+    case rpc:
+        cout << "rpc";
+        break;
     default:
         break;
     }

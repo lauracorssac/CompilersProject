@@ -40,6 +40,11 @@ private:
     string lastDeclaredFunction;
     int lastFunctionOffset;
     list<Parameter> pendantParameters;
+    bool mainWasDeclared;
+    int generateLabelForFunction(string functionName);
+    int geSizeOfParametersLastDeclaredFunction();
+
+
 public:
     SymbolTableStack();
     void beginNewScope();
@@ -49,8 +54,14 @@ public:
     void endAllScopes();
     OffsetAndScope getOffsetAndScopeNewScope();
     int getLastFunctionOffset();
-    OffsetAndScope getOffsetAndScopeForVariable(AST *variableNode);
-    
+    OffsetAndScope getUpdatedOffsetAndScopeForVariable(AST *variableNode);
+    int getReturnValueOffsetForFunction(string functionName);
+    int getReturnValueOffsetForLastDeclaredFunction();
+    int getLabelForFunction(AST *functionNode);
+    int getQuantityOfParametersForFunction(AST *functionNode);
+    int getQuantityOfParametersForFunction(string functionName);
+    int getSizeOfParametersForFunction(string functionName);
+    int getSizeOfParametersForFunction(AST *functionNode);
     int verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType);
     
     void makeReturn(AST *returnSymbolNode, AST *returnExpressionNode);

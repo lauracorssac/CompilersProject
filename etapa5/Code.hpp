@@ -14,7 +14,8 @@ typedef enum {
 
     rfp =0,
     rsp,
-    rbss
+    rbss,
+    rpc
 
 } RegisterPointerType;
 
@@ -114,6 +115,27 @@ typedef struct {
     list<CodeOperand> rightOperands;
   
 } InstructionCode;
+
+typedef struct {
+
+    int returnAddress = 0;
+    int oldRSP = 4;
+    int oldRFP = 8;
+
+} RFPOffset;
+
+typedef struct {
+
+    CodeOperand rfpOperand = {.operandType=registerPointer, .numericalValue=rfp};
+    CodeOperand rspOperand = {.operandType=registerPointer, .numericalValue=rsp};
+    CodeOperand rbssOperand = {.operandType=registerPointer, .numericalValue=rbss};
+    CodeOperand rpcOperand = {.operandType=registerPointer, .numericalValue=rpc};
+
+} RegisterPointerOperands;
+
+const RFPOffset constantOffsetsRFP;
+const RegisterPointerOperands registerPointerOperands;
+
 
 
 

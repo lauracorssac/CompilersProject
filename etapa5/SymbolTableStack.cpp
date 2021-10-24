@@ -7,10 +7,12 @@
 #include "SymbolTableStack.hpp"
 #include "SymbolTable.hpp"
 #include "SymbolTableValue.hpp"
+#include "CodeGenerator.hpp"
 #include "ErrorManager.hpp"
 #include <string>
 #include <list>
 #include <iostream>
+#include <cstring>
 #include <unordered_map>
 #include "errors.h"
 #include "Utils.hpp"
@@ -18,14 +20,14 @@
 
 using namespace std;
 
+extern CodeGenerator codeGenerator;
 #include "SyntacticalType.hpp"
 extern "C" {
     
 }
 
 SymbolTableStack::SymbolTableStack() {
-    // começa o escopo global
-    this->beginNewScope(); 
+    this->mainWasDeclared = false;
 }
 
 OffsetAndScope SymbolTableStack::getOffsetAndScopeNewScope() {
@@ -95,8 +97,9 @@ void SymbolTableStack::endLastScope() {
     
     int size = this->listOfTables.size();
     if (size > 1) {
-        this->listOfTables.front().incrementOffset(lastOffset);
+        this->listOfTables.front().setOffset(lastOffset);
     } else {
+        this->listOfTables.front().updateOffset(lastDeclaredFunction, lastOffset);
         this->lastFunctionOffset = lastOffset;
     }
 
@@ -106,14 +109,39 @@ int SymbolTableStack::getLastFunctionOffset() {
     return this->lastFunctionOffset;
 }
 
-OffsetAndScope SymbolTableStack::getOffsetAndScopeForVariable(AST *variableNode) {
+int SymbolTableStack::geSizeOfParametersLastDeclaredFunction() {
+
+    return this->getSizeOfParametersForFunction(this->lastDeclaredFunction);
+}
+
+OffsetAndScope SymbolTableStack::getUpdatedOffsetAndScopeForVariable(AST *variableNode) {
 
     string variableName = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
     SearchResult searchResult = this->find(variableName);
     if (!searchResult.found) {
         ErrorManager::errorElementNotFound(variableName);
     }
-    return searchResult.valueFound.variableScope;
+
+    if (searchResult.valueFound.variableScope.scope == global) {
+        return searchResult.valueFound.variableScope;
+    } else {
+        int variableDeclarationOffset = searchResult.valueFound.variableScope.offset;
+        int sizeOfParameters = this->geSizeOfParametersLastDeclaredFunction();
+        return {.scope=local, .offset= sizeOfParameters + variableDeclarationOffset + 16};
+    }
+
+}
+
+int SymbolTableStack::getReturnValueOffsetForLastDeclaredFunction() {
+
+    return getReturnValueOffsetForFunction(lastDeclaredFunction);
+   
+}
+
+int SymbolTableStack::getReturnValueOffsetForFunction(string functionName) {
+
+    return this->getSizeOfParametersForFunction(functionName) + 12;
+
 }
 
 void SymbolTableStack::endAllScopes() {
@@ -490,6 +518,53 @@ void SymbolTableStack::insertVariableWithPendantType(int line, int column, Lexic
     this->insertNewItem(key, newValue);
 }
 
+int SymbolTableStack::generateLabelForFunction(string functionName) {
+
+    if (strcmp(functionName.c_str(), "main") == 0) {
+        if (this->mainWasDeclared) { ErrorManager::doubleDeclarationOfMain(); }
+        this->mainWasDeclared = true;
+        return 0;
+    } else {
+        return codeGenerator.getLabel();
+    }
+
+}
+
+int SymbolTableStack::getLabelForFunction(AST *functionNode) {
+    
+    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+    int hasKey = this->listOfTables.back().hasKeyVariables(functionName);
+    if (!hasKey) { ErrorManager::errorException(); }
+    
+    return this->listOfTables.back().getValueForKey(functionName).functionLabel;
+
+}
+int SymbolTableStack::getQuantityOfParametersForFunction(string functionName) {
+   
+    int hasKey = this->listOfTables.back().hasKeyVariables(functionName);
+    if (!hasKey) { ErrorManager::errorException(); }
+    return this->listOfTables.back().getValueForKey(functionName).listOfParameters.size();
+}
+
+int SymbolTableStack::getQuantityOfParametersForFunction(AST *functionNode) {
+
+    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+    return getQuantityOfParametersForFunction(functionName);
+}
+
+int SymbolTableStack::getSizeOfParametersForFunction(string functionName) {
+   
+    int hasKey = this->listOfTables.back().hasKeyVariables(functionName);
+    if (!hasKey) { ErrorManager::errorException(); }
+    return this->listOfTables.back().getValueForKey(functionName).sizeOfParameters;
+}
+
+int SymbolTableStack::getSizeOfParametersForFunction(AST *functionNode) {
+
+    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+    return getSizeOfParametersForFunction(functionName);
+}
+
 void SymbolTableStack::insertFunction(int line, int column, AST *identificatorNode, SyntacticalType sType) {
     
     string key = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
@@ -508,7 +583,8 @@ void SymbolTableStack::insertFunction(int line, int column, AST *identificatorNo
 
     }
 
-    SymbolTableValue newValue = createFunctionWithTypeNoParameters(line, column, identificatorNode->value, sType);
+    int functionLabel = generateLabelForFunction(key);
+    SymbolTableValue newValue = createFunctionWithTypeNoParameters(line, column, identificatorNode->value, sType, functionLabel);
     this->insertNewItem(key, newValue);
     identificatorNode->sType = sType;
     this->lastDeclaredFunction = key;
@@ -554,9 +630,11 @@ void SymbolTableStack::insertParameterWithType(int line, int column, LexicalValu
     }
 
     SymbolTable currentScope = this->listOfTables.front();
-    OffsetAndScope offsetAndScope = currentScope.getScopeAndOffset();
-    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, offsetAndScope);
-    currentScope.incrementOffset(newValue.size);
+    int offsetFunction = currentScope.getScopeAndOffset().offset;
+    OffsetAndScope offsetAndScopeVariable = {.scope=local, .offset=offsetFunction};
+    
+    SymbolTableValue newValue = createVariableWithType(line, column, lexicalValue, sType, offsetAndScopeVariable);
+    this->listOfTables.front().incrementOffset(newValue.size);
     this->insertNewItem(key, newValue);
     Parameter newParam = {.type = sType};
     this->pendantParameters.push_back(newParam);
@@ -580,8 +658,6 @@ void SymbolTableStack::insertVariableWithType(int line, int column, LexicalValue
 }
 
 void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType type) {
-    
-    int currentScopeOffset = this->listOfTables.front().getScopeAndOffset().offset;
 
     while (!this->variablesWithPendantTypes.empty()) {
         string varKey = this->variablesWithPendantTypes.front();
@@ -593,7 +669,11 @@ void SymbolTableStack::updateTypeOfVariablesWithPendantTypes(SyntacticalType typ
             ErrorManager::printLine(value.line);
             ErrorManager::errorStringVector(varKey);
         }
-        this->listOfTables.front().updateTypeAndOffset(varKey, type, currentScopeOffset);
+
+        this->listOfTables.front().updateTypeAndOffset(
+            varKey, type, 
+            this->listOfTables.front().getScopeAndOffset().offset
+        );
         SymbolTableValue updatedValue = this->listOfTables.front().getValueForKey(varKey);
         this->listOfTables.front().incrementOffset(updatedValue.size);
         this->variablesWithPendantTypes.pop_front();

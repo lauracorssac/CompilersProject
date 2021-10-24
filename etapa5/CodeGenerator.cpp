@@ -9,7 +9,6 @@
 #include "CodePrinter.hpp"
 #include "Utils.hpp"
 #include <string>
-#include <cstring>
 #include <iostream>
 #include <list>
 #include "AST.hpp"
@@ -21,7 +20,6 @@ extern CodePrinter codePrinter;
 CodeGenerator::CodeGenerator() { 
     this->registerNumber = 0;
     this->labelNumber = 1;
-    this->mainWasDeclared = false;
 }
 
 int CodeGenerator::getRegister() {
@@ -115,27 +113,6 @@ void CodeGenerator::makeLiteralCode(AST *literalNode) {
   
 }
 
-//Exemplo: addI rsp, 4 => rsp
-InstructionCode CodeGenerator::makeOffsetLocalVariables(int offset) {
-    
-    CodeOperand rspOperand = {.operandType=registerPointer, .numericalValue=rsp};
-    CodeOperand fourOperand = {.operandType=number, .numericalValue=offset};
-
-    list<CodeOperand> leftList; 
-    leftList.push_back(rspOperand);
-    leftList.push_back(fourOperand);
-
-    list<CodeOperand> rightList; 
-    rightList.push_back(rspOperand);
-    
-    InstructionCode code = { .prefixLabel= -1, 
-    .instructionType=addI, 
-    .leftOperands= leftList, 
-    .rightOperands= rightList};
-
-    return code;
-}
-
 list<InstructionCode> CodeGenerator::createBoolFlow(AST *node, int destinationLabel, CodeOperand destinationRegister) {
 
     CodeOperand jumpDestinationLabel = {.operandType=label, .numericalValue=destinationLabel};
@@ -155,6 +132,8 @@ list<InstructionCode> CodeGenerator::createBoolFlow(AST *node, int destinationLa
     code.push_back(codeFalse);
     code.push_back(jumpInst);
 
+    node->hasPatchworks = false;
+    node->resultRegister = destinationRegister;
     return code;
 }
 
@@ -215,7 +194,7 @@ InstructionCode CodeGenerator::loadBooleanCode(bool boolean, CodeOperand registe
 
 //Exemplo: storeAI r0 => rfp, 0
 //Exemplo: storeAI op1 => op2, op3
-InstructionCode CodeGenerator::makeStoreCode(int prefixLabel, CodeOperand op1, CodeOperand op2, CodeOperand op3) {
+InstructionCode CodeGenerator::makeStoreAI(int prefixLabel, CodeOperand op1, CodeOperand op2, CodeOperand op3) {
     
     InstructionCode storeCode = { .prefixLabel= prefixLabel, 
     .instructionType=storeAI, 
@@ -252,7 +231,7 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
         codeList.insert(codeList.end(), attributionNode->code.begin(), attributionNode->code.end());
     }
 
-    InstructionCode storeCode = makeStoreCode(storeLabel, leftOperand, rightOperand1, rightOperand2);
+    InstructionCode storeCode = makeStoreAI(storeLabel, leftOperand, rightOperand1, rightOperand2);
    
     codeList.push_back(storeCode);
     attSymbolNode->code = codeList;
@@ -260,44 +239,462 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
 }
 
 //L0: nop
-void CodeGenerator::makeFunction(AST *functionNode, AST *nextNode, int offset) {
+// i2i rsp => rfp     // Atualiza o rfp (RFP)
+// addI rsp, 20 => rsp    // Atualiza o rsp (SP)
+// loadAI rfp, 12 => r0   // Obtém o parâmetro
+// storeAI r0 => rfp, 20  // Salva o parâmetro na variável y
+void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, int quantityOfParameters, int functionLabel, AST *fuctionBlockNode) {
 
-    int _label;
-    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
-    
-    if (strcmp(functionName.c_str(), "main") == 0) {
-        if (this->mainWasDeclared) { ErrorManager::doubleDeclarationOfMain(); }
-        this->mainWasDeclared = true;
-        _label = 0;
-    } else {
-        _label = this->labelNumber++;
-    }
+    InstructionCode nopCode = {
+        .prefixLabel= functionLabel,
+        .instructionType=nop, 
+        .leftOperands= {}, 
+        .rightOperands= {}
+    };
+    appendCode(functionNode, {nopCode});
 
-    list<CodeOperand> leftList; 
-    list<CodeOperand> rightList; 
-    InstructionCode code = { .prefixLabel= _label,
-    .instructionType=nop, 
-    .leftOperands= leftList, 
-    .rightOperands= rightList};
+    InstructionCode i2iCode = {
+        .prefixLabel= -1,
+        .instructionType=i2i, 
+        .leftOperands= {registerPointerOperands.rspOperand}, 
+        .rightOperands= {registerPointerOperands.rfpOperand}
+    };
+    appendCode(functionNode, {i2iCode});
 
-    InstructionCode offsetVariables = this->makeOffsetLocalVariables(offset);
+    // Atualiza o rsp 
+    // 16 = 4 do valor de retorno + 4 old rsp + 4 old rfp + 4 ret add
+    // quant de param * 4
+    // offsetLocalVarFunction
+    int rspOffset = 16 + (quantityOfParameters * 4) + offsetLocalVarFunction; 
+    InstructionCode offsetVariables = { 
+        .prefixLabel= -1, 
+        .instructionType=addI, 
+        .leftOperands= {
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=rspOffset}
+        }, 
+        .rightOperands= {
+            registerPointerOperands.rspOperand
+        }
+    };
+    appendCode(functionNode, {offsetVariables});
 
-    list<InstructionCode> codeList;
-    codeList.push_back(code);
-    codeList.push_back(offsetVariables);
-    codeList.insert(codeList.end(), nextNode->code.begin(), nextNode->code.end());
-
-    functionNode->code = codeList;
+    appendCode(functionNode, makeParameterCopy(quantityOfParameters));
+    appendCode(functionNode, fuctionBlockNode);
 
 }
+
+// loadAI rfp, 12 => r0   // Obtém o parâmetro
+// storeAI r0 => rfp, 20  // Salva o parâmetro na variável local
+list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters) {
+
+    int offsetParametersReceived = 12;
+    int offsetLocalParameters = offsetParametersReceived + (quantityOfParameters * 4) + 4;
+    int parameterIndex = 0;
+    list<InstructionCode> codeList;
+
+    while (parameterIndex < quantityOfParameters) {
+
+        int auxRegister = this->getRegister();
+        offsetParametersReceived = 12 + parameterIndex * 4;
+        offsetLocalParameters = 16 + quantityOfParameters * 4 + parameterIndex * 4;
+
+        // loadAI rfp, 12 => r0
+        InstructionCode loadAICode = {
+            .prefixLabel=-1,
+            .instructionType=loadAI,
+            .leftOperands={
+                registerPointerOperands.rfpOperand,
+                {.operandType=number, .numericalValue= offsetParametersReceived}
+            },
+            .rightOperands={
+                {.operandType=_register, .numericalValue= auxRegister}
+            }
+        };
+        codeList.push_back(loadAICode);
+
+         // storeAI r0 => rfp, 20
+        InstructionCode storeAICode = {
+            .prefixLabel=-1,
+            .instructionType=storeAI,
+            .leftOperands={
+               {.operandType=_register, .numericalValue= auxRegister}
+            },
+            .rightOperands={
+                registerPointerOperands.rfpOperand,
+                {.operandType=number, .numericalValue= offsetLocalParameters}
+                
+            }
+        };
+        codeList.push_back(storeAICode);
+
+        parameterIndex += 1;
+    }
+
+    return codeList;
+
+}
+
+// loadAI rfp, 0 => r0  //obtém end. retorno
+// loadAI rfp, 4 => r1  //obtém rsp salvo
+// loadAI rfp, 8 => r2  //obtém rfp salvo
+// store r1 => rsp
+// store r2 => rfp
+// jump => r0
+void CodeGenerator::makeEmptyReturn(AST *functionNode) {
+
+    // //load return address
+    // InstructionCode loadRetCode = {
+    //     .prefixLabel= -1,
+    //     .instructionType= loadAI,
+    //     .leftOperands= { 
+    //         registerPointerOperands.rfpOperand,
+    //         {.operandType=number, .numericalValue=constantOffsetsRFP.returnAddress}
+    //     },
+    //     .rightOperands= {{.operandType=_register, .numericalValue=returnAddressRegister}}
+    // };
+    // appendCode(functionNode, {loadRetCode}); 
+
+    // //load rfp address
+    // InstructionCode loadRFPCode = {
+    //     .prefixLabel= -1,
+    //     .instructionType= loadAI,
+    //     .leftOperands= { 
+    //         registerPointerOperands.rfpOperand, 
+    //         {.operandType=number, .numericalValue=constantOffsetsRFP.oldRFP}
+    //     },
+    //     .rightOperands= {{.operandType=_register, .numericalValue=oldRFPRegister}}
+    // };
+    // appendCode(functionNode, {loadRFPCode}); 
+
+    // //load rsp address
+    // InstructionCode loadRSPCode = {
+    //     .prefixLabel= -1,
+    //     .instructionType= loadAI,
+    //     .leftOperands= { 
+    //         registerPointerOperands.rfpOperand, 
+    //         {.operandType=number, .numericalValue=constantOffsetsRFP.oldRSP},
+    //     },
+    //     .rightOperands= {
+    //         {.operandType=_register, .numericalValue=oldRSPRegister}
+    //     }
+    // };
+    // appendCode(functionNode, {loadRSPCode}); 
+
+    // //store old rsp in rsp
+    // InstructionCode storeRSPCode = {
+    //     .prefixLabel=-1,
+    //     .instructionType=store,
+    //     .leftOperands= {{.operandType=_register, .numericalValue=oldRSPRegister}},
+    //     .rightOperands= {registerPointerOperands.rspOperand}
+    // };
+    // appendCode(functionNode, {storeRSPCode});
+
+    // //store old rfp in rfp
+    // InstructionCode storeRFPCode = {
+    //     .prefixLabel=-1,
+    //     .instructionType=store,
+    //     .leftOperands={{.operandType=_register, .numericalValue=oldRFPRegister}},
+    //     .rightOperands={registerPointerOperands.rfpOperand}
+    // };
+    // appendCode(functionNode, {storeRFPCode});
+
+    // //jump to returnAddressRegister
+    // InstructionCode jumpCode = makeJumpInstruction({
+    //     .operandType=label, 
+    //     .numericalValue= returnAddressRegister
+    // });
+    // appendCode(functionNode, {jumpCode});
+
+}
+
+// loadI 73 => r0      //seq retorno
+// storeAI r0 => rfp, offsetReturnValue
+// loadAI rfp, 0 => r0  //obtém end. retorno
+// loadAI rfp, 4 => r1  //obtém rsp salvo
+// loadAI rfp, 8 => r2  //obtém rfp salvo
+// store r1 => rsp
+// store r2 => rfp
+// jump => r0
+void CodeGenerator::makeReturn(AST* returnNode, AST *expNode, int offsetReturnValue) {
+
+    CodeOperand r0Operand;
+    int storeLabel = this->getLabel();
+    CodeOperand returnValueOffset = {.operandType=number, .numericalValue=offsetReturnValue};
+    
+    int returnAddressRegister = this->getRegister();
+    int oldRSPRegister = this->getRegister();
+    int oldRFPRegister = this->getRegister();
+
+    if (expNode->hasPatchworks) {
+
+        int r0 = this->getRegister();
+        r0Operand = { .operandType=_register, .numericalValue=r0};
+        list<InstructionCode> newCode = this->createBoolFlow(expNode, storeLabel, r0Operand);
+        appendCode(returnNode, expNode);
+        appendCode(returnNode, newCode);
+    } else {
+        r0Operand = expNode->resultRegister;
+        appendCode(returnNode, expNode); 
+    }
+
+    //store expression on the stack
+    InstructionCode storeCode = makeStoreAI(
+        storeLabel, r0Operand, 
+        registerPointerOperands.rfpOperand, returnValueOffset
+    );
+    appendCode(returnNode, {storeCode}); 
+
+    //load return address
+    InstructionCode loadRetCode = {
+        .prefixLabel= -1,
+        .instructionType= loadAI,
+        .leftOperands= { 
+            registerPointerOperands.rfpOperand,
+            {.operandType=number, .numericalValue=constantOffsetsRFP.returnAddress}
+        },
+        .rightOperands= {{.operandType=_register, .numericalValue=returnAddressRegister}}
+    };
+    appendCode(returnNode, {loadRetCode}); 
+
+    //load rsp address
+    InstructionCode loadRSPCode = {
+        .prefixLabel= -1,
+        .instructionType= loadAI,
+        .leftOperands= { 
+            registerPointerOperands.rfpOperand, 
+            {.operandType=number, .numericalValue=constantOffsetsRFP.oldRSP},
+        },
+        .rightOperands= {
+            {.operandType=_register, .numericalValue=oldRSPRegister}
+        }
+    };
+    appendCode(returnNode, {loadRSPCode}); 
+
+    //load rfp address
+    InstructionCode loadRFPCode = {
+        .prefixLabel= -1,
+        .instructionType= loadAI,
+        .leftOperands= { 
+            registerPointerOperands.rfpOperand, 
+            {.operandType=number, .numericalValue=constantOffsetsRFP.oldRFP}
+        },
+        .rightOperands= {{.operandType=_register, .numericalValue=oldRFPRegister}}
+    };
+    appendCode(returnNode, {loadRFPCode}); 
+
+   
+    //store old rsp in rsp
+    InstructionCode storeRSPCode = {
+        .prefixLabel=-1,
+        .instructionType=i2i,
+        .leftOperands= {{.operandType=_register, .numericalValue=oldRSPRegister}},
+        .rightOperands= {registerPointerOperands.rspOperand}
+    };
+    appendCode(returnNode, {storeRSPCode});
+
+    //store old rfp in rfp
+    InstructionCode storeRFPCode = {
+        .prefixLabel=-1,
+        .instructionType=i2i,
+        .leftOperands={{.operandType=_register, .numericalValue=oldRFPRegister}},
+        .rightOperands={registerPointerOperands.rfpOperand}
+    };
+    appendCode(returnNode, {storeRFPCode});
+
+    //jump to returnAddressRegister
+
+    //store old rfp in rfp
+    InstructionCode jumpCode = {
+        .prefixLabel=-1,
+        .instructionType=jump,
+        .leftOperands={},
+        .rightOperands={{
+            .operandType=_register, 
+            .numericalValue= returnAddressRegister
+        }}
+    };
+    appendCode(returnNode, {jumpCode});
+
+}
+
+// addI rpc, 7  => r1      
+// storeAI r1  => rsp, 0  
+// storeAI rsp => rsp, 4  // Salva o rsp (SP)
+// storeAI rfp => rsp, 8  // Salva o rfp (RFP)
+// 
+// storeAI r0 => rsp, 12  // Empilha parâmetro * quantityOfParameters
+//
+// jumpI => functionLabel            
+// loadAI rsp, returnValueOffset => r0   
+void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, int returnValueOffset, int quantityOfParameters) {
+
+    int returnAddress = this->getRegister();
+    int returnValueRegister = this->getRegister();
+    int returnValueIncrementRPC = 5 + quantityOfParameters;
+    CodeOperand returnValueOperand = {.operandType=_register, .numericalValue=returnValueRegister};
+
+    //resolve parametros
+    this->resolveParameters(functionCallNode, firstParameterNode);
+
+    // Calcula o endereço de retorno
+    InstructionCode addICode = {
+        .prefixLabel= -1, 
+        .instructionType=addI, 
+        .leftOperands= {
+            registerPointerOperands.rpcOperand,
+            {.operandType=number, .numericalValue=returnValueIncrementRPC}
+        }, 
+        .rightOperands= {
+            {.operandType=_register, .numericalValue=returnAddress}
+        }
+    };
+    appendCode(functionCallNode, {addICode});
+
+     // Salva o endereço de retorno
+    InstructionCode storeAICode = {
+        .prefixLabel= -1, 
+        .instructionType=storeAI, 
+        .leftOperands= {
+            {.operandType=_register, .numericalValue=returnAddress}
+        }, 
+        .rightOperands= {
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=constantOffsetsRFP.returnAddress}
+        }
+    };
+    appendCode(functionCallNode, {storeAICode});
+
+    // Salva o rsp
+    InstructionCode storeRSP = {
+        .prefixLabel= -1, 
+        .instructionType=storeAI, 
+        .leftOperands= {
+            registerPointerOperands.rspOperand,
+        }, 
+        .rightOperands= {
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=constantOffsetsRFP.oldRSP}
+        }
+    };
+    appendCode(functionCallNode, {storeRSP});
+
+    // Salva o rfp
+    InstructionCode storeRFP = {
+        .prefixLabel= -1, 
+        .instructionType=storeAI, 
+        .leftOperands= {
+            registerPointerOperands.rfpOperand,
+        }, 
+        .rightOperands= {
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=constantOffsetsRFP.oldRFP}
+        }
+    };
+    appendCode(functionCallNode, {storeRFP});
+
+    // Empilha parametros
+    pushParameters(functionCallNode, firstParameterNode);
+
+    // Salta para o início da função chamada
+    InstructionCode jumpICode = {
+        .prefixLabel = -1,
+        .instructionType=jumpI,
+        .leftOperands={},
+        .rightOperands={{.operandType=label, .numericalValue=functionLabel}}
+    };
+    appendCode(functionCallNode, {jumpICode});
+
+    // Retorno da função, carrega o valor de retorno
+    InstructionCode loadReturnValue = {
+        .prefixLabel =-1,
+        .instructionType=loadAI,
+        .leftOperands={
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=returnValueOffset}
+        },
+        .rightOperands={returnValueOperand}
+    };
+    appendCode(functionCallNode, {loadReturnValue});
+
+    functionCallNode->hasPatchworks = false;
+    functionCallNode->resultRegister = returnValueOperand;
+
+}
+
+// Ao final, todos os nodos de parametros têm algo no resultRegister e nao contém remendos
+void CodeGenerator::resolveParameters(AST* functionCallNode, AST *firstParameterNode) {
+
+    AST *auxPointer = firstParameterNode;
+    CodeOperand originRegister;
+    int nextInstructionLabel;
+
+    while (auxPointer != NULL) { 
+
+        if (auxPointer->hasPatchworks) {
+            
+            nextInstructionLabel = this->getLabel();
+            int newRegister = getRegister();
+            originRegister = {.operandType=_register, .numericalValue=newRegister};
+            list<InstructionCode> newCode = this->createBoolFlow(auxPointer, nextInstructionLabel, originRegister);
+            appendCode(functionCallNode, auxPointer);
+            appendCode(functionCallNode, newCode);
+            
+            InstructionCode nopCode = {
+                .prefixLabel=nextInstructionLabel,
+                .instructionType=nop,
+                .leftOperands={},
+                .rightOperands={}
+            };
+            appendCode(functionCallNode, {nopCode});
+            
+        } else {
+            appendCode(functionCallNode, auxPointer);
+        }
+        auxPointer = auxPointer->child;
+    }
+
+
+}
+
+// Aqui se assume que todos os parametros têm algo no resultRegister
+// Se faz store desse resultRegister no endereço apropriado
+void CodeGenerator::pushParameters(AST* functionCallNode, AST *firstParameterNode) {
+
+    int offset = 12;
+    AST *auxPointer = firstParameterNode;
+    CodeOperand originRegister;
+
+    while (auxPointer != NULL) { 
+
+        originRegister = auxPointer->resultRegister;
+
+        // storeAI r0 => rsp, 12  // Empilha o parâmetro
+        InstructionCode storeCode = {
+            .prefixLabel = -1,
+            .instructionType=storeAI,
+            .leftOperands = {auxPointer->resultRegister},
+            .rightOperands = {
+                registerPointerOperands.rspOperand,
+                {.operandType=number, .numericalValue=offset}
+            }
+        };
+        appendCode(functionCallNode, {storeCode});
+        
+        auxPointer = auxPointer->child;
+        offset += 4;
+    }
+
+}
+
 InstructionCode CodeGenerator::makeNop(int label) {
 
-    InstructionCode nopCode = {.prefixLabel= label,
-    .instructionType=nop, 
-    .leftOperands= list<CodeOperand>(), 
-    .rightOperands= list<CodeOperand>()};
-
-    return nopCode;
+    return {
+        .prefixLabel= label,
+        .instructionType=nop, 
+        .leftOperands= list<CodeOperand>(), 
+        .rightOperands= list<CodeOperand>()
+    };
 
 }
 

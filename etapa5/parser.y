@@ -144,7 +144,6 @@ extern SyntacticalType lastDeclaredType;
 %type<node> FUNC1
 %type<node> FUNC_PARAM_LIST
 %type<node> FUNC_BLOCK
-%type<node> FUNC3
 %type<node> FUNC_HEADER
 
 %type<node> LOCAL1
@@ -177,6 +176,7 @@ PROGRAM : PROGRAM GLOBAL { $$ = $1; }
 		$$ = $2;
 	} else {
 		appendChild($1, $2);
+		codeGenerator.appendCode($1, $2);
 	}
 	$$ = $2;
 }
@@ -204,7 +204,7 @@ LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableS
 DECIDENTIFIER: TK_IDENTIFICADOR { 
 	$$ = createNodeNoType($1); 
 	tableStack.verifyIdentificatorNode($$);
-	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable($$);
+	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable($$);
 	codeGenerator.makeDeclaredVariable($$, offsetAndScope);
 }
 
@@ -437,14 +437,22 @@ FUNC_HEADER: TYPE TK_IDENTIFICADOR {
 }
 FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
 | FUNC1 { $$ = $1; };
-FUNC1: FUNC_HEADER FUNC3 {
-	appendChild($1, $2);
+
+FUNC1: FUNC_HEADER '(' ')' BLOCK  { 
+	appendChild($1, $4);
 	$$ = $1;
 	int offset = tableStack.getLastFunctionOffset();
-	codeGenerator.makeFunction($$, $2, offset);
+	int label= tableStack.getLabelForFunction($1);
+	codeGenerator.makeFunction($1, offset, 0, label, $4);
+}
+| FUNC_HEADER PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK {
+	appendChild($1, $5);
+	$$ = $1;
+	int offset = tableStack.getLastFunctionOffset();
+	int label= tableStack.getLabelForFunction($1);
+	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction($1);
+	codeGenerator.makeFunction($1, offset, quantityOfParameters, label, $5);
 };
-FUNC3: '(' ')' BLOCK  { $$ = $3; }
-| PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK  { $$ = $4; };
 
 FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR { 
 	tableStack.insertParameterWithType(get_line_number(), 0, $2, (SyntacticalType) $1);
@@ -559,7 +567,7 @@ DECIDENTIFIER '=' ATT1 {
 
 	tableStack.makeAttributionVariable($1, rootNode, $3);
 
-	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable($1);
+	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable($1);
 	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope);
 
 }
@@ -622,11 +630,25 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	$$ = rootNode;
 
 	tableStack.makeFunctionCall(rootNode, $3);
+
+	string functionName = stringFromLiteralValue($1->literalTokenValueAndType);
+	int offset = tableStack.getReturnValueOffsetForFunction(functionName);
+	int functionLabel = tableStack.getLabelForFunction(rootNode);
+	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction(functionName);
+
+	codeGenerator.makeFunctionCall(rootNode, $3, functionLabel, offset, quantityOfParameters);
+
 }
 | TK_IDENTIFICADOR '(' ')' {
 	$$ = createNodeWithLexicalTypeAndValue(functionCallType, $1);
 
 	tableStack.makeFunctionCall($$, NULL);
+
+	string functionName = stringFromLiteralValue($1->literalTokenValueAndType);
+	int offset = tableStack.getReturnValueOffsetForFunction(functionName);
+	int functionLabel = tableStack.getLabelForFunction($$);
+	codeGenerator.makeFunctionCall($$, NULL, functionLabel, offset, 0);
+
 };
 FCALL1: EXPRESSION { $$ = $1; }
 | EXPRESSION ',' FCALL1 {
@@ -676,6 +698,8 @@ RBC: TK_PR_RETURN EXPRESSION {
 	$$ = rootNode;
 
 	tableStack.makeReturn(rootNode, $2);
+	int offset = tableStack.getReturnValueOffsetForLastDeclaredFunction();
+	codeGenerator.makeReturn(rootNode, $2, offset);
 }
 | TK_PR_CONTINUE {
 	$$ = createNodeNoLexicalValue(continueType);
