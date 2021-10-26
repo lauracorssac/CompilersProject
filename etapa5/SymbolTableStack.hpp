@@ -89,6 +89,8 @@ public:
     SyntacticalType getInferenceBinaryOperation(SyntacticalType type1, SyntacticalType type2);
     int countNumberOfGivenParameters(AST *functionCallNode);
     void checkStringCharOperation(AST *exp1Node);
+    void updateFunctionWithRegisters(AST *functionNode);
+    pair<int, int> getFunctionRegisters(string functionName);
     
     /*
         This function receiver a AST node which contains an lexical value of an identificator

@@ -15,6 +15,7 @@ using namespace std;
 #include "SyntacticalType.hpp"
 #include "LexicalValue.hpp"
 #include "Code.hpp"
+#include <utility>
 extern "C" {
    
 }
@@ -45,6 +46,9 @@ typedef struct {
     OffsetAndScope variableScope; //deslocamento em relação a rbss ou rfp
     int functionLabel; //label da função. main é sempre L0. 
     int sizeOfParameters; //o total de espaço ocupado por todos os parametros da funcao
+    //first: primeiro registrador usado pela funcao
+    //second: ultimo 
+    pair<int, int> registersUsedFunction;
 
 } SymbolTableValue;
 

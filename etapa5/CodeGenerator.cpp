@@ -10,6 +10,7 @@
 #include "Utils.hpp"
 #include <string>
 #include <iostream>
+#include <utility>
 #include <list>
 #include "AST.hpp"
 #include "Code.hpp"
@@ -279,25 +280,31 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
     };
     appendCode(functionNode, {offsetVariables});
 
-    appendCode(functionNode, makeParameterCopy(quantityOfParameters));
+    int sizeOfPushedRegisters = (functionNode->registersOfFunction.second - functionNode->registersOfFunction.first) * 4;
+    int offsetLocalParameters = 16 + (quantityOfParameters * 4) + sizeOfPushedRegisters;
+    appendCode(functionNode, makeParameterCopy(quantityOfParameters, offsetLocalParameters));
     appendCode(functionNode, fuctionBlockNode);
+
+    functionNode->registersOfFunction.first = 0;
+    functionNode->registersOfFunction.second = this->registerNumber;
 
 }
 
 // loadAI rfp, 12 => r0   // Obtém o parâmetro
 // storeAI r0 => rfp, 20  // Salva o parâmetro na variável local
-list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters) {
+list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters, int offsetLocalParameters) {
 
     int offsetParametersReceived = 12;
-    int offsetLocalParameters = offsetParametersReceived + (quantityOfParameters * 4) + 4;
+    int offsetToStore;
+    int offsetToLoad;
     int parameterIndex = 0;
     list<InstructionCode> codeList;
 
     while (parameterIndex < quantityOfParameters) {
 
         int auxRegister = this->getRegister();
-        offsetParametersReceived = 12 + parameterIndex * 4;
-        offsetLocalParameters = 16 + quantityOfParameters * 4 + parameterIndex * 4;
+        offsetToLoad = offsetParametersReceived + parameterIndex * 4;
+        offsetToStore = offsetLocalParameters + parameterIndex * 4;
 
         // loadAI rfp, 12 => r0
         InstructionCode loadAICode = {
@@ -305,7 +312,7 @@ list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters)
             .instructionType=loadAI,
             .leftOperands={
                 registerPointerOperands.rfpOperand,
-                {.operandType=number, .numericalValue= offsetParametersReceived}
+                {.operandType=number, .numericalValue= offsetToLoad}
             },
             .rightOperands={
                 {.operandType=_register, .numericalValue= auxRegister}
@@ -322,7 +329,7 @@ list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters)
             },
             .rightOperands={
                 registerPointerOperands.rfpOperand,
-                {.operandType=number, .numericalValue= offsetLocalParameters}
+                {.operandType=number, .numericalValue= offsetToStore}
                 
             }
         };
@@ -483,7 +490,6 @@ void CodeGenerator::makeReturn(AST* returnNode, AST *expNode, int offsetReturnVa
     };
     appendCode(returnNode, {loadRFPCode}); 
 
-   
     //store old rsp in rsp
     InstructionCode storeRSPCode = {
         .prefixLabel=-1,
@@ -524,14 +530,17 @@ void CodeGenerator::makeReturn(AST* returnNode, AST *expNode, int offsetReturnVa
 // storeAI rfp => rsp, 8  // Salva o rfp (RFP)
 // 
 // storeAI r0 => rsp, 12  // Empilha parâmetro * quantityOfParameters
+// StoreAI r0 => rsp, 12 // Empilha registrador * quantityOfRegisters
 //
 // jumpI => functionLabel            
 // loadAI rsp, returnValueOffset => r0   
-void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, int returnValueOffset, int quantityOfParameters) {
+void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, int returnValueOffset, int quantityOfParameters, pair<int, int> registersToPush) {
 
+    int quantityOfRegisters = registersToPush.second;
+    quantityOfRegisters -= registersToPush.first; 
     int returnAddress = this->getRegister();
     int returnValueRegister = this->getRegister();
-    int returnValueIncrementRPC = 5 + quantityOfParameters;
+    int returnValueIncrementRPC = 5 + quantityOfParameters + quantityOfRegisters;
     CodeOperand returnValueOperand = {.operandType=_register, .numericalValue=returnValueRegister};
 
     //resolve parametros
@@ -595,6 +604,7 @@ void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterN
 
     // Empilha parametros
     pushParameters(functionCallNode, firstParameterNode);
+    pushRegisters(functionCallNode, registersToPush, returnValueOffset + 4);
 
     // Salta para o início da função chamada
     InstructionCode jumpICode = {
@@ -604,6 +614,8 @@ void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterN
         .rightOperands={{.operandType=label, .numericalValue=functionLabel}}
     };
     appendCode(functionCallNode, {jumpICode});
+
+    popRegisters(functionCallNode, registersToPush, returnValueOffset + 4);
 
     // Retorno da função, carrega o valor de retorno
     InstructionCode loadReturnValue = {
@@ -625,6 +637,7 @@ void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterN
 // Ao final, todos os nodos de parametros têm algo no resultRegister e nao contém remendos
 void CodeGenerator::resolveParameters(AST* functionCallNode, AST *firstParameterNode) {
 
+    if (firstParameterNode == NULL) { return; }
     AST *auxPointer = firstParameterNode;
     CodeOperand originRegister;
     int nextInstructionLabel;
@@ -660,10 +673,61 @@ void CodeGenerator::resolveParameters(AST* functionCallNode, AST *firstParameter
 
 }
 
+void CodeGenerator::pushRegisters(AST *functionCallNode, pair<int, int> registerRange, int initialOffset) {
+
+    int offset = initialOffset;
+    int initialRegister = registerRange.first;
+    int endRegister = registerRange.second; //o próximo reg, não usado
+    while (initialRegister < endRegister) { 
+
+        // storeAI r0 => rsp, 12  // Empilha o registrador
+        InstructionCode storeCode = {
+            .prefixLabel = -1,
+            .instructionType=storeAI,
+            .leftOperands = {{.operandType=_register, .numericalValue=initialRegister}},
+            .rightOperands = {
+                registerPointerOperands.rspOperand,
+                {.operandType=number, .numericalValue=offset}
+            }
+        };
+        appendCode(functionCallNode, {storeCode});
+        offset += 4;
+        initialRegister += 1;
+    }
+
+}
+
+void CodeGenerator::popRegisters(AST *returnNode, pair<int, int> registerRange, int initialOffset) {
+
+    int offset = initialOffset;
+    int initialRegister = registerRange.first;
+    int endRegister = registerRange.second; //o próximo reg, não usado
+    while (initialRegister < endRegister) { 
+
+        //load rfp address
+        InstructionCode loadCode = {
+            .prefixLabel= -1,
+            .instructionType= loadAI,
+            .leftOperands= { 
+                registerPointerOperands.rfpOperand, 
+                {.operandType=number, .numericalValue=offset}
+            },
+            .rightOperands= {{.operandType=_register, .numericalValue=initialRegister}}
+        };
+        appendCode(returnNode, {loadCode});  
+
+        offset += 4;
+        initialRegister += 1;
+    }
+
+}
+
+
 // Aqui se assume que todos os parametros têm algo no resultRegister
 // Se faz store desse resultRegister no endereço apropriado
 void CodeGenerator::pushParameters(AST* functionCallNode, AST *firstParameterNode) {
 
+    if (firstParameterNode == NULL) { return; }
     int offset = 12;
     AST *auxPointer = firstParameterNode;
     int numberOfParameters = firstParameterNode->numberOfParameters;

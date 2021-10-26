@@ -444,6 +444,8 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	int offset = tableStack.getLastFunctionOffset();
 	int label= tableStack.getLabelForFunction($1);
 	codeGenerator.makeFunction($1, offset, 0, label, $4);
+
+	tableStack.updateFunctionWithRegisters($1);
 }
 | FUNC_HEADER PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK {
 	appendChild($1, $5);
@@ -452,6 +454,8 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	int label= tableStack.getLabelForFunction($1);
 	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction($1);
 	codeGenerator.makeFunction($1, offset, quantityOfParameters, label, $5);
+
+	tableStack.updateFunctionWithRegisters($1);
 };
 
 FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR { 
@@ -638,24 +642,25 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	int offset = tableStack.getReturnValueOffsetForFunction(functionName);
 	int functionLabel = tableStack.getLabelForFunction(rootNode);
 	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction(functionName);
-
-	codeGenerator.makeFunctionCall(rootNode, $3, functionLabel, offset, quantityOfParameters);
+	pair<int, int> registersToPush = tableStack.getFunctionRegisters(functionName);
+	
+	codeGenerator.makeFunctionCall(rootNode, $3, functionLabel, offset, quantityOfParameters, registersToPush);
 
 }
 | TK_IDENTIFICADOR '(' ')' {
 	$$ = createNodeWithLexicalTypeAndValue(functionCallType, $1);
-
 	tableStack.makeFunctionCall($$, NULL);
 
 	string functionName = stringFromLiteralValue($1->literalTokenValueAndType);
 	int offset = tableStack.getReturnValueOffsetForFunction(functionName);
 	int functionLabel = tableStack.getLabelForFunction($$);
-	codeGenerator.makeFunctionCall($$, NULL, functionLabel, offset, 0);
+	pair<int, int> registersToPush = tableStack.getFunctionRegisters(functionName);
+	
+	codeGenerator.makeFunctionCall($$, NULL, functionLabel, offset, 0, registersToPush);
 
 };
 FCALL1: EXPRESSION { $$ = $1; $$->numberOfParameters = 1;}
 | FCALL1 ',' EXPRESSION {
-	cout << "aaaaapennnddd" << endl;
 	appendChild($1, $3);
 	$$ = $1;
 	$$->numberOfParameters += 1;

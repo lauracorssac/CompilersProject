@@ -9,6 +9,7 @@
 
 using namespace std;
 #include <string>
+#include <utility>
 #include "AST.hpp"
 #include "Code.hpp"
 
@@ -38,7 +39,9 @@ private:
     InstructionCode makeStore(CodeOperand r1, CodeOperand r2);
     void resolveParameters(AST* functionCallNode, AST *firstParameterNode);
     void pushParameters(AST* functionCallNode, AST *firstParameterNode);
-    list<InstructionCode> makeParameterCopy(int quantityOfParameters);
+    list<InstructionCode> makeParameterCopy(int quantityOfParameters, int offsetLocalVariables);
+    void pushRegisters(AST *functionCallNode, pair<int, int> registerRange, int initialOffset);
+    void popRegisters(AST *returnNode, pair<int, int> registerRange, int initialOffset);
 
     //aka remenda
     void coverPatchworks(AST *node, CodeOperand labelOperand, bool patchworkType);
@@ -62,7 +65,8 @@ public:
     void makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope);
     void makeReturn(AST* returnNode, AST *expNode, int offsetReturnValue);
     void makeEmptyReturn(AST *functionNode);
-    void makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, int returnValueOffset, int quantityOfParameters);
+    void makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, 
+    int returnValueOffset, int quantityOfParameters, pair<int, int> registersToPush);
     
     void generateFinalCode(AST *finalTree);
     void generateInitialCode(AST *finalTree);

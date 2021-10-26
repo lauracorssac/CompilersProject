@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <list>
 #include <iostream>
+#include <utility>
 
 SymbolTable::SymbolTable(OffsetAndScope scope) {
 	this->scope = scope;
@@ -75,4 +76,8 @@ void SymbolTable::updateParameters(list<Parameter> parameters, string functionId
 	this->symbolTableVariables[functionIdentifier].listOfParameters = parameters;
 	// como estamos trabalhando somente com inteiros, o tamanho total dos parâmetros é o número de item * 4
 	this->symbolTableVariables[functionIdentifier].sizeOfParameters = parameters.size() * 4;
+}
+
+void SymbolTable::updateRegisters(pair<int, int> registersUsedFunction, string functionIdentifier) {
+	this->symbolTableVariables[functionIdentifier].registersUsedFunction = registersUsedFunction;
 }

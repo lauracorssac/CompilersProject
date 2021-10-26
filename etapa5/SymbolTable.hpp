@@ -42,6 +42,7 @@ class SymbolTable {
     void updateTypeAndOffset(string key, SyntacticalType type, int offset);
     void updateSizeString(string key, char *initializationString);
     void updateParameters(list<Parameter> parameters, string functionIdentifier);
+    void updateRegisters(pair<int, int> registersUsedFunction, string functionIdentifier);
 };
 
 

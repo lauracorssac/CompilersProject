@@ -11,6 +11,7 @@
 #include "SyntacticalType.hpp"
 #include "Code.hpp"
 #include <list>
+#include <utility>
 
  /* definicao dos tipos de nodos existentes.
     noType é usado geralmente quando há um valor léxico no nodo, como literais, identificadores, 
@@ -57,6 +58,8 @@ typedef struct AST {
 
     //this is only present in function call's arguments
     int numberOfParameters;
+
+    pair<int, int> registersOfFunction;
 
 } AST;
 

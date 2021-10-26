@@ -13,6 +13,7 @@
 #include <list>
 #include <iostream>
 #include <cstring>
+#include <utility>
 #include <unordered_map>
 #include "errors.h"
 #include "Utils.hpp"
@@ -63,6 +64,18 @@ SearchResult SymbolTableStack::find(string element) {
     SymbolTableValue emptySymbolTableValue;
     SearchResult returnValue = { .found= false, .valueFound= emptySymbolTableValue };
     return returnValue;
+}
+
+void SymbolTableStack::updateFunctionWithRegisters(AST *functionNode) {
+
+    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+    this->listOfTables.back().updateRegisters(functionNode->registersOfFunction, functionName);
+
+}
+pair<int, int> SymbolTableStack::getFunctionRegisters(string functionName) {
+    bool hasKey = this->listOfTables.back().hasKeyVariables(functionName);
+    if (!hasKey) { ErrorManager::errorException(); }
+    return this->listOfTables.back().getValueForKey(functionName).registersUsedFunction;
 }
 
 SearchResult SymbolTableStack::findInScope(string element) {
@@ -446,6 +459,7 @@ void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersN
 
 int SymbolTableStack::countNumberOfGivenParameters(AST *functionCallNode) {
 
+    if (functionCallNode == NULL ) { return 0; }
     return functionCallNode->numberOfParameters;
 }
 
