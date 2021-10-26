@@ -90,6 +90,18 @@ void appendChild(AST *rootNode, AST *newChild) {
 
 }
 
+AST *getLastChild(AST *rootNode) {
+
+    if (rootNode == NULL) { return NULL; }
+
+    AST *first_child = rootNode->child;
+
+    while (first_child != NULL && first_child->sister != NULL) {
+        first_child = first_child->sister;
+    }
+    return first_child;
+}
+
 void prependChild(AST *rootNode, AST *newChild) {
 
     if (rootNode == NULL) { return; }

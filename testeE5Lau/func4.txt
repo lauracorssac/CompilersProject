@@ -8,8 +8,13 @@ int f(int x, int y) {
 
 int main() {
 	int x;
+	x = 2;
 	int y;
-	x = 5;
-	y = 7;
+	{
+		int x;
+		x = 40;
+		y = 20;
+		x = f(x,y);	
+	};
 	x = f(x,y);	
 }

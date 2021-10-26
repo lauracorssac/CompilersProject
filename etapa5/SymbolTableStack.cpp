@@ -446,14 +446,7 @@ void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersN
 
 int SymbolTableStack::countNumberOfGivenParameters(AST *functionCallNode) {
 
-    int counter = 0;
-    AST *pointer = functionCallNode;
-    while (pointer != NULL) {
-        counter += 1;
-        pointer = pointer->child;
-    }
-    return counter;
-
+    return functionCallNode->numberOfParameters;
 }
 
 int SymbolTableStack::verifyCoersion(SyntacticalType variableType, SyntacticalType attributionType) {

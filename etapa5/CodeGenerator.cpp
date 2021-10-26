@@ -628,8 +628,10 @@ void CodeGenerator::resolveParameters(AST* functionCallNode, AST *firstParameter
     AST *auxPointer = firstParameterNode;
     CodeOperand originRegister;
     int nextInstructionLabel;
+    int i = 0;
+    int numberOfParameters = firstParameterNode->numberOfParameters;
 
-    while (auxPointer != NULL) { 
+    while (auxPointer != NULL && i < numberOfParameters) { 
 
         if (auxPointer->hasPatchworks) {
             
@@ -651,7 +653,8 @@ void CodeGenerator::resolveParameters(AST* functionCallNode, AST *firstParameter
         } else {
             appendCode(functionCallNode, auxPointer);
         }
-        auxPointer = auxPointer->child;
+        auxPointer = getLastChild(auxPointer);
+        i += 1;
     }
 
 
@@ -663,9 +666,11 @@ void CodeGenerator::pushParameters(AST* functionCallNode, AST *firstParameterNod
 
     int offset = 12;
     AST *auxPointer = firstParameterNode;
+    int numberOfParameters = firstParameterNode->numberOfParameters;
+    int i = 0;
     CodeOperand originRegister;
 
-    while (auxPointer != NULL) { 
+    while (auxPointer != NULL && i < numberOfParameters) { 
 
         originRegister = auxPointer->resultRegister;
 
@@ -681,8 +686,9 @@ void CodeGenerator::pushParameters(AST* functionCallNode, AST *firstParameterNod
         };
         appendCode(functionCallNode, {storeCode});
         
-        auxPointer = auxPointer->child;
+        auxPointer = getLastChild(auxPointer);
         offset += 4;
+        i += 1;
     }
 
 }

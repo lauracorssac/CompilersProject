@@ -55,6 +55,9 @@ typedef struct AST {
     CodeOperand resultRegister; //the register where the result is located 
     bool hasPatchworks;
 
+    //this is only present in function call's arguments
+    int numberOfParameters;
+
 } AST;
 
 
@@ -69,6 +72,7 @@ void libera(void *arvore);
 void printNodeType(NodeType nodeType);
 void appendChild(AST *rootNode, AST *newChild);
 void prependChild(AST *rootNode, AST *newChild);
+AST* getLastChild(AST *rootNode);
 
 
 #endif

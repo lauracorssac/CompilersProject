@@ -524,14 +524,17 @@ LOCAL1: TYPE LOCAL2 {
 }
 | TYPE TK_IDENTIFICADOR TK_OC_LE LOCAL4 { 
 	AST *root = createNodeWithLexicalTypeAndValue(initializerType, $3);
-	AST *indentNode = createNodeNoTypeWithSType($2, (SyntacticalType)$1);
+	AST *identNode = createNodeNoTypeWithSType($2, (SyntacticalType)$1);
 	tableStack.insertVariableWithType($2->lineNumber, 0, $2, (SyntacticalType) $1);
 	
 	appendChild(root, $4);
-	prependChild(root, indentNode);
+	prependChild(root, identNode);
 	$$ = root;
 
-	tableStack.makeInitialization(indentNode, root, $4);
+	tableStack.makeInitialization(identNode, root, $4);
+	
+	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable(identNode);
+	codeGenerator.makeAttributionLocalVariable(root, $4, offsetAndScope);
 
 };
 
@@ -650,10 +653,12 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	codeGenerator.makeFunctionCall($$, NULL, functionLabel, offset, 0);
 
 };
-FCALL1: EXPRESSION { $$ = $1; }
-| EXPRESSION ',' FCALL1 {
+FCALL1: EXPRESSION { $$ = $1; $$->numberOfParameters = 1;}
+| FCALL1 ',' EXPRESSION {
+	cout << "aaaaapennnddd" << endl;
 	appendChild($1, $3);
 	$$ = $1;
+	$$->numberOfParameters += 1;
 };
 
  /*    def shift    
