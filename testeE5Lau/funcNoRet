@@ -1,0 +1,11 @@
+int z;
+int f() {
+
+}
+
+int main() {
+	int x;
+	x = 10;
+	x = f();
+	z = x + f();
+}

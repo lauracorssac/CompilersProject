@@ -66,7 +66,7 @@ public:
     void makeFor(AST *forNode, AST *att1Node, AST *expNode, AST *att2Node, AST *forBlockNode);
     void makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope);
     void makeReturn(AST* returnNode, AST *expNode, int offsetReturnValue);
-    void makeEmptyReturn(AST *functionNode);
+    void makeEmptyReturn(AST *functionNode, int offsetRetValue);
     void makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, 
     int returnValueOffset, int quantityOfParameters, pair<int, int> registersToPush);
     

@@ -103,7 +103,7 @@ extern SyntacticalType lastDeclaredType;
 
 %type<node> ATT
 %type<node> BLOCK
-%type<node> BLOCK1
+%type<node> CMDLIST
 %type<node> SIMPLECMD
 %type<node> LOCAL
 %type<node> IO
@@ -446,8 +446,12 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	int label= tableStack.getLabelForFunction($1);
 	codeGenerator.makeFunction($1, offset, 0, label, $4);
 
-	//this is executed in case the function doesnt contain any return expression
-	//codeGenerator.makeEmptyReturn($1);
+	//default return
+	//in case the function doesnt contain any return expression and it is not main function
+	if (label != 0 && ($4 == NULL || $4->numberOfReturnStatements == 0)) {
+		int offsetRetValue = tableStack.getReturnValueOffsetForLastDeclaredFunction();
+		codeGenerator.makeEmptyReturn($1, offsetRetValue);
+	} 
 
 }
 | FUNC_HEADER PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK {
@@ -458,8 +462,12 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction($1);
 	codeGenerator.makeFunction($1, offset, quantityOfParameters, label, $5);
 
-	//this is executed in case the function doesnt contain any return expression
-	//codeGenerator.makeEmptyReturn($1);
+	//default return
+	//in case the function doesnt contain any return expression and it is not main function
+	if (label != 0 && ($5 == NULL || $5->numberOfReturnStatements == 0)) {
+		int offsetRetValue = tableStack.getReturnValueOffsetForLastDeclaredFunction();
+		codeGenerator.makeEmptyReturn($1, offsetRetValue);
+	} 
 
 };
 
@@ -480,7 +488,7 @@ FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR {
 	$$ = NULL; 
 };
 
-FUNC_BLOCK: '{' BLOCK1 { $$ = $2; };
+FUNC_BLOCK: '{' CMDLIST BLOCK_END { $$ = $2; };
 PARAM_LIST_BEGIN: '(' { tableStack.beginNewScope(); };
 PARAM_LIST_END: ')'  { tableStack.updateFunctionWithPendantParameters(); };
 
@@ -488,31 +496,29 @@ PARAM_LIST_END: ')'  { tableStack.updateFunctionWithPendantParameters(); };
  /*    def BLOCK   
 	
 	inicial: BLOCK
-	terminais: BLOCK1
+	terminais: BLOCK
 
  */
 
 BLOCK_BEGIN: '{' { tableStack.beginNewScope(); };
+BLOCK_END: '}' { tableStack.endLastScope();}
 
-BLOCK: BLOCK_BEGIN BLOCK1 { 
+
+BLOCK: BLOCK_BEGIN CMDLIST BLOCK_END { 
 	$$ = $2;
 };
-BLOCK1: '}' { 
-	$$ = NULL; 
-	tableStack.endLastScope();
-
-}
-| SIMPLECMD BLOCK1 { 
-	if ($1 != NULL){
+CMDLIST:
+CMDLIST SIMPLECMD { 
+	if ($1 == NULL) { 
+		$$ = $2;
+	} else { 
 		appendChild($1, $2);
 		codeGenerator.appendCode($1, $2);
 		$$ = $1;
-	} else {
-		
-		//TODO AAAA
-		$$ = $2;
+		$$->numberOfReturnStatements += $2->numberOfReturnStatements;
 	}
-};
+}
+| {$$ = NULL;};
 
  /*    def var LOCAL    
 
@@ -719,6 +725,8 @@ RBC: TK_PR_RETURN EXPRESSION {
 	tableStack.makeReturn(rootNode, $2);
 	int offset = tableStack.getReturnValueOffsetForLastDeclaredFunction();
 	codeGenerator.makeReturn(rootNode, $2, offset);
+
+	$$->numberOfReturnStatements = 1;
 }
 | TK_PR_CONTINUE {
 	$$ = createNodeNoLexicalValue(continueType);

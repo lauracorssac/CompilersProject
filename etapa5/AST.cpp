@@ -21,6 +21,7 @@ AST* createNodeNoType(LexicalValue *value) {
     newNode.value = value;
     newNode.nodeType = noType;
     newNode.sType = undefinedSType;
+    newNode.numberOfReturnStatements = 0;
 
     value->referenceCounter += 1;
   
@@ -45,6 +46,7 @@ AST* createNodeNoLexicalValue(NodeType type) {
     newNode.child = NULL;
     newNode.sister = NULL;
     newNode.sType = undefinedSType;
+    newNode.numberOfReturnStatements = 0;
  
     AST *newNodePointer = new AST;
     releaseManager.insertNewNode(newNodePointer);
@@ -61,6 +63,7 @@ AST* createNodeWithLexicalTypeAndValue(NodeType type, LexicalValue *value) {
     newNode.child = NULL;
     newNode.sister = NULL;
     newNode.sType = undefinedSType;
+    newNode.numberOfReturnStatements = 0;
 
     AST *newNodePointer = new AST;
     releaseManager.insertNewNode(newNodePointer);

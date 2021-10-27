@@ -61,6 +61,9 @@ typedef struct AST {
 
     pair<int, int> registersOfFunction;
 
+    //this is only present in function block's commands
+    int numberOfReturnStatements;
+
 } AST;
 
 
