@@ -179,6 +179,7 @@ PROGRAM : PROGRAM GLOBAL { $$ = $1; }
 		codeGenerator.appendCode($1, $2);
 	}
 	$$ = $2;
+	codeGenerator.restartRegisterNumber();
 }
 | { $$ = NULL; };
 
@@ -642,7 +643,10 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	int offset = tableStack.getReturnValueOffsetForFunction(functionName);
 	int functionLabel = tableStack.getLabelForFunction(rootNode);
 	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction(functionName);
-	pair<int, int> registersToPush = tableStack.getFunctionRegisters(functionName);
+	
+	pair<int, int> registersToPush; 
+	registersToPush.first = 0;
+	registersToPush.second = codeGenerator.getRegisterNumber();
 	
 	codeGenerator.makeFunctionCall(rootNode, $3, functionLabel, offset, quantityOfParameters, registersToPush);
 
@@ -654,8 +658,9 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	string functionName = stringFromLiteralValue($1->literalTokenValueAndType);
 	int offset = tableStack.getReturnValueOffsetForFunction(functionName);
 	int functionLabel = tableStack.getLabelForFunction($$);
-	pair<int, int> registersToPush = tableStack.getFunctionRegisters(functionName);
-	
+	pair<int, int> registersToPush; // = tableStack.getFunctionRegisters(functionName);
+	registersToPush.first = 0;
+	registersToPush.second = codeGenerator.getRegisterNumber();
 	codeGenerator.makeFunctionCall($$, NULL, functionLabel, offset, 0, registersToPush);
 
 };

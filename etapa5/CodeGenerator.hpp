@@ -50,6 +50,8 @@ private:
 
 public:
     int getLabel();
+    int getRegisterNumber();
+    void restartRegisterNumber();
     CodeGenerator();
     void makeLiteralCode(AST *literalNode);
     void makeAttributionLocalVariable(AST *attSymbolNode, AST *attributionNode, OffsetAndScope offsetAndScope);

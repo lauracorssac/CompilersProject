@@ -7,10 +7,7 @@ int fatorial(int x){
 }
 
 int main() {
-
-	int y;
 	int x;
-	y = 3;
-	x = fatorial(y);
+	x = fatorial(5);
 
 }

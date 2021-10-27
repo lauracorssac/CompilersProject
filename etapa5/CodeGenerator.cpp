@@ -34,6 +34,12 @@ int CodeGenerator::getLabel() {
     // increment labelNumber after use
     return this->labelNumber++;
 }
+int CodeGenerator::getRegisterNumber() {
+    return this->registerNumber;
+}
+void CodeGenerator::restartRegisterNumber() {
+    this->registerNumber = 0;
+}
 
 //loadI 1024 => rfp
 //loadI 1024 => rsp
@@ -287,6 +293,9 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
 
     functionNode->registersOfFunction.first = 0;
     functionNode->registersOfFunction.second = this->registerNumber;
+    
+    
+    this->registerNumber = 0;
 
 }
 
@@ -524,29 +533,46 @@ void CodeGenerator::makeReturn(AST* returnNode, AST *expNode, int offsetReturnVa
 
 }
 
+//StoreAI r0 => rsp, 12 // Empilha registrador * quantityOfRegisters
 // addI rpc, 7  => r1      
 // storeAI r1  => rsp, 0  
 // storeAI rsp => rsp, 4  // Salva o rsp (SP)
 // storeAI rfp => rsp, 8  // Salva o rfp (RFP)
 // 
 // storeAI r0 => rsp, 12  // Empilha parâmetro * quantityOfParameters
-// StoreAI r0 => rsp, 12 // Empilha registrador * quantityOfRegisters
 //
 // jumpI => functionLabel            
 // loadAI rsp, returnValueOffset => r0   
 void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, int returnValueOffset, int quantityOfParameters, pair<int, int> registersToPush) {
 
-    int quantityOfRegisters = registersToPush.second;
-    quantityOfRegisters -= registersToPush.first; 
-    int returnAddress = this->getRegister();
-    int returnValueRegister = this->getRegister();
-    int returnValueIncrementRPC = 5 + quantityOfParameters + quantityOfRegisters;
-    CodeOperand returnValueOperand = {.operandType=_register, .numericalValue=returnValueRegister};
-
+    int returnValueIncrementRPC = 5 + quantityOfParameters;
+    
     //resolve parametros
     this->resolveParameters(functionCallNode, firstParameterNode);
 
+    registersToPush.first = 0;
+    registersToPush.second = this->registerNumber;
+    int quantityOfRegisters = registersToPush.second;
+    quantityOfRegisters -= registersToPush.first; 
+
+    int registersOffset = quantityOfRegisters * 4;
+    pushRegisters(functionCallNode, registersToPush, 0);
+    //atualiza stack pointer
+    InstructionCode addISPCode = { 
+        .prefixLabel= -1, 
+        .instructionType=addI, 
+        .leftOperands= {
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=registersOffset}
+        }, 
+        .rightOperands= {
+            registerPointerOperands.rspOperand
+        }
+    };
+    appendCode(functionCallNode, {addISPCode});
+
     // Calcula o endereço de retorno
+    int returnAddress = this->getRegister();
     InstructionCode addICode = {
         .prefixLabel= -1, 
         .instructionType=addI, 
@@ -604,7 +630,6 @@ void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterN
 
     // Empilha parametros
     pushParameters(functionCallNode, firstParameterNode);
-    pushRegisters(functionCallNode, registersToPush, returnValueOffset + 4);
 
     // Salta para o início da função chamada
     InstructionCode jumpICode = {
@@ -615,19 +640,36 @@ void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterN
     };
     appendCode(functionCallNode, {jumpICode});
 
-    popRegisters(functionCallNode, registersToPush, returnValueOffset + 4);
+    //atualiza stack pointer
+    InstructionCode subISPCode = { 
+        .prefixLabel= -1, 
+        .instructionType=subI, 
+        .leftOperands= {
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=registersOffset}
+        }, 
+        .rightOperands= {
+            registerPointerOperands.rspOperand
+        }
+    };
+    appendCode(functionCallNode, {subISPCode});
+
+    popRegisters(functionCallNode, registersToPush, 0);
 
     // Retorno da função, carrega o valor de retorno
+    int returnValueRegister = this->getRegister();
+    CodeOperand returnValueOperand = {.operandType=_register, .numericalValue=returnValueRegister};
     InstructionCode loadReturnValue = {
         .prefixLabel =-1,
         .instructionType=loadAI,
         .leftOperands={
             registerPointerOperands.rspOperand,
-            {.operandType=number, .numericalValue=returnValueOffset}
+            {.operandType=number, .numericalValue=returnValueOffset + registersOffset}
         },
         .rightOperands={returnValueOperand}
     };
     appendCode(functionCallNode, {loadReturnValue});
+
 
     functionCallNode->hasPatchworks = false;
     functionCallNode->resultRegister = returnValueOperand;
@@ -709,7 +751,7 @@ void CodeGenerator::popRegisters(AST *returnNode, pair<int, int> registerRange, 
             .prefixLabel= -1,
             .instructionType= loadAI,
             .leftOperands= { 
-                registerPointerOperands.rfpOperand, 
+                registerPointerOperands.rspOperand, 
                 {.operandType=number, .numericalValue=offset}
             },
             .rightOperands= {{.operandType=_register, .numericalValue=initialRegister}}
