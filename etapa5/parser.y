@@ -446,7 +446,9 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	int label= tableStack.getLabelForFunction($1);
 	codeGenerator.makeFunction($1, offset, 0, label, $4);
 
-	tableStack.updateFunctionWithRegisters($1);
+	//this is executed in case the function doesnt contain any return expression
+	//codeGenerator.makeEmptyReturn($1);
+
 }
 | FUNC_HEADER PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK {
 	appendChild($1, $5);
@@ -456,7 +458,9 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction($1);
 	codeGenerator.makeFunction($1, offset, quantityOfParameters, label, $5);
 
-	tableStack.updateFunctionWithRegisters($1);
+	//this is executed in case the function doesnt contain any return expression
+	//codeGenerator.makeEmptyReturn($1);
+
 };
 
 FUNC_PARAM_LIST: TYPE TK_IDENTIFICADOR { 

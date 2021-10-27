@@ -5,7 +5,8 @@ int f(int x, int y) {
 	w = z + z;
 	return w;
 }
-
+int z;
+int w;
 int main() {
 	int x;
 	x = 2;
@@ -14,7 +15,7 @@ int main() {
 		int x;
 		x = 40;
 		y = 20;
-		x = f(x,y);	
+		z = f(x,y);	
 	};
-	x = f(x,y);	
+	w = f(x,y);	
 }

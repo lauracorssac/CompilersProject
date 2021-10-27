@@ -293,9 +293,6 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
 
     functionNode->registersOfFunction.first = 0;
     functionNode->registersOfFunction.second = this->registerNumber;
-    
-    
-    this->registerNumber = 0;
 
 }
 
@@ -359,68 +356,77 @@ list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters,
 // jump => r0
 void CodeGenerator::makeEmptyReturn(AST *functionNode) {
 
-    // //load return address
-    // InstructionCode loadRetCode = {
-    //     .prefixLabel= -1,
-    //     .instructionType= loadAI,
-    //     .leftOperands= { 
-    //         registerPointerOperands.rfpOperand,
-    //         {.operandType=number, .numericalValue=constantOffsetsRFP.returnAddress}
-    //     },
-    //     .rightOperands= {{.operandType=_register, .numericalValue=returnAddressRegister}}
-    // };
-    // appendCode(functionNode, {loadRetCode}); 
+    int returnAddressRegister = this->getRegister();
+    int oldRFPRegister = this->getRegister();
+    int oldRSPRegister = this->getRegister();
 
-    // //load rfp address
-    // InstructionCode loadRFPCode = {
-    //     .prefixLabel= -1,
-    //     .instructionType= loadAI,
-    //     .leftOperands= { 
-    //         registerPointerOperands.rfpOperand, 
-    //         {.operandType=number, .numericalValue=constantOffsetsRFP.oldRFP}
-    //     },
-    //     .rightOperands= {{.operandType=_register, .numericalValue=oldRFPRegister}}
-    // };
-    // appendCode(functionNode, {loadRFPCode}); 
+    //load return address
+    InstructionCode loadRetCode = {
+        .prefixLabel= -1,
+        .instructionType= loadAI,
+        .leftOperands= { 
+            registerPointerOperands.rfpOperand,
+            {.operandType=number, .numericalValue=constantOffsetsRFP.returnAddress}
+        },
+        .rightOperands= {{.operandType=_register, .numericalValue=returnAddressRegister}}
+    };
+    appendCode(functionNode, {loadRetCode}); 
 
-    // //load rsp address
-    // InstructionCode loadRSPCode = {
-    //     .prefixLabel= -1,
-    //     .instructionType= loadAI,
-    //     .leftOperands= { 
-    //         registerPointerOperands.rfpOperand, 
-    //         {.operandType=number, .numericalValue=constantOffsetsRFP.oldRSP},
-    //     },
-    //     .rightOperands= {
-    //         {.operandType=_register, .numericalValue=oldRSPRegister}
-    //     }
-    // };
-    // appendCode(functionNode, {loadRSPCode}); 
+    //load rfp address
+    InstructionCode loadRFPCode = {
+        .prefixLabel= -1,
+        .instructionType= loadAI,
+        .leftOperands= { 
+            registerPointerOperands.rfpOperand, 
+            {.operandType=number, .numericalValue=constantOffsetsRFP.oldRFP}
+        },
+        .rightOperands= {{.operandType=_register, .numericalValue=oldRFPRegister}}
+    };
+    appendCode(functionNode, {loadRFPCode}); 
 
-    // //store old rsp in rsp
-    // InstructionCode storeRSPCode = {
-    //     .prefixLabel=-1,
-    //     .instructionType=store,
-    //     .leftOperands= {{.operandType=_register, .numericalValue=oldRSPRegister}},
-    //     .rightOperands= {registerPointerOperands.rspOperand}
-    // };
-    // appendCode(functionNode, {storeRSPCode});
+    //load rsp address
+    InstructionCode loadRSPCode = {
+        .prefixLabel= -1,
+        .instructionType= loadAI,
+        .leftOperands= { 
+            registerPointerOperands.rfpOperand, 
+            {.operandType=number, .numericalValue=constantOffsetsRFP.oldRSP},
+        },
+        .rightOperands= {
+            {.operandType=_register, .numericalValue=oldRSPRegister}
+        }
+    };
+    appendCode(functionNode, {loadRSPCode}); 
 
-    // //store old rfp in rfp
-    // InstructionCode storeRFPCode = {
-    //     .prefixLabel=-1,
-    //     .instructionType=store,
-    //     .leftOperands={{.operandType=_register, .numericalValue=oldRFPRegister}},
-    //     .rightOperands={registerPointerOperands.rfpOperand}
-    // };
-    // appendCode(functionNode, {storeRFPCode});
+    //store old rsp in rsp
+    InstructionCode storeRSPCode = {
+        .prefixLabel=-1,
+        .instructionType=store,
+        .leftOperands= {{.operandType=_register, .numericalValue=oldRSPRegister}},
+        .rightOperands= {registerPointerOperands.rspOperand}
+    };
+    appendCode(functionNode, {storeRSPCode});
 
-    // //jump to returnAddressRegister
-    // InstructionCode jumpCode = makeJumpInstruction({
-    //     .operandType=label, 
-    //     .numericalValue= returnAddressRegister
-    // });
-    // appendCode(functionNode, {jumpCode});
+    //store old rfp in rfp
+    InstructionCode storeRFPCode = {
+        .prefixLabel=-1,
+        .instructionType=store,
+        .leftOperands={{.operandType=_register, .numericalValue=oldRFPRegister}},
+        .rightOperands={registerPointerOperands.rfpOperand}
+    };
+    appendCode(functionNode, {storeRFPCode});
+
+    //jump to returnAddressRegister
+    InstructionCode jumpCode = {
+        .prefixLabel=-1,
+        .instructionType=jump,
+        .leftOperands={},
+        .rightOperands={{
+            .operandType=_register, 
+            .numericalValue= returnAddressRegister
+        }}
+    };
+    appendCode(functionNode, {jumpCode});
 
 }
 
