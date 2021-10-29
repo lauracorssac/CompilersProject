@@ -23,6 +23,8 @@ extern "C"
  
 }
 
+ /* list used to store all the AST nodes created */
+DeletionHelp *releasePool;
 void *arvore = NULL;
 SymbolTableStack tableStack;
 void executeShutDownRoutine();

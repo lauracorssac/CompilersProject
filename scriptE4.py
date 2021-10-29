@@ -23,7 +23,7 @@ errorDic = {
 "SUCCESS": 0
 }
 
-os.system("cd etapa4 && make --silent")
+os.system("cd oi && make --silent")
 
 failed = []
 errors_code = [10, 11, 20, 21, 22, 30, 31, 32, 33, 34, 40, 41, 42, 43, 50, 51, 52, ]
@@ -36,7 +36,7 @@ def execute(fileName):
     line = f.readline().strip()
     shouldReturnError = line.startswith("//")
     errorName = line[2:]
-    command = "./etapa4/etapa4 < " + fileName + " > saida.txt"
+    command = "./oi/etapa4 < " + fileName + " > saida.txt"
     exitCode = subprocess.call(command, shell=True)
     print("ExitCode", str(exitCode))
     

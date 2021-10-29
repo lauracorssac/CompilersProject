@@ -7,6 +7,8 @@
 #include "ReleaseManager.h"
 #include <stdlib.h>
 
+extern DeletionHelp *releasePool;
+
 void insertNewNode(AST *newNode) {
     DeletionHelp delHelp = {.nodeRef = newNode, .next = releasePool};
 
