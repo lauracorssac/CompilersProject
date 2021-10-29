@@ -1017,21 +1017,21 @@ void CodeGenerator::makeNot(AST *expressionNode, AST *symbolNode) {
 
     if (expressionNode->hasPatchworks) {
 
-        // inverte os patchworks
+        // inverts patchworks
         this->coverPatchworks(expressionNode, labelTrue, false);
         this->coverPatchworks(expressionNode, labelFalse, true);
         this->appendCode(symbolNode,expressionNode);
 
     } else {
         CodeOperand r1Operand = expressionNode->resultRegister;
-        //make compare com as labels invertidas
+        
+        //make compare with inverted labels 
         list<InstructionCode> compareCode = makeCompare(r1Operand, labelFalse, labelTrue);
         this->appendCode(symbolNode,expressionNode);
         this->appendCode(symbolNode, compareCode);
     }
     
     symbolNode->hasPatchworks = true;
-
 
 }
 
