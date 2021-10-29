@@ -3,7 +3,7 @@ import subprocess
 
 os.system("cd etapa5 && make --silent")
 
-fileName = "testeE5/ijk1A"
+fileName = "testeE5Lau/notLog"
 command = "./etapa5/etapa5 < " + fileName + " > saida"
 exitCode = subprocess.call(command, shell=True)
 

@@ -71,6 +71,7 @@ public:
     int returnValueOffset, int quantityOfParameters);
     void makeUnaryOperation(AST *expressionNode, AST *symbolNode);
     void makeUnaryArithmeticOperation(AST *expressionNode, AST *symbolNode);
+    void makeNot(AST *expressionNode, AST *symbolNode);
     
     void generateFinalCode(AST *finalTree);
     void generateInitialCode(AST *finalTree);

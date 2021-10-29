@@ -33,7 +33,9 @@ typedef enum {
     attributionType,
     initializerType,
     ternaryType,
-    functionCallType
+    functionCallType,
+    notType,
+    subType
 
 } NodeType;
 
@@ -42,7 +44,7 @@ typedef struct AST {
 
     SyntacticalType sType; // acrescentando devido E4
     NodeType nodeType;
-    InstructionType nodeInstructionType; //only present for composed operators
+    InstructionType nodeInstructionType; //only present for operators
 
     // (optional) value of LexicalValue. 
     // Not NULL for leaves. 

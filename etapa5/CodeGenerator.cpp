@@ -998,8 +998,43 @@ void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOpe
 }
 
 void CodeGenerator::makeUnaryOperation(AST *expressionNode, AST *symbolNode) {
-    makeUnaryArithmeticOperation(expressionNode, symbolNode);
+
+    if (symbolNode->nodeType == subType) {
+        makeUnaryArithmeticOperation(expressionNode, symbolNode);
+    }
+    else if (symbolNode->nodeType == notType) {
+        makeNot(expressionNode, symbolNode);
+    }
+    
 }
+
+void CodeGenerator::makeNot(AST *expressionNode, AST *symbolNode) {
+
+    CodeOperand r1Operand;
+    int nextInstructionLabel = this->getLabel();
+    CodeOperand labelTrue = {.operandType=patchworkTrue, .numericalValue=-1};
+    CodeOperand labelFalse = {.operandType=patchworkFalse, .numericalValue=-1};
+
+    if (expressionNode->hasPatchworks) {
+
+        // inverte os patchworks
+        this->coverPatchworks(expressionNode, labelTrue, false);
+        this->coverPatchworks(expressionNode, labelFalse, true);
+        this->appendCode(symbolNode,expressionNode);
+
+    } else {
+        CodeOperand r1Operand = expressionNode->resultRegister;
+        //make compare com as labels invertidas
+        list<InstructionCode> compareCode = makeCompare(r1Operand, labelFalse, labelTrue);
+        this->appendCode(symbolNode,expressionNode);
+        this->appendCode(symbolNode, compareCode);
+    }
+    
+    symbolNode->hasPatchworks = true;
+
+
+}
+
 
 void CodeGenerator::makeUnaryArithmeticOperation(AST *expressionNode, AST *symbolNode) {
 
@@ -1023,7 +1058,7 @@ void CodeGenerator::makeUnaryArithmeticOperation(AST *expressionNode, AST *symbo
     CodeOperand resultRegisterOperand = {.operandType=_register, .numericalValue= resultRegister};
     
     //rsubI r1, 0 => resultRegister // resultRegister = 0 - r1
-    if (symbolNode->nodeInstructionType == sub) {
+    if (symbolNode->nodeType == subType) {
         InstructionCode subCode = {
             .prefixLabel= nextInstructionLabel,
             .instructionType=rsubI,

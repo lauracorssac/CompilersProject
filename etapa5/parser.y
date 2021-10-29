@@ -177,8 +177,9 @@ PROGRAM : PROGRAM GLOBAL { $$ = $1; }
 	} else {
 		appendChild($1, $2);
 		codeGenerator.appendCode($1, $2);
+		$$ = $1;
 	}
-	$$ = $2;
+	
 	codeGenerator.restartRegisterNumber();
 }
 | { $$ = NULL; };
@@ -281,12 +282,12 @@ opNivel8: TK_OC_AND { $$ = createNodeNoType($1); };
 opNivel9: TK_OC_OR { $$ = createNodeNoType($1); };
 
  /* operadores unarios */
-opUnary: '-' { $$ = createNodeNoType($1); $$->nodeInstructionType = sub; }
+opUnary: '-' { $$ = createNodeNoType($1); $$->nodeType = subType; }
 | '+' { $$ = createNodeNoType($1); }
 | '*' { $$ = createNodeNoType($1); }
 | '&' { $$ = createNodeNoType($1); }
 | '#' { $$ = createNodeNoType($1); }
-| '!' { $$ = createNodeNoType($1); }
+| '!' { $$ = createNodeNoType($1); $$->nodeType = notType; }
 | '?' { $$ = createNodeNoType($1); };
 
  /*    def expressao    
