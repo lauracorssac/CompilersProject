@@ -68,7 +68,9 @@ public:
     void makeReturn(AST* returnNode, AST *expNode, int offsetReturnValue);
     void makeEmptyReturn(AST *functionNode, int offsetRetValue);
     void makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, 
-    int returnValueOffset, int quantityOfParameters, pair<int, int> registersToPush);
+    int returnValueOffset, int quantityOfParameters);
+    void makeUnaryOperation(AST *expressionNode, AST *symbolNode);
+    void makeUnaryArithmeticOperation(AST *expressionNode, AST *symbolNode);
     
     void generateFinalCode(AST *finalTree);
     void generateInitialCode(AST *finalTree);

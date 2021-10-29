@@ -41,6 +41,8 @@ void CodeGenerator::restartRegisterNumber() {
     this->registerNumber = 0;
 }
 
+
+
 //loadI 1024 => rfp
 //loadI 1024 => rsp
 //loadI preliminaryCodeSize + 5 => rbss
@@ -57,7 +59,37 @@ list<InstructionCode> CodeGenerator::makeInitialCode(int preliminaryCodeSize) {
     
     codeList.push_back(loadConstant(1024, rfpOperand));
     codeList.push_back(loadConstant(1024, rspOperand));
-    codeList.push_back(loadConstant(preliminaryCodeSize + 5, rspOperand));
+    codeList.push_back(loadConstant(preliminaryCodeSize + 7, rspOperand));
+    
+    // Calcula o endereço de retorno
+    int returnValueIncrementRPC = preliminaryCodeSize + 3;
+    int returnAddress = this->getRegister();
+    InstructionCode addICode = {
+        .prefixLabel= -1, 
+        .instructionType=addI, 
+        .leftOperands= {
+            registerPointerOperands.rpcOperand,
+            {.operandType=number, .numericalValue=returnValueIncrementRPC}
+        }, 
+        .rightOperands= {
+            {.operandType=_register, .numericalValue=returnAddress}
+        }
+    };
+    codeList.push_back(addICode);
+
+     // Salva o endereço de retorno
+    InstructionCode storeAICode = {
+        .prefixLabel= -1, 
+        .instructionType=storeAI, 
+        .leftOperands= {
+            {.operandType=_register, .numericalValue=returnAddress}
+        }, 
+        .rightOperands= {
+            registerPointerOperands.rspOperand,
+            {.operandType=number, .numericalValue=constantOffsetsRFP.returnAddress}
+        }
+    };
+    codeList.push_back(storeAICode);
     codeList.push_back(makeJumpInstruction(LO));
     
     return codeList;
@@ -245,13 +277,9 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
 
 }
 
-//L0: nop
-// i2i rsp => rfp     // Atualiza o rfp (RFP)
-// addI rsp, 20 => rsp    // Atualiza o rsp (SP)
-// loadAI rfp, 12 => r0   // Obtém o parâmetro
-// storeAI r0 => rfp, 20  // Salva o parâmetro na variável y
 void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, int quantityOfParameters, int functionLabel, AST *fuctionBlockNode) {
 
+    // LX: nop X = functionLabel
     InstructionCode nopCode = {
         .prefixLabel= functionLabel,
         .instructionType=nop, 
@@ -260,6 +288,8 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
     };
     appendCode(functionNode, {nopCode});
 
+    // Updates RFP
+    // i2i rsp => rfp  
     InstructionCode i2iCode = {
         .prefixLabel= -1,
         .instructionType=i2i, 
@@ -268,17 +298,15 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
     };
     appendCode(functionNode, {i2iCode});
 
-    // Atualiza o rsp 
-    // 16 = 4 do valor de retorno + 4 old rsp + 4 old rfp + 4 ret add
-    // quant de param * 4
-    // offsetLocalVarFunction
-    int rspOffset = 16 + (quantityOfParameters * 4) + offsetLocalVarFunction; 
+    // Updates RSP 
+    // addI rsp, rspIncrement => rsp 
+    int rspIncrement = getRSPIncrement(offsetLocalVarFunction, quantityOfParameters); 
     InstructionCode offsetVariables = { 
         .prefixLabel= -1, 
         .instructionType=addI, 
         .leftOperands= {
             registerPointerOperands.rspOperand,
-            {.operandType=number, .numericalValue=rspOffset}
+            {.operandType=number, .numericalValue=rspIncrement}
         }, 
         .rightOperands= {
             registerPointerOperands.rspOperand
@@ -286,22 +314,21 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
     };
     appendCode(functionNode, {offsetVariables});
 
-    int sizeOfPushedRegisters = (functionNode->registersOfFunction.second - functionNode->registersOfFunction.first) * 4;
-    int offsetLocalParameters = 16 + (quantityOfParameters * 4) + sizeOfPushedRegisters;
-    appendCode(functionNode, makeParameterCopy(quantityOfParameters, offsetLocalParameters));
+    // Copies parameters to local variables
+    int offsetLocalVariable = getOffsetLocalVariables(quantityOfParameters);
+    appendCode(functionNode, makeParameterCopy(quantityOfParameters, offsetLocalVariable));
 
     appendCode(functionNode, fuctionBlockNode);
 
-    functionNode->registersOfFunction.first = 0;
-    functionNode->registersOfFunction.second = this->registerNumber;
-
 }
 
-// loadAI rfp, 12 => r0   // Obtém o parâmetro
-// storeAI r0 => rfp, 20  // Salva o parâmetro na variável local
-list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters, int offsetLocalParameters) {
+// For example:
+// If the function has only one parameter:
+// loadAI rfp, 12 => r0   
+// storeAI r0 => rfp, 20  
+list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters, int offsetLocalVariables) {
 
-    int offsetParametersReceived = 12;
+    int offsetParametersReceived = constantOffsetsRFP.parameters;
     int offsetToStore;
     int offsetToLoad;
     int parameterIndex = 0;
@@ -311,9 +338,9 @@ list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters,
 
         int auxRegister = this->getRegister();
         offsetToLoad = offsetParametersReceived + parameterIndex * 4;
-        offsetToStore = offsetLocalParameters + parameterIndex * 4;
+        offsetToStore = offsetLocalVariables + parameterIndex * 4;
 
-        // loadAI rfp, 12 => r0
+        // Obtains parameter
         InstructionCode loadAICode = {
             .prefixLabel=-1,
             .instructionType=loadAI,
@@ -327,7 +354,7 @@ list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters,
         };
         codeList.push_back(loadAICode);
 
-         // storeAI r0 => rfp, 20
+        // Saves in local variable
         InstructionCode storeAICode = {
             .prefixLabel=-1,
             .instructionType=storeAI,
@@ -349,12 +376,15 @@ list<InstructionCode> CodeGenerator::makeParameterCopy(int quantityOfParameters,
 
 }
 
-// loadAI rfp, 0 => r0  //obtém end. retorno
-// loadAI rfp, 4 => r1  //obtém rsp salvo
-// loadAI rfp, 8 => r2  //obtém rfp salvo
-// store r1 => rsp
-// store r2 => rfp
-// jump => r0
+// Adds the following to functionNode:
+// loadI 0 => rX
+// storeAI rX => RFP, offsetRetValue 
+// loadAI rfp, 0 => rW  
+// loadAI rfp, 4 => rY  
+// loadAI rfp, 8 => rZ
+// store rY => rsp
+// store rZ => rfp
+// jump => rW
 void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue) {
 
     int returnValueReg = this->getRegister();
@@ -452,11 +482,11 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue) {
 
 }
 
-// loadI 73 => r0      //seq retorno
+// loadI 73 => r0 
 // storeAI r0 => rfp, offsetReturnValue
-// loadAI rfp, 0 => r0  //obtém end. retorno
-// loadAI rfp, 4 => r1  //obtém rsp salvo
-// loadAI rfp, 8 => r2  //obtém rfp salvo
+// loadAI rfp, 0 => r0 
+// loadAI rfp, 4 => r1 
+// loadAI rfp, 8 => r2
 // store r1 => rsp
 // store r2 => rfp
 // jump => r0
@@ -571,13 +601,14 @@ void CodeGenerator::makeReturn(AST* returnNode, AST *expNode, int offsetReturnVa
 //
 // jumpI => functionLabel            
 // loadAI rsp, returnValueOffset => r0   
-void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, int returnValueOffset, int quantityOfParameters, pair<int, int> registersToPush) {
+void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, int returnValueOffset, int quantityOfParameters) {
 
     int returnValueIncrementRPC = 5 + quantityOfParameters;
     
     //resolve parametros
     this->resolveParameters(functionCallNode, firstParameterNode);
 
+    pair<int,int> registersToPush;
     registersToPush.first = 0;
     registersToPush.second = this->registerNumber;
     int quantityOfRegisters = registersToPush.second;
@@ -792,7 +823,6 @@ void CodeGenerator::popRegisters(AST *returnNode, pair<int, int> registerRange, 
 
 }
 
-
 // Aqui se assume que todos os parametros têm algo no resultRegister
 // Se faz store desse resultRegister no endereço apropriado
 void CodeGenerator::pushParameters(AST* functionCallNode, AST *firstParameterNode) {
@@ -966,6 +996,51 @@ void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOpe
     }
 
 }
+
+void CodeGenerator::makeUnaryOperation(AST *expressionNode, AST *symbolNode) {
+    makeUnaryArithmeticOperation(expressionNode, symbolNode);
+}
+
+void CodeGenerator::makeUnaryArithmeticOperation(AST *expressionNode, AST *symbolNode) {
+
+    CodeOperand r1Operand;
+    int nextInstructionLabel = this->getLabel();
+
+    if (expressionNode->hasPatchworks) {
+        int r1 = this->getRegister();
+        r1Operand = {.operandType=_register, .numericalValue=r1};
+        list<InstructionCode> newCode = this->createBoolFlow(expressionNode, nextInstructionLabel, r1Operand);
+        appendCode(symbolNode, expressionNode);
+        appendCode(symbolNode, newCode);
+        
+    } else {
+        appendCode(symbolNode, expressionNode);
+        r1Operand = expressionNode->resultRegister;
+    }
+
+    symbolNode->hasPatchworks = false;
+    int resultRegister = this->getRegister();
+    CodeOperand resultRegisterOperand = {.operandType=_register, .numericalValue= resultRegister};
+    
+    //rsubI r1, 0 => resultRegister // resultRegister = 0 - r1
+    if (symbolNode->nodeInstructionType == sub) {
+        InstructionCode subCode = {
+            .prefixLabel= nextInstructionLabel,
+            .instructionType=rsubI,
+            .leftOperands={
+                r1Operand,
+                {.operandType=number, .numericalValue= 0}
+            },
+            .rightOperands={
+               resultRegisterOperand
+            }
+        };
+        appendCode(symbolNode, {subCode});
+        symbolNode->resultRegister = resultRegisterOperand;
+    }
+
+}
+
 
 //EX.: add r1, r2 => r3
 InstructionCode CodeGenerator::makeBinaryInstruction(InstructionType instructionType, int prefixLabel, CodeOperand r1Operand, CodeOperand r2Operand, CodeOperand r3Operand) {

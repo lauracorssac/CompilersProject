@@ -116,11 +116,21 @@ typedef struct {
   
 } InstructionCode;
 
+// Stack is assumed to be like:
+//          LOCAL VARIABLES
+//          RET VALUE
+//          PARAMETERS
+//          OLD RFP
+//          OLD RSP
+// RFP ---> RET ADD
+
+/* constant offsets relative to RFP */
 typedef struct {
 
     int returnAddress = 0;
     int oldRSP = 4;
     int oldRFP = 8;
+    int parameters = 12;
 
 } RFPOffset;
 
@@ -136,7 +146,8 @@ typedef struct {
 const RFPOffset constantOffsetsRFP;
 const RegisterPointerOperands registerPointerOperands;
 
-
-
+int getRSPIncrement(int sizeOfLocalVariables, int quantityOfParameters);
+int getOffsetLocalVariables(int quantityOfParameters);
+int getReturnValueOffset(int sizeOfParameters);
 
 #endif

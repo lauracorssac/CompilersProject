@@ -42,7 +42,7 @@ typedef struct AST {
 
     SyntacticalType sType; // acrescentando devido E4
     NodeType nodeType;
-    InstructionType nodeInstructionType; //
+    InstructionType nodeInstructionType; //only present for composed operators
 
     // (optional) value of LexicalValue. 
     // Not NULL for leaves. 
@@ -58,8 +58,6 @@ typedef struct AST {
 
     //this is only present in function call's arguments
     int numberOfParameters;
-
-    pair<int, int> registersOfFunction;
 
     //this is only present in function block's commands
     int numberOfReturnStatements;

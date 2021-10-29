@@ -281,7 +281,7 @@ opNivel8: TK_OC_AND { $$ = createNodeNoType($1); };
 opNivel9: TK_OC_OR { $$ = createNodeNoType($1); };
 
  /* operadores unarios */
-opUnary: '-' { $$ = createNodeNoType($1); }
+opUnary: '-' { $$ = createNodeNoType($1); $$->nodeInstructionType = sub; }
 | '+' { $$ = createNodeNoType($1); }
 | '*' { $$ = createNodeNoType($1); }
 | '&' { $$ = createNodeNoType($1); }
@@ -395,6 +395,7 @@ EXP10: EXP11 { $$ = $1; }
 	$$ = $1;
 
 	tableStack.makeUnaryOperation($2, $1);
+	codeGenerator.makeUnaryOperation($2, $1);
 };
 EXP11: OPERAND { $$ = $1; }
 | '(' EXPRESSION ')' { 
@@ -442,9 +443,13 @@ FUNC: TK_PR_STATIC FUNC1 { $$ = $2; }
 FUNC1: FUNC_HEADER '(' ')' BLOCK  { 
 	appendChild($1, $4);
 	$$ = $1;
-	int offset = tableStack.getLastFunctionOffset();
+	
+	// gets space for local variables 
+	int offsetLocalVariables = tableStack.getLastFunctionOffset();
+	// gets initial instruction label of function
 	int label= tableStack.getLabelForFunction($1);
-	codeGenerator.makeFunction($1, offset, 0, label, $4);
+	// generates code for function
+	codeGenerator.makeFunction($1, offsetLocalVariables, 0, label, $4);
 
 	//default return
 	//in case the function doesnt contain any return expression and it is not main function
@@ -457,10 +462,15 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 | FUNC_HEADER PARAM_LIST_BEGIN FUNC_PARAM_LIST PARAM_LIST_END FUNC_BLOCK {
 	appendChild($1, $5);
 	$$ = $1;
-	int offset = tableStack.getLastFunctionOffset();
+
+	// gets space for local variables 
+	int offsetLocalVariables = tableStack.getLastFunctionOffset();
+	// gets initial instruction label of function
 	int label= tableStack.getLabelForFunction($1);
+	// gets quantity of parameters
 	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction($1);
-	codeGenerator.makeFunction($1, offset, quantityOfParameters, label, $5);
+	// generates code for function
+	codeGenerator.makeFunction($1, offsetLocalVariables, quantityOfParameters, label, $5);
 
 	//default return
 	//in case the function doesnt contain any return expression and it is not main function
@@ -654,11 +664,7 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	int functionLabel = tableStack.getLabelForFunction(rootNode);
 	int quantityOfParameters = tableStack.getQuantityOfParametersForFunction(functionName);
 	
-	pair<int, int> registersToPush; 
-	registersToPush.first = 0;
-	registersToPush.second = codeGenerator.getRegisterNumber();
-	
-	codeGenerator.makeFunctionCall(rootNode, $3, functionLabel, offset, quantityOfParameters, registersToPush);
+	codeGenerator.makeFunctionCall(rootNode, $3, functionLabel, offset, quantityOfParameters);
 
 }
 | TK_IDENTIFICADOR '(' ')' {
@@ -668,10 +674,8 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 	string functionName = stringFromLiteralValue($1->literalTokenValueAndType);
 	int offset = tableStack.getReturnValueOffsetForFunction(functionName);
 	int functionLabel = tableStack.getLabelForFunction($$);
-	pair<int, int> registersToPush; // = tableStack.getFunctionRegisters(functionName);
-	registersToPush.first = 0;
-	registersToPush.second = codeGenerator.getRegisterNumber();
-	codeGenerator.makeFunctionCall($$, NULL, functionLabel, offset, 0, registersToPush);
+	
+	codeGenerator.makeFunctionCall($$, NULL, functionLabel, offset, 0);
 
 };
 FCALL1: EXPRESSION { $$ = $1; $$->numberOfParameters = 1;}
@@ -722,11 +726,16 @@ RBC: TK_PR_RETURN EXPRESSION {
 	appendChild(rootNode, $2);
 	$$ = rootNode;
 
+	int functionLabel = tableStack.getLabelForLastDeclaredFunction();
 	tableStack.makeReturn(rootNode, $2);
-	int offset = tableStack.getReturnValueOffsetForLastDeclaredFunction();
-	codeGenerator.makeReturn(rootNode, $2, offset);
 
-	$$->numberOfReturnStatements = 1;
+	// function main doesnt have to have a return statement
+	//if (functionLabel != 0) {
+		int offset = tableStack.getReturnValueOffsetForLastDeclaredFunction();
+		codeGenerator.makeReturn(rootNode, $2, offset);
+		$$->numberOfReturnStatements = 1;
+	//}
+	
 }
 | TK_PR_CONTINUE {
 	$$ = createNodeNoLexicalValue(continueType);

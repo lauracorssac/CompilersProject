@@ -9,23 +9,20 @@
 #include "SymbolTableValue.hpp"
 #include "CodeGenerator.hpp"
 #include "ErrorManager.hpp"
+#include "SyntacticalType.hpp"
+#include "errors.h"
+#include "Utils.hpp"
+#include "Code.hpp"
 #include <string>
 #include <list>
 #include <iostream>
 #include <cstring>
 #include <utility>
 #include <unordered_map>
-#include "errors.h"
-#include "Utils.hpp"
-#include "Code.hpp"
 
 using namespace std;
 
 extern CodeGenerator codeGenerator;
-#include "SyntacticalType.hpp"
-extern "C" {
-    
-}
 
 SymbolTableStack::SymbolTableStack() {
     this->mainWasDeclared = false;
@@ -64,18 +61,6 @@ SearchResult SymbolTableStack::find(string element) {
     SymbolTableValue emptySymbolTableValue;
     SearchResult returnValue = { .found= false, .valueFound= emptySymbolTableValue };
     return returnValue;
-}
-
-void SymbolTableStack::updateFunctionWithRegisters(AST *functionNode) {
-
-    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
-    this->listOfTables.back().updateRegisters(functionNode->registersOfFunction, functionName);
-
-}
-pair<int, int> SymbolTableStack::getFunctionRegisters(string functionName) {
-    bool hasKey = this->listOfTables.back().hasKeyVariables(functionName);
-    if (!hasKey) { ErrorManager::errorException(); }
-    return this->listOfTables.back().getValueForKey(functionName).registersUsedFunction;
 }
 
 SearchResult SymbolTableStack::findInScope(string element) {
@@ -153,7 +138,8 @@ int SymbolTableStack::getReturnValueOffsetForLastDeclaredFunction() {
 
 int SymbolTableStack::getReturnValueOffsetForFunction(string functionName) {
 
-    return this->getSizeOfParametersForFunction(functionName) + 12;
+    int sizeOfParameters = this->getSizeOfParametersForFunction(functionName);
+    return getReturnValueOffset(sizeOfParameters);
 
 }
 
@@ -536,14 +522,21 @@ int SymbolTableStack::generateLabelForFunction(string functionName) {
     }
 
 }
+int SymbolTableStack::getLabelForLastDeclaredFunction() {
+    return getLabelForFunction(this->lastDeclaredFunction);
+}
 
-int SymbolTableStack::getLabelForFunction(AST *functionNode) {
-    
-    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+int SymbolTableStack::getLabelForFunction(string functionName) {
     int hasKey = this->listOfTables.back().hasKeyVariables(functionName);
     if (!hasKey) { ErrorManager::errorException(); }
     
     return this->listOfTables.back().getValueForKey(functionName).functionLabel;
+}
+
+int SymbolTableStack::getLabelForFunction(AST *functionNode) {
+    
+    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+    return getLabelForFunction(functionName);
 
 }
 int SymbolTableStack::getQuantityOfParametersForFunction(string functionName) {
