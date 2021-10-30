@@ -521,13 +521,28 @@ BLOCK: BLOCK_BEGIN CMDLIST BLOCK_END {
 };
 CMDLIST:
 CMDLIST SIMPLECMD { 
-	if ($1 == NULL) { 
-		$$ = $2;
-	} else { 
+
+	// if both nodes are null
+	if ($1 == NULL && $2 == NULL) { 
+		$$ = NULL;
+	} 
+	
+	// both nodes not null
+	else if ($2 != NULL && $1 != NULL) { 
 		appendChild($1, $2);
 		codeGenerator.appendCode($1, $2);
-		$$ = $1;
+		$$ = $1;		
 		$$->numberOfReturnStatements += $2->numberOfReturnStatements;
+	} 
+	
+	// only 2 is NULL
+	else if ($1 != NULL) {
+		$$ = $1;
+	} 
+	
+	// only 1 is NULL
+	else {
+		$$ = $2;
 	}
 }
 | {$$ = NULL;};
@@ -811,7 +826,8 @@ FOR: TK_PR_FOR '(' ATT ':' EXPRESSION ':' ATT ')' BLOCK {
 
 int yyerror(char const *s) {
 
-	printf("\nErro sintatico na linha %d\n", get_line_number());
+	cout << endl;
+	cout << "Erro sintatico na linha = " << get_line_number() << endl;
 	return 1;
 }
 

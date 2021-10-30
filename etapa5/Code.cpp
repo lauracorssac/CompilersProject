@@ -7,7 +7,7 @@
 #include "Code.hpp"
 
 /* 
-returns the value that should be added to the RFP when a function is called 
+returns the value that should be added to the RSP when a function is called 
 so that it points to the next free space of the stack
 16 is the sum of the spaces of: 
 4 = return value

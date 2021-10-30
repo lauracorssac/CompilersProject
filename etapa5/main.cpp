@@ -40,9 +40,12 @@ int main (int argc, char **argv)
 
 void executeShutDownRoutine() {
 
-  codeGenerator.generateFinalCode((AST*)arvore);
-  codeGenerator.generateInitialCode((AST*)arvore);
-  codePrinter.printTree(arvore);
+  if (arvore != NULL) {
+    codeGenerator.generateFinalCode((AST*)arvore);
+    codeGenerator.generateInitialCode((AST*)arvore);
+    codePrinter.printTree(arvore);
+  }
+  
   //exporta (arvore);
   releaseManager.freeReleasePool();
   arvore = NULL;

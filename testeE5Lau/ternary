@@ -3,6 +3,8 @@ int main() {
 	int x <= 20;
 	int z <= 40;
 	
-	x = false ? 2 : 3;	
+	int w;
+	
+	w = false ? x + 2 : x + 3;	
 
 }
