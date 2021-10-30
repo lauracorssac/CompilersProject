@@ -228,27 +228,26 @@ void SymbolTableStack::verifyIdentificatorNode(AST *identificatorNode) {
 void SymbolTableStack::makeInitialization(AST *variableNode, AST *initializationSymbolNode, AST *initializationValueNode) {
 
     string variableKey = string(variableNode->value->literalTokenValueAndType.value.charSequenceValue);
-    string attributionKey = stringFromLiteralValue(initializationValueNode->value->literalTokenValueAndType);
 
     //Verifies ERR CHAR TO X
     if (initializationValueNode->sType == charSType && variableNode->sType != charSType) {
         ErrorManager::printLine(initializationValueNode->value->lineNumber);
-        ErrorManager::printAttributionError(variableKey, attributionKey);
+        ErrorManager::printAttributionError(variableKey, initializationValueNode);
         ErrorManager::errorCharToX(variableKey, initializationValueNode, variableNode->sType);
     }
 
     //Verifies ERR STRING TO X
     if (initializationValueNode->sType == stringSType && variableNode->sType != stringSType) {
         ErrorManager::printLine(initializationValueNode->value->lineNumber);
-        ErrorManager::printAttributionError(variableKey, attributionKey);
-        ErrorManager::errorStringToX(variableKey, attributionKey, variableNode->sType);
+        ErrorManager::printAttributionError(variableKey, initializationValueNode);
+        ErrorManager::errorStringToX(variableKey, initializationValueNode, variableNode->sType);
     }
 
     //Verifies ERR WRONG TYPE
     if (this->verifyCoersion(variableNode->sType, initializationValueNode->sType) != SUCCESS) {
         
         ErrorManager::printLine(initializationValueNode->value->lineNumber);
-        ErrorManager::printAttributionError(variableKey, attributionKey);
+        ErrorManager::printAttributionError(variableKey, initializationValueNode);
         ErrorManager::errorWrongType(initializationValueNode, variableNode->sType);
         
     }
@@ -264,8 +263,7 @@ void SymbolTableStack::makeInitialization(AST *variableNode, AST *initialization
 void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributionSymbolNode, AST *attributionNode) {
 
     string variableKey = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
-    string attKey = stringFromLiteralValue(attributionNode->value->literalTokenValueAndType);
-    
+
     //Verifies ERR_CHAR_TO_X
     if (attributionNode->sType == charSType && variableNode->sType != charSType) {
         ErrorManager::printLine(attributionSymbolNode->value->lineNumber);
@@ -275,12 +273,11 @@ void SymbolTableStack::makeAttributionVariable(AST *variableNode, AST *attributi
     //Verifies ERR_STRING_TO_X
     if (attributionNode->sType == stringSType && variableNode->sType != stringSType) {
         ErrorManager::printLine(attributionSymbolNode->value->lineNumber);
-        ErrorManager::errorStringToX(variableKey, attKey, variableNode->sType);
+        ErrorManager::errorStringToX(variableKey, attributionNode, variableNode->sType);
     }
 
     //ERR STRING MAX
     if (variableNode->sType == stringSType && attributionNode->sType == stringSType) {
-
 
         string attKey = stringFromLiteralValue(attributionNode->value->literalTokenValueAndType);
         SearchResult resultAttribution = this->find(attKey);
@@ -323,8 +320,7 @@ void SymbolTableStack::makeAttributionVector(AST *attributionSymbolNode, AST *at
     //Verifies ERR_STRING_TO_X
     if (attributionNode->sType == stringSType) {
         ErrorManager::printLine(attributionNode->value->lineNumber);
-        string attKey = string(attributionNode->value->literalTokenValueAndType.value.charSequenceValue);
-        ErrorManager::errorStringToX(variableKey, attKey, indexerSymbolNode->sType);
+        ErrorManager::errorStringToX(variableKey, attributionNode, indexerSymbolNode->sType);
     }
 
     //Verifies ERR_WRONG_TYPE

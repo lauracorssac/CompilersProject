@@ -307,6 +307,7 @@ EXPRESSION: EXP1 { $$ = $1; }
 	$$ = rootNode;
 
 	tableStack.makeTernaryOperation($1, rootNode, $3, $5);
+	codeGenerator.makeTernaryOperation($1, rootNode, $3, $5);
 
 };
 EXP1: EXP2 { $$ = $1; }

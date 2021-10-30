@@ -21,12 +21,11 @@ class ErrorManager {
 public:
     static void printLine(int line);
     static string stringFromExpression(AST *expressionNode);
-    static void printAttributionErrorExpression(string variableKey);
-    static void printAttributionError(string variableKey, string attributionKey);
+    static void printAttributionError(string variableKey, AST *attributionNode);
     static void errorStringVector(string variableKey);
     static void errorDeclared(string variableKey, SymbolTableValue valueFound);
     static void errorElementNotFound(string undeclared);
-    static void errorStringToX(string variableKey, string attributionKey, SyntacticalType variableType);
+    static void errorStringToX(string variableKey, AST *attributionNode, SyntacticalType variableType);
     static void errorCharToX(string variableKey, AST *attributionNode, SyntacticalType variableType);
     static void errorCharOrStringToXOperation(AST *expressionNode, SyntacticalType type);
     static void errorFunctionVector(string variableKey);

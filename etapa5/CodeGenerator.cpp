@@ -149,6 +149,7 @@ void CodeGenerator::makeLiteralCode(AST *literalNode) {
     
     literalNode->code = codeList;
     literalNode->resultRegister = rightOperand;
+    literalNode->hasPatchworks = false;
   
 }
 
@@ -924,6 +925,124 @@ list<InstructionCode> CodeGenerator::makeCompare(CodeOperand r1Operand, CodeOper
     list<InstructionCode> code = this->makeCMPGE(r1Operand, r3Operand); 
     code.push_back(this->makeCBR(r3Operand, labelTrue, labelFalse));
     return code;
+}
+
+// resolve expressão, tratando-a como lógica
+void CodeGenerator::resolveLogical(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse) {
+
+    // exp1
+    if (nodeExp->hasPatchworks) {
+
+        coverPatchworks(nodeExp, labelTrue, true);
+        coverPatchworks(nodeExp, labelFalse, false);
+        appendCode(rootNode, nodeExp);
+        
+    } else {
+
+        CodeOperand r1Operand = nodeExp->resultRegister;
+        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
+        appendCode(rootNode, nodeExp);
+        appendCode(rootNode, compareCode);
+    }
+}
+
+// resolve expressão, tratando-a como aritmética
+// ao final, rootNode não contém remendos e contém um valor no seu result register
+void CodeGenerator::resolveArithmetic(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse, int resultRegister, int nextInstructionLabel) {
+
+    CodeOperand resultRegisterOperand;
+
+    if (nodeExp->hasPatchworks) {
+        
+        resultRegisterOperand = {.operandType=_register, .numericalValue=resultRegister};
+        list<InstructionCode> newCode = createBoolFlow(nodeExp, nextInstructionLabel, resultRegisterOperand);
+        appendCode(rootNode, nodeExp);
+        appendCode(rootNode, {newCode});
+    
+    } else {
+        resultRegisterOperand = nodeExp->resultRegister;
+        appendCode(rootNode, nodeExp);
+    }
+
+    rootNode->resultRegister = resultRegisterOperand;
+    rootNode->hasPatchworks = false;
+
+}
+
+// carrega os resultados intermediarios, localizados em diferentes registradores, ao registrador do nodo raiz 
+void CodeGenerator::resolveTernaryOperand(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse, CodeOperand resultRegisterOperand) {
+
+    int nextInstructionLabel = this->getLabel();
+   
+    resolveArithmetic(rootNode, nodeExp, labelTrue, labelFalse, resultRegisterOperand.numericalValue, nextInstructionLabel);
+
+    InstructionCode nopNext = makeNop(nextInstructionLabel);
+    appendCode(rootNode, {nopNext});
+
+    if (!nodeExp->hasPatchworks) {
+        InstructionCode loadCode = {
+            .prefixLabel =-1,
+            .instructionType=i2i,
+            .leftOperands={nodeExp->resultRegister},
+            .rightOperands={resultRegisterOperand}
+        };
+        appendCode(rootNode, {loadCode});
+    }
+
+    rootNode->resultRegister = resultRegisterOperand;
+
+}
+
+
+
+//exp1
+//LX: nop
+//exp2
+//jump LZ
+//LY: nop
+//exp3
+//LZ
+
+void CodeGenerator::makeTernaryOperation(AST *exp1, AST *rootNode, AST *exp2, AST *exp3) {
+
+    int xLabel = this->getLabel();
+    int yLabel = this->getLabel();
+    int zLabel = this->getLabel();
+    CodeOperand xLabelOperand = {.operandType=label, .numericalValue=xLabel};
+    CodeOperand yLabelOperand = {.operandType=label, .numericalValue=yLabel};
+    CodeOperand zLabelOperand = {.operandType=label, .numericalValue=zLabel};
+    InstructionCode nopX = makeNop(xLabel);
+    InstructionCode nopY = makeNop(yLabel);
+    InstructionCode nopZ = makeNop(zLabel);
+
+    CodeOperand labelTrue = xLabelOperand;
+    CodeOperand labelFalse = yLabelOperand;
+
+    InstructionCode jumpZInstruction = makeJumpInstruction(zLabelOperand);
+    int resultRegister = this->getRegister();
+    CodeOperand resultRegisterOperand = {.operandType=_register, .numericalValue=resultRegister};
+
+    // exp1
+    resolveLogical(rootNode, exp1, labelTrue, labelFalse);
+
+    // nop X
+    appendCode(rootNode, {nopX});
+    
+    // exp 2
+    resolveTernaryOperand(rootNode, exp2, labelTrue, labelFalse, resultRegisterOperand);
+
+    // jump LZ
+    appendCode(rootNode, {jumpZInstruction});
+
+    // nop Y
+    appendCode(rootNode, {nopY});
+
+    // exp 3
+    resolveTernaryOperand(rootNode, exp3, labelTrue, labelFalse, resultRegisterOperand);
+
+    // nop Z
+    appendCode(rootNode, {nopZ});
+
 }
 
 void CodeGenerator::makeOr(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {

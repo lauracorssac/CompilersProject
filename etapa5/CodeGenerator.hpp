@@ -47,6 +47,9 @@ private:
     void coverPatchworks(AST *node, CodeOperand labelOperand, bool patchworkType);
     list<InstructionCode> createBoolFlow(AST *node, int destinationLabel, CodeOperand destinationRegister);
     InstructionCode loadBooleanCode(bool boolean, CodeOperand registerDestination);
+    void resolveTernaryOperand(AST *rootNode, AST *nodeExp1, CodeOperand labelTrue, CodeOperand labelFalse, CodeOperand resultRegisterOperand);
+    void resolveArithmetic(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse, int resultRegister, int nextInstructionLabel);
+    void resolveLogical(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse);
 
 public:
     int getLabel();
@@ -72,6 +75,7 @@ public:
     void makeUnaryOperation(AST *expressionNode, AST *symbolNode);
     void makeUnaryArithmeticOperation(AST *expressionNode, AST *symbolNode);
     void makeNot(AST *expressionNode, AST *symbolNode);
+    void makeTernaryOperation(AST *exp1, AST *rootNode, AST *exp2, AST *exp3);
     
     void generateFinalCode(AST *finalTree);
     void generateInitialCode(AST *finalTree);

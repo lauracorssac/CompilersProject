@@ -26,12 +26,10 @@ void ErrorManager::printLine(int line) {
     cout << "ERRO linha: " << line << endl;
 }
 
-void ErrorManager::printAttributionErrorExpression(string variableKey) {
-    cout << "Não foi possível fazer atribuição de expressão para " << variableKey << endl;
-}
+void ErrorManager::printAttributionError(string variableKey, AST *attributionNode) {
+    string attKey = ErrorManager::stringFromExpression(attributionNode);
+    cout << "Não foi possível fazer atribuição de " << attKey << " para " << variableKey << endl;
 
-void ErrorManager::printAttributionError(string variableKey, string attributionKey) {
-    cout << "Não foi possível fazer atribuição de " << attributionKey << " para " << variableKey << endl;
 }
 
 void ErrorManager::errorStringVector(string variableKey) {
@@ -56,8 +54,10 @@ void ErrorManager::errorElementNotFound(string undeclared) {
     ErrorManager::shutDown(ERR_UNDECLARED);
 }
 
-void ErrorManager::errorStringToX(string variableKey, string attributionKey,
+void ErrorManager::errorStringToX(string variableKey, AST *attributionNode,
  SyntacticalType variableType) {
+
+    string attributionKey =  ErrorManager::stringFromExpression(attributionNode);
     cout << attributionKey  << " é do tipo string, que não pode ser convertido em nenhum tipo. No caso, " << variableKey << " é um ";
     printSyntacticalType(variableType);
     cout << endl;
