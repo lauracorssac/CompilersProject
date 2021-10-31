@@ -454,8 +454,8 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	codeGenerator.makeFunction($1, offsetLocalVariables, 0, label, $4);
 
 	//default return
-	//in case the function doesnt contain any return expression and it is not main function
-	if (label != 0 && ($4 == NULL || $4->numberOfReturnStatements == 0)) {
+	//in case the function doesnt contain any return expression
+	if (($4 == NULL || $4->numberOfReturnStatements == 0)) {
 		int offsetRetValue = tableStack.getReturnValueOffsetForLastDeclaredFunction();
 		codeGenerator.makeEmptyReturn($1, offsetRetValue);
 	} 
@@ -475,8 +475,8 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	codeGenerator.makeFunction($1, offsetLocalVariables, quantityOfParameters, label, $5);
 
 	//default return
-	//in case the function doesnt contain any return expression and it is not main function
-	if (label != 0 && ($5 == NULL || $5->numberOfReturnStatements == 0)) {
+	//in case the function doesnt contain any return expression
+	if (($5 == NULL || $5->numberOfReturnStatements == 0)) {
 		int offsetRetValue = tableStack.getReturnValueOffsetForLastDeclaredFunction();
 		codeGenerator.makeEmptyReturn($1, offsetRetValue);
 	} 

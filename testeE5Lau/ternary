@@ -5,6 +5,8 @@ int main() {
 	
 	int w;
 	
-	w = false ? x + 2 : x + 3;	
+	w = false ? x + 2 : x + 3;
+
+	return 0;
 
 }

@@ -4,7 +4,7 @@ import sys
 
 os.system("cd etapa5") #&& make --silent
 
-fileName = "testeE5/" + sys.argv[1]
+fileName = "testeE5Lau/" + sys.argv[1]
 command = "./etapa5/etapa5 < " + fileName + " > saida"
 exitCode = subprocess.call(command, shell=True)
 
