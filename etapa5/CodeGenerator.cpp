@@ -871,7 +871,7 @@ InstructionCode CodeGenerator::makeNop(int label) {
 
 //load 0 -> r2
 //cmp_NE r1, r2 -> r3 // r3 = true se r1 >= r2, senão r3 = false
-list<InstructionCode> CodeGenerator::makeCMPGE(CodeOperand r1Operand, CodeOperand r3Operand) {
+list<InstructionCode> CodeGenerator::makeCMPNE(CodeOperand r1Operand, CodeOperand r3Operand) {
 
     list<InstructionCode> code; 
     list<CodeOperand> leftList; 
@@ -922,7 +922,7 @@ list<InstructionCode> CodeGenerator::makeCompare(CodeOperand r1Operand, CodeOper
 
     int r3 = this->getRegister(); //r3
     CodeOperand r3Operand = {.operandType=_register, .numericalValue=r3};
-    list<InstructionCode> code = this->makeCMPGE(r1Operand, r3Operand); 
+    list<InstructionCode> code = this->makeCMPNE(r1Operand, r3Operand); 
     code.push_back(this->makeCBR(r3Operand, labelTrue, labelFalse));
     return code;
 }
@@ -930,7 +930,6 @@ list<InstructionCode> CodeGenerator::makeCompare(CodeOperand r1Operand, CodeOper
 // resolve expressão, tratando-a como lógica
 void CodeGenerator::resolveLogical(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse) {
 
-    // exp1
     if (nodeExp->hasPatchworks) {
 
         coverPatchworks(nodeExp, labelTrue, true);
@@ -948,7 +947,7 @@ void CodeGenerator::resolveLogical(AST *rootNode, AST *nodeExp, CodeOperand labe
 
 // resolve expressão, tratando-a como aritmética
 // ao final, rootNode não contém remendos e contém um valor no seu result register
-void CodeGenerator::resolveArithmetic(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse, int resultRegister, int nextInstructionLabel) {
+void CodeGenerator::resolveArithmetic(AST *rootNode, AST *nodeExp, int resultRegister, int nextInstructionLabel) {
 
     CodeOperand resultRegisterOperand;
 
@@ -970,11 +969,11 @@ void CodeGenerator::resolveArithmetic(AST *rootNode, AST *nodeExp, CodeOperand l
 }
 
 // carrega os resultados intermediarios, localizados em diferentes registradores, ao registrador do nodo raiz 
-void CodeGenerator::resolveTernaryOperand(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse, CodeOperand resultRegisterOperand) {
+void CodeGenerator::resolveTernaryOperand(AST *rootNode, AST *nodeExp, CodeOperand resultRegisterOperand) {
 
     int nextInstructionLabel = this->getLabel();
    
-    resolveArithmetic(rootNode, nodeExp, labelTrue, labelFalse, resultRegisterOperand.numericalValue, nextInstructionLabel);
+    resolveArithmetic(rootNode, nodeExp, resultRegisterOperand.numericalValue, nextInstructionLabel);
 
     InstructionCode nopNext = makeNop(nextInstructionLabel);
     appendCode(rootNode, {nopNext});
@@ -1029,7 +1028,7 @@ void CodeGenerator::makeTernaryOperation(AST *exp1, AST *rootNode, AST *exp2, AS
     appendCode(rootNode, {nopX});
     
     // exp 2
-    resolveTernaryOperand(rootNode, exp2, labelTrue, labelFalse, resultRegisterOperand);
+    resolveTernaryOperand(rootNode, exp2, resultRegisterOperand);
 
     // jump LZ
     appendCode(rootNode, {jumpZInstruction});
@@ -1038,7 +1037,7 @@ void CodeGenerator::makeTernaryOperation(AST *exp1, AST *rootNode, AST *exp2, AS
     appendCode(rootNode, {nopY});
 
     // exp 3
-    resolveTernaryOperand(rootNode, exp3, labelTrue, labelFalse, resultRegisterOperand);
+    resolveTernaryOperand(rootNode, exp3, resultRegisterOperand);
 
     // nop Z
     appendCode(rootNode, {nopZ});
@@ -1084,26 +1083,13 @@ void CodeGenerator::makeOr(AST *leftOperandNode, AST *symbolNode, AST *rightOper
 void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {
 
     int labelNumValue = this->getLabel();
+    // covers leftOperandNode's true patchworks with label to evaluation of rightOperandNode
     CodeOperand labelTrue = {.operandType=label, .numericalValue= labelNumValue};
+    // leave its false patchworks as they are
     CodeOperand labelFalse = {.operandType=patchworkFalse, .numericalValue=-1};
 
-    symbolNode->hasPatchworks = true;
-    
-    //se tem remendos, é uma expressão booleana. Remenda
-    if (leftOperandNode->hasPatchworks) {
-        
-        this->coverPatchworks(leftOperandNode, labelTrue, true);
-        this->appendCode(symbolNode,leftOperandNode);
-        
-    } 
-    // se não, compara
-    else {
-        this->appendCode(symbolNode,leftOperandNode);
-        CodeOperand r1Operand = leftOperandNode->resultRegister;
-        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
-        this->coverPatchworks(compareCode, labelTrue, true);
-        appendCode(symbolNode, compareCode);
-    }
+    symbolNode->hasPatchworks = true; 
+    resolveLogical(symbolNode, leftOperandNode, labelTrue, labelFalse);
 
     symbolNode->code.push_back(this->makeNop(labelNumValue));
     this->appendCode(symbolNode, rightOperandNode);
@@ -1123,6 +1109,8 @@ void CodeGenerator::makeUnaryOperation(AST *expressionNode, AST *symbolNode) {
     }
     else if (symbolNode->nodeType == notType) {
         makeNot(expressionNode, symbolNode);
+    } else {
+        appendCode(symbolNode, expressionNode);
     }
     
 }
@@ -1133,22 +1121,9 @@ void CodeGenerator::makeNot(AST *expressionNode, AST *symbolNode) {
     int nextInstructionLabel = this->getLabel();
     CodeOperand labelTrue = {.operandType=patchworkTrue, .numericalValue=-1};
     CodeOperand labelFalse = {.operandType=patchworkFalse, .numericalValue=-1};
-
-    if (expressionNode->hasPatchworks) {
-
-        // inverts patchworks
-        this->coverPatchworks(expressionNode, labelTrue, false);
-        this->coverPatchworks(expressionNode, labelFalse, true);
-        this->appendCode(symbolNode,expressionNode);
-
-    } else {
-        CodeOperand r1Operand = expressionNode->resultRegister;
-        
-        //make compare with inverted labels 
-        list<InstructionCode> compareCode = makeCompare(r1Operand, labelFalse, labelTrue);
-        this->appendCode(symbolNode,expressionNode);
-        this->appendCode(symbolNode, compareCode);
-    }
+    
+    //make compare with inverted labels 
+    resolveLogical(symbolNode, expressionNode, labelFalse, labelTrue);
     
     symbolNode->hasPatchworks = true;
 
@@ -1160,19 +1135,6 @@ void CodeGenerator::makeUnaryArithmeticOperation(AST *expressionNode, AST *symbo
     CodeOperand r1Operand;
     int nextInstructionLabel = this->getLabel();
 
-    if (expressionNode->hasPatchworks) {
-        int r1 = this->getRegister();
-        r1Operand = {.operandType=_register, .numericalValue=r1};
-        list<InstructionCode> newCode = this->createBoolFlow(expressionNode, nextInstructionLabel, r1Operand);
-        appendCode(symbolNode, expressionNode);
-        appendCode(symbolNode, newCode);
-        
-    } else {
-        appendCode(symbolNode, expressionNode);
-        r1Operand = expressionNode->resultRegister;
-    }
-
-    symbolNode->hasPatchworks = false;
     int resultRegister = this->getRegister();
     CodeOperand resultRegisterOperand = {.operandType=_register, .numericalValue= resultRegister};
     
@@ -1186,7 +1148,7 @@ void CodeGenerator::makeUnaryArithmeticOperation(AST *expressionNode, AST *symbo
                 {.operandType=number, .numericalValue= 0}
             },
             .rightOperands={
-               resultRegisterOperand
+               symbolNode->resultRegister
             }
         };
         appendCode(symbolNode, {subCode});
@@ -1216,49 +1178,29 @@ InstructionCode CodeGenerator::makeBinaryInstruction(InstructionType instruction
 
 }
 
-//Ex.: add r1, r2 => r3
+//Ex.: L1: add r1, r2 => r3
 void CodeGenerator::makeBinaryOperation(AST *leftOperandNode, AST *symbolNode, AST *rightOperandNode) {
 
-    list<InstructionCode> codeList;
-    int r3 = this->getRegister();
-    int addLabel;
-    CodeOperand r3Operand = {.operandType=_register, .numericalValue=r3};
+    int operationLabel;
+    CodeOperand r3Operand = {.operandType=_register, .numericalValue=getRegister()};
     CodeOperand r1Operand;
     CodeOperand r2Operand;
 
     if (!leftOperandNode->hasPatchworks && !rightOperandNode->hasPatchworks) {
-        addLabel = -1;
+        operationLabel = -1;
     }else {
-        addLabel = this->getLabel();
+        operationLabel = this->getLabel();
     }
 
-    if (leftOperandNode->hasPatchworks) {
-        int r1 = this->getRegister();
-        r1Operand = {.operandType=_register, .numericalValue=r1};
-        list<InstructionCode> newCode = this->createBoolFlow(leftOperandNode, addLabel, r1Operand);
-        codeList.insert(codeList.end(), leftOperandNode->code.begin(), leftOperandNode->code.end());
-        codeList.insert(codeList.end(), newCode.begin(), newCode.end());
+    resolveArithmetic(symbolNode, leftOperandNode, getRegister(), operationLabel);
+    r1Operand = symbolNode->resultRegister;
+
+    resolveArithmetic(symbolNode, rightOperandNode, getRegister(), operationLabel);
+    r2Operand = symbolNode->resultRegister;
+
+    InstructionCode operationCode = this->makeBinaryInstruction(symbolNode->nodeInstructionType, operationLabel, r1Operand, r2Operand, r3Operand);
+    symbolNode->code.push_back(operationCode);
     
-    } else {
-        r1Operand = leftOperandNode->resultRegister;
-        codeList.insert(codeList.end(), leftOperandNode->code.begin(), leftOperandNode->code.end());
-    }
-
-    if (rightOperandNode->hasPatchworks) {
-        int r2 = this->getRegister();
-        r2Operand = {.operandType=_register, .numericalValue=r2};
-        list<InstructionCode> newCode = this->createBoolFlow(rightOperandNode, addLabel, r2Operand);
-        codeList.insert(codeList.end(), rightOperandNode->code.begin(), rightOperandNode->code.end());
-        codeList.insert(codeList.end(), newCode.begin(), newCode.end());
-    
-    } else {
-        r2Operand = rightOperandNode->resultRegister;
-        codeList.insert(codeList.end(), rightOperandNode->code.begin(), rightOperandNode->code.end());
-    }
-
-    InstructionCode addCode = this->makeBinaryInstruction(symbolNode->nodeInstructionType, addLabel, r1Operand, r2Operand, r3Operand);
-    codeList.push_back(addCode);
-    symbolNode->code = codeList;
     symbolNode->resultRegister = r3Operand;
     symbolNode->hasPatchworks = false;
 
@@ -1298,20 +1240,7 @@ void CodeGenerator::makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *els
     
     InstructionCode jumpZInstruction = makeJumpInstruction(zLabelOperand);
     
-    if (expNode->hasPatchworks) {
-
-        coverPatchworks(expNode, labelTrue, true);
-        coverPatchworks(expNode, labelFalse, false);
-        appendCode(ifNode, expNode);
-        
-    } else {
-
-        CodeOperand r1Operand = expNode->resultRegister;
-        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
-        appendCode(ifNode, expNode);
-        appendCode(ifNode, compareCode);
-
-    }
+    resolveLogical(ifNode, expNode, labelTrue, labelFalse);
 
     appendCode(ifNode, {nopX});
     appendCode(ifNode, ifBlockNode);
@@ -1357,20 +1286,7 @@ void CodeGenerator::makeWhile(AST *whileNode, AST *expNode, AST *whileBlockNode)
 
     appendCode(whileNode, {nopX});
 
-    if (expNode->hasPatchworks) {
-
-        coverPatchworks(expNode, labelTrue, true);
-        coverPatchworks(expNode, labelFalse, false);
-        appendCode(whileNode, expNode);
-        
-    } else {
-
-        CodeOperand r1Operand = expNode->resultRegister;
-        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
-        appendCode(whileNode, expNode);
-        appendCode(whileNode, compareCode);
-
-    }
+    resolveLogical(whileNode, expNode, labelTrue, labelFalse);
 
     appendCode(whileNode, {nopY});
     appendCode(whileNode, whileBlockNode);
@@ -1412,17 +1328,7 @@ void CodeGenerator::makeFor(AST *forNode, AST *att1Node, AST *expNode, AST *att2
     appendCode(forNode, att1Node);
     appendCode(forNode, {nopX});
 
-    if (expNode->hasPatchworks) {
-        coverPatchworks(expNode, labelTrue, true);
-        coverPatchworks(expNode, labelFalse, false);
-        appendCode(forNode, expNode);
-
-    } else {
-        CodeOperand r1Operand = expNode->resultRegister;
-        list<InstructionCode> compareCode = makeCompare(r1Operand, labelTrue, labelFalse);
-        appendCode(forNode, expNode);
-        appendCode(forNode, compareCode);
-    }
+    resolveLogical(forNode, expNode, labelTrue, labelFalse);
 
     appendCode(forNode, {nopY});
     appendCode(forNode, forBlockNode);
@@ -1444,10 +1350,11 @@ void CodeGenerator::makeDeclaredVariable(AST *variableNode, OffsetAndScope offse
     CodeOperand resultRegisterOperand =  {.operandType=_register, .numericalValue=resultRegister};
     
     
-    InstructionCode loadInstruction = {.prefixLabel=-1,
-    .instructionType=loadAI,
-    .leftOperands= {originRegisterOperand, originOffsetOperand},
-    .rightOperands= {resultRegisterOperand}
+    InstructionCode loadInstruction = {
+        .prefixLabel=-1,
+        .instructionType=loadAI,
+        .leftOperands= {originRegisterOperand, originOffsetOperand},
+        .rightOperands= {resultRegisterOperand}
     };
 
     appendCode(variableNode, {loadInstruction});

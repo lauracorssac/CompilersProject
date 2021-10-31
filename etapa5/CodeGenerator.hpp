@@ -26,7 +26,7 @@ private:
     void prependCode(AST *node, list<InstructionCode> newCode);
     list<InstructionCode> makeCompare(CodeOperand r1Operand, CodeOperand labelTrue, CodeOperand labelFalse);
     InstructionCode makeCBR(CodeOperand r3Operand, CodeOperand labelTrue, CodeOperand labelFalse);
-    list<InstructionCode> makeCMPGE(CodeOperand r1Operand, CodeOperand r3Operand);
+    list<InstructionCode> makeCMPNE(CodeOperand r1Operand, CodeOperand r3Operand);
     void coverPatchworks(list<InstructionCode> &code, CodeOperand labelOperand, bool patchworkType);
     InstructionCode loadConstant(int constant, CodeOperand registerDestination);
     InstructionCode makeBinaryInstruction(InstructionType instructionType, int prefixLabel, CodeOperand r1Operand, 
@@ -47,8 +47,8 @@ private:
     void coverPatchworks(AST *node, CodeOperand labelOperand, bool patchworkType);
     list<InstructionCode> createBoolFlow(AST *node, int destinationLabel, CodeOperand destinationRegister);
     InstructionCode loadBooleanCode(bool boolean, CodeOperand registerDestination);
-    void resolveTernaryOperand(AST *rootNode, AST *nodeExp1, CodeOperand labelTrue, CodeOperand labelFalse, CodeOperand resultRegisterOperand);
-    void resolveArithmetic(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse, int resultRegister, int nextInstructionLabel);
+    void resolveTernaryOperand(AST *rootNode, AST *nodeExp1, CodeOperand resultRegisterOperand);
+    void resolveArithmetic(AST *rootNode, AST *nodeExp, int resultRegister, int nextInstructionLabel);
     void resolveLogical(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse);
 
 public:
