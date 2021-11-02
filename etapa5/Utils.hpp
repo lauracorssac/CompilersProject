@@ -14,6 +14,5 @@ using namespace std;
 
 int integerFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
 string stringFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType);
-void copyStringToCharPointer(string string, char *charBuffer);
 
 #endif

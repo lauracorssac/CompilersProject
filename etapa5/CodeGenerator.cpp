@@ -1105,12 +1105,14 @@ void CodeGenerator::makeAnd(AST *leftOperandNode, AST *symbolNode, AST *rightOpe
 void CodeGenerator::makeUnaryOperation(AST *expressionNode, AST *symbolNode) {
 
     if (symbolNode->nodeType == subType) {
-        makeUnaryArithmeticOperation(expressionNode, symbolNode);
+        makeSub(expressionNode, symbolNode);
     }
     else if (symbolNode->nodeType == notType) {
         makeNot(expressionNode, symbolNode);
     } else {
         appendCode(symbolNode, expressionNode);
+        symbolNode->hasPatchworks = expressionNode->hasPatchworks;
+        symbolNode->resultRegister = expressionNode->resultRegister;
     }
     
 }
@@ -1130,30 +1132,29 @@ void CodeGenerator::makeNot(AST *expressionNode, AST *symbolNode) {
 }
 
 
-void CodeGenerator::makeUnaryArithmeticOperation(AST *expressionNode, AST *symbolNode) {
-
-    CodeOperand r1Operand;
+void CodeGenerator::makeSub(AST *expressionNode, AST *symbolNode) {
+   
     int nextInstructionLabel = this->getLabel();
 
-    int resultRegister = this->getRegister();
-    CodeOperand resultRegisterOperand = {.operandType=_register, .numericalValue= resultRegister};
-    
-    //rsubI r1, 0 => resultRegister // resultRegister = 0 - r1
-    if (symbolNode->nodeType == subType) {
-        InstructionCode subCode = {
-            .prefixLabel= nextInstructionLabel,
-            .instructionType=rsubI,
-            .leftOperands={
-                r1Operand,
-                {.operandType=number, .numericalValue= 0}
-            },
-            .rightOperands={
-               symbolNode->resultRegister
-            }
-        };
-        appendCode(symbolNode, {subCode});
-        symbolNode->resultRegister = resultRegisterOperand;
-    }
+    resolveArithmetic(symbolNode, expressionNode, getRegister(), nextInstructionLabel);
+    CodeOperand r1Operand = symbolNode->resultRegister;
+    CodeOperand r2Operand = {.operandType=_register, .numericalValue=getRegister()};
+
+    //rsubI r1, 0 => r2 -----> r2 = 0 - r1
+    InstructionCode subCode = {
+        .prefixLabel= nextInstructionLabel,
+        .instructionType=rsubI,
+        .leftOperands={
+            r1Operand,
+            {.operandType=number, .numericalValue= 0}
+        },
+        .rightOperands={
+            r2Operand
+        }
+    };
+    appendCode(symbolNode, {subCode});
+    symbolNode->hasPatchworks = false;
+    symbolNode->resultRegister = r2Operand;
 
 }
 

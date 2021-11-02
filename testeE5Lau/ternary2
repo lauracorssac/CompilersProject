@@ -1,0 +1,7 @@
+int main() {
+
+	int x <= 2;
+	int y;
+	y = (true ? 2 : 3) - (false ? 10 : 3 + 10);
+
+}

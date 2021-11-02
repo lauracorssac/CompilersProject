@@ -53,10 +53,3 @@ string stringFromLiteralValue(LiteralTokenValueAndType literalTokenValueAndType)
     } 
     return "";
 }
-
-void copyStringToCharPointer(string string, char *charBuffer) {
-    int size = string.size();
-    charBuffer = new char[size + 1];
-    bzero(charBuffer, size +1);
-    strncpy(charBuffer, string.c_str(), size);
-}

@@ -50,6 +50,8 @@ private:
     void resolveTernaryOperand(AST *rootNode, AST *nodeExp1, CodeOperand resultRegisterOperand);
     void resolveArithmetic(AST *rootNode, AST *nodeExp, int resultRegister, int nextInstructionLabel);
     void resolveLogical(AST *rootNode, AST *nodeExp, CodeOperand labelTrue, CodeOperand labelFalse);
+    void makeSub(AST *expressionNode, AST *symbolNode);
+    void makeNot(AST *expressionNode, AST *symbolNode);
 
 public:
     int getLabel();
@@ -73,8 +75,6 @@ public:
     void makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, 
     int returnValueOffset, int quantityOfParameters);
     void makeUnaryOperation(AST *expressionNode, AST *symbolNode);
-    void makeUnaryArithmeticOperation(AST *expressionNode, AST *symbolNode);
-    void makeNot(AST *expressionNode, AST *symbolNode);
     void makeTernaryOperation(AST *exp1, AST *rootNode, AST *exp2, AST *exp3);
     
     void generateFinalCode(AST *finalTree);
