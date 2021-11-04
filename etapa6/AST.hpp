@@ -9,35 +9,10 @@
 
 #include "LexicalValue.hpp"
 #include "SyntacticalType.hpp"
+#include "InstructionDetails.hpp"
 #include "Code.hpp"
 #include <list>
 #include <utility>
-
- /* definicao dos tipos de nodos existentes.
-    noType é usado geralmente quando há um valor léxico no nodo, como literais, identificadores, 
-    operadores,..
-  */
-typedef enum {
-
-    noType = 0,
-    functionType,
-    whileType,
-    forType,
-    ifType,
-    returnType,
-    breakType,
-    continueType,
-    outputType,
-    inputType,
-    indexerType,
-    attributionType,
-    initializerType,
-    ternaryType,
-    functionCallType,
-    notType,
-    subType
-
-} NodeType;
 
  /* definicao de um nodo da arvore AST */
 typedef struct AST {

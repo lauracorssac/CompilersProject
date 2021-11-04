@@ -41,6 +41,10 @@ OffsetAndScope SymbolTableStack::getOffsetAndScopeNewScope() {
     return this->listOfTables.front().getScopeAndOffset();
 }
 
+SymbolTable SymbolTableStack::getLastScope() {
+    return this->listOfTables.back();
+}
+
 void SymbolTableStack::beginNewScope() {
 
     SymbolTable newSymbolTable = SymbolTable(this->getOffsetAndScopeNewScope());

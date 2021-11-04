@@ -59,7 +59,8 @@ public:
     void restartRegisterNumber();
     CodeGenerator();
     void makeLiteralCode(AST *literalNode);
-    void makeAttributionLocalVariable(AST *attSymbolNode, AST *attributionNode, OffsetAndScope offsetAndScope);
+    void makeAttributionLocalVariable(AST *attSymbolNode, AST *attributionNode, 
+    OffsetAndScope offsetAndScope, AST *variableNode);
     void makeFunction(AST *functionNode, int offsetLocalVarFunction, 
     int quantityOfParameters, int functionLabel, AST *fuctionBlockNode);
     void appendCode(AST *parent, AST*child);

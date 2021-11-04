@@ -12,6 +12,8 @@
 #include "ReleaseManager.hpp"
 #include "CodeGenerator.hpp"
 #include "CodePrinter.hpp"
+#include "ASMGenerator.hpp"
+
 extern "C"
 {
  
@@ -26,6 +28,7 @@ ReleaseManager releaseManager;
 SymbolTableStack tableStack;
 CodePrinter codePrinter;
 CodeGenerator codeGenerator;
+ASMGenerator asmGenerator;
 void executeShutDownRoutine();
 using namespace std;
 
@@ -40,11 +43,14 @@ int main (int argc, char **argv)
 
 void executeShutDownRoutine() {
 
-  if (arvore != NULL) {
-    codeGenerator.generateFinalCode((AST*)arvore);
-    codeGenerator.generateInitialCode((AST*)arvore);
-    codePrinter.printTree(arvore);
+  AST *tree = (AST*)arvore;
+  if (tree != NULL) {
+    codeGenerator.generateFinalCode(tree);
+    codeGenerator.generateInitialCode(tree);
+    //codePrinter.printTree(arvore);
   }
+  
+  asmGenerator.generateAsm(tableStack.getLastScope(), tree->code);
   
   //exporta (arvore);
   releaseManager.freeReleasePool();

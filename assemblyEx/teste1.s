@@ -1,7 +1,7 @@
 	.file	"teste1.c"
 	.text
 	.comm	global,4,4
-	.comm	hey,4,4
+	.comm	x,4,4
 	.globl	f
 	.type	f, @function
 f:
@@ -13,6 +13,13 @@ f:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
+	movl	-8(%rbp), %eax
+	imull	-4(%rbp), %eax
+	movl	%eax, global(%rip)
+	movl	-8(%rbp), %eax
+	cltd
+	idivl	-4(%rbp)
+	movl	%eax, global(%rip)
 	movl	$0, %eax
 	popq	%rbp
 	.cfi_def_cfa 7, 8
@@ -20,9 +27,9 @@ f:
 	.cfi_endproc
 .LFE0:
 	.size	f, .-f
-	.globl	a
-	.type	a, @function
-a:
+	.globl	main
+	.type	main, @function
+main:
 .LFB1:
 	.cfi_startproc
 	endbr64
@@ -31,13 +38,19 @@ a:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	movl	$1, %eax
+	movl	$0, -24(%rbp)
+	movl	$0, -20(%rbp)
+	movl	$0, -16(%rbp)
+	movl	$0, -12(%rbp)
+	movl	$0, -8(%rbp)
+	movl	$0, -4(%rbp)
+	movl	$0, %eax
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
 .LFE1:
-	.size	a, .-a
+	.size	main, .-main
 	.ident	"GCC: (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0"
 	.section	.note.GNU-stack,"",@progbits
 	.section	.note.gnu.property,"a"

@@ -249,8 +249,9 @@ InstructionCode CodeGenerator::makeStoreAI(int prefixLabel, CodeOperand op1, Cod
 //Exemplo: storeAI r0 => rfp, 0
 //Memoria(rfp + 0) = r0
 void CodeGenerator::makeAttributionLocalVariable(AST *attSymbolNode, 
-AST *attributionNode, OffsetAndScope offsetAndScope) {
+AST *attributionNode, OffsetAndScope offsetAndScope, AST *variableNode) {
 
+    string variableName = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
     CodeOperand leftOperand;
     int registerDestination = (offsetAndScope.scope == global) ? rbss : rfp;
     CodeOperand rightOperand1 = {.operandType=registerPointer, .numericalValue=registerDestination};
@@ -272,6 +273,9 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
     }
 
     InstructionCode storeCode = makeStoreAI(storeLabel, leftOperand, rightOperand1, rightOperand2);
+    InstructionAdditionalDetails details; // new InstructionAdditionalDetails;
+    details = {.notEmpty= true, .name=variableName, .nodeType= attributionType};
+    storeCode.details = details;
    
     codeList.push_back(storeCode);
     attSymbolNode->code = codeList;
@@ -280,12 +284,17 @@ AST *attributionNode, OffsetAndScope offsetAndScope) {
 
 void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, int quantityOfParameters, int functionLabel, AST *fuctionBlockNode) {
 
+    string functionName = stringFromLiteralValue(functionNode->value->literalTokenValueAndType);
+    InstructionAdditionalDetails details; //= new InstructionAdditionalDetails;
+    details = {.notEmpty = true, .name=functionName, .nodeType=functionNode->nodeType};
+
     // LX: nop X = functionLabel
     InstructionCode nopCode = {
         .prefixLabel= functionLabel,
         .instructionType=nop, 
         .leftOperands= {}, 
-        .rightOperands= {}
+        .rightOperands= {},
+        .details= details,
     };
     appendCode(functionNode, {nopCode});
 

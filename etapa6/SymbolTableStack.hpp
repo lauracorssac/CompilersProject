@@ -48,6 +48,7 @@ private:
 public:
     SymbolTableStack();
     void beginNewScope();
+    SymbolTable getLastScope();
     SearchResult find(string element);
     SearchResult findInScope(string element);
     void endLastScope();

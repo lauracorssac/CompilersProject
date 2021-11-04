@@ -576,7 +576,7 @@ LOCAL1: TYPE LOCAL2 {
 	tableStack.makeInitialization(identNode, root, $4);
 	
 	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable(identNode);
-	codeGenerator.makeAttributionLocalVariable(root, $4, offsetAndScope);
+	codeGenerator.makeAttributionLocalVariable(root, $4, offsetAndScope, identNode);
 
 };
 
@@ -613,7 +613,8 @@ DECIDENTIFIER '=' ATT1 {
 	tableStack.makeAttributionVariable($1, rootNode, $3);
 
 	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable($1);
-	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope);
+	
+	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope, $1);
 
 }
 | DECVECTOR '=' ATT1 { 
