@@ -20,6 +20,7 @@ using namespace std;
 typedef enum {
 
     noType = 0,
+    identifierNodeType,
     functionType,
     whileType,
     forType,

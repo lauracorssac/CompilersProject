@@ -1351,6 +1351,7 @@ void CodeGenerator::makeFor(AST *forNode, AST *att1Node, AST *expNode, AST *att2
 //loadAI originRegister, originOffset => resultRegister // r3 = Memoria(r1 + c2)
 void CodeGenerator::makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope) {
 
+    string variableName = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
     int originRegister = (offsetAndScope.scope == global) ? rbss : rfp;
     int originOffset = offsetAndScope.offset;
     int resultRegister = this->getRegister(); 
@@ -1364,7 +1365,8 @@ void CodeGenerator::makeDeclaredVariable(AST *variableNode, OffsetAndScope offse
         .prefixLabel=-1,
         .instructionType=loadAI,
         .leftOperands= {originRegisterOperand, originOffsetOperand},
-        .rightOperands= {resultRegisterOperand}
+        .rightOperands= {resultRegisterOperand},
+        .details= {.notEmpty=true, .name=variableName, .nodeType=variableNode->nodeType}
     };
 
     appendCode(variableNode, {loadInstruction});

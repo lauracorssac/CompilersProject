@@ -3,8 +3,8 @@ int global;
 int x;
 int f() {
 	int a, b, c;
-	global = a * b;
-	global = a / b;
+	global = 2;
+	global = a + c + b;
 	return 0;
 }
 int main() {

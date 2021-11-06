@@ -94,7 +94,7 @@ string ASMGenerator::binaryOperationCorrespondent(InstructionCode code) {
     switch (code.instructionType)
     {
         case add:
-            return "add";
+            return "addl";
         case mult:
             return "mull";
         case _div: 
@@ -107,9 +107,70 @@ string ASMGenerator::binaryOperationCorrespondent(InstructionCode code) {
 
 }
 
+void ASMGenerator::pushValue() {
+
+    cout << "\t" << "subq" << "\t";
+    cout << "$4" << ", " << "%rsp";
+    cout << endl;
+
+    cout << "\t" << "mov" << "\t";
+    cout << "(" << "%eax" << ")";
+    cout << ", " << "%rsp";
+    cout << endl;
+
+}
+
+void ASMGenerator::popValue(string destinationRegister) {
+
+    cout << "\t" << "movl" << "\t";
+    cout << "(" << "%rsp" << ")";
+    cout << ", " << destinationRegister;
+    cout << endl;
+
+    cout << "\t" << "addq" << "\t";
+    cout << "$4" << ", " << "%rsp";
+    cout << endl;
+
+}
+
+string ASMGenerator::registerAuxCorrespondent(list<CodeOperand> operands, InstructionAdditionalDetails details) {
+
+    if (operands.front().numericalValue == rbss) {
+        return details.name + "(" + "%rip" + ")";
+       
+    } 
+    // local
+    else {
+        string number = to_string(operands.back().numericalValue);
+        return "-" + number + "(" + "%rbp" + ")";
+    }
+
+}
+
+
+// From:    loadAI rfp, 12 => r1  
+// To:      movl    -12(%rbp), %eax
+// + push instruction
+void ASMGenerator::generateLoadAI(InstructionCode code) {
+
+    cout << "\t" << "movl" << "\t";
+    
+    cout << registerAuxCorrespondent(code.rightOperands, code.details);
+
+    cout << ", %eax";
+    cout << endl;
+
+    pushValue();
+
+}
+
+
 // Example
 //  addl %edx, %eax
 void ASMGenerator::generateBinaryOperation(InstructionCode code) {
+
+    popValue("%eax");
+    popValue("%edx");
 
     cout << "\t";
     cout << binaryOperationCorrespondent(code);
@@ -119,34 +180,25 @@ void ASMGenerator::generateBinaryOperation(InstructionCode code) {
     cout << "%eax";
     cout << endl;
 
+    pushValue();
+
 }
 
-// Locais
+// Local
 // storeAI r0 => rfp, 8 ----> movl    %eax, -8(%rbp)
-// Globais
+// Global
 // storeAI r0 => rbss, 8 ----> movl    %eax, variableName(%rip)
-void ASMGenerator::generateAttribution(InstructionCode code) {
+void ASMGenerator::generateStoreAI(InstructionCode code) {
+
+    popValue("%eax");
 
     cout << "\t" << "movl" << "\t";
 
-    // left operators
     cout << "%eax";
     
     cout << ", ";
 
-    // right operators
-    // global
-    if (code.rightOperands.front().numericalValue == rbss) {
-        cout << code.details.name;
-        cout << "(" << "%rip" << ")";
-       
-    } 
-    // local
-    else {
-        int number = code.rightOperands.back().numericalValue;
-        cout << "-" << number;
-        cout << "(" << "%rbp" << ")";
-    }
+    cout << registerAuxCorrespondent(code.rightOperands, code.details);
 
     cout << endl;
 
@@ -162,9 +214,12 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
         break;
 
     case attributionType:
-        generateAttribution(code);
+        generateStoreAI(code);
         break;
     
+    case identifierNodeType:
+        generateLoadAI(code);
+
     default:
         break;
     }

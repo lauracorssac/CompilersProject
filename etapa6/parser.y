@@ -204,7 +204,7 @@ LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableS
 
 /* Definição de um identificador declarado (aka variável) */
 DECIDENTIFIER: TK_IDENTIFICADOR { 
-	$$ = createNodeNoType($1); 
+	$$ = createNodeWithLexicalTypeAndValue(identifierNodeType, $1); 
 	tableStack.verifyIdentificatorNode($$);
 	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable($$);
 	codeGenerator.makeDeclaredVariable($$, offsetAndScope);

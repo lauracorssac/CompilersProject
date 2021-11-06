@@ -13,12 +13,12 @@ f:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
+	movl	$2, global(%rip)
+	movl	-12(%rbp), %edx
 	movl	-8(%rbp), %eax
-	imull	-4(%rbp), %eax
-	movl	%eax, global(%rip)
-	movl	-8(%rbp), %eax
-	cltd
-	idivl	-4(%rbp)
+	addl	%eax, %edx
+	movl	-4(%rbp), %eax
+	addl	%edx, %eax
 	movl	%eax, global(%rip)
 	movl	$0, %eax
 	popq	%rbp
