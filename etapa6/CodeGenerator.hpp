@@ -29,6 +29,7 @@ private:
     list<InstructionCode> makeCMPNE(CodeOperand r1Operand, CodeOperand r3Operand);
     void coverPatchworks(list<InstructionCode> &code, CodeOperand labelOperand, bool patchworkType);
     InstructionCode loadConstant(int constant, CodeOperand registerDestination);
+    InstructionCode loadConstantWithDetails(int constant, CodeOperand registerDestination, InstructionAdditionalDetails details);
     InstructionCode makeBinaryInstruction(InstructionType instructionType, int prefixLabel, CodeOperand r1Operand, 
     CodeOperand r2Operand, CodeOperand r3Operand);
     InstructionCode makeStoreAI(int prefixLabel, CodeOperand op1, CodeOperand op2, CodeOperand op3);
@@ -60,7 +61,7 @@ public:
     CodeGenerator();
     void makeLiteralCode(AST *literalNode);
     void makeAttributionLocalVariable(AST *attSymbolNode, AST *attributionNode, 
-    OffsetAndScope offsetAndScope, AST *variableNode);
+    OffsetAndScope offsetAndScope, int sizeOfParameters, AST *variableNode);
     void makeFunction(AST *functionNode, int offsetLocalVarFunction, 
     int quantityOfParameters, int functionLabel, AST *fuctionBlockNode);
     void appendCode(AST *parent, AST*child);
@@ -70,9 +71,9 @@ public:
     void makeIf(AST *ifNode, AST *expNode, AST *ifBlockNode, AST *elseBlockNode);
     void makeWhile(AST *whileNode, AST *expNode, AST *whileBlockNode);
     void makeFor(AST *forNode, AST *att1Node, AST *expNode, AST *att2Node, AST *forBlockNode);
-    void makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope);
-    void makeReturn(AST* returnNode, AST *expNode, int offsetReturnValue);
-    void makeEmptyReturn(AST *functionNode, int offsetRetValue);
+    void makeDeclaredVariable(AST *variableNode, OffsetAndScope offsetAndScope, int sizeOfParameters);
+    void makeReturn(AST* returnNode, AST *expNode, int offsetReturnValue, string functionName);
+    void makeEmptyReturn(AST *functionNode, int offsetRetValue, string functionName);
     void makeFunctionCall(AST* functionCallNode, AST *firstParameterNode, int functionLabel, 
     int returnValueOffset, int quantityOfParameters);
     void makeUnaryOperation(AST *expressionNode, AST *symbolNode);

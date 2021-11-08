@@ -92,6 +92,72 @@ typedef enum {
     halt,
 } InstructionType;
 
+// loadI 0 => rX
+// storeAI rX => RFP, offsetRetValue 
+// loadAI rfp, 0 => rW  
+// loadAI rfp, 4 => rY  
+// loadAI rfp, 8 => rZ
+// store rY => rsp
+// store rZ => rfp
+// jump => rW
+
+//StoreAI r0 => rsp, 12 // Empilha registrador * quantityOfRegisters
+// addI rpc, 7  => r1      
+// storeAI r1  => rsp, 0  
+// storeAI rsp => rsp, 4  // Salva o rsp (SP)
+// storeAI rfp => rsp, 8  // Salva o rfp (RFP)
+// 
+// storeAI r0 => rsp, 12  // Empilha parâmetro * quantityOfParameters
+//
+// jumpI => functionLabel            
+// loadAI rsp, returnValueOffset => r0 
+
+
+// LX: nop X = functionLabel
+// i2i rsp => rfp 
+// addI rsp, rspIncrement => rsp 
+// parameters
+// loadAI rfp, 12 => r0   
+// storeAI r0 => rfp, 20  
+
+typedef enum {
+
+    //instructions for return rp = return procedure  
+    rpLoadReturnValueType,
+    rpStoreReturnValueType,
+    rpLoadReturnAddressType,
+    rpLoadRSPType,
+    rploadRFPType,
+    rpStoreRSPType,
+    rpStoreRFPType,
+    rpJumpReturnAddressType,
+
+    //instructions for call cp = call procedure
+    cpStoreRegisterType,
+    cpIncrementRSPType,
+    cpDecrementRSPType,
+    cpIncrementRPCType,
+    cpStoreRPCType,
+    cpStoreRSPType,
+    cpStoreRFPType,
+    cpStoreParameterType,
+    cpJumpFunctionType,
+    cpLoadReturnValueType,
+
+    //instructions for function prologue fp = function procedure
+    fpFunctionNopType,
+    fpi2iRSPRFP,
+    fpIncrementLocalVariableOffsetRSPType,
+    fpLoadParameterType,
+    fpStoreParameterType,
+    
+    attributionStoreType,
+    loadIdentifierType, 
+
+    stackInitialization,
+
+} InstructionCodeType;
+
 typedef struct {
     
     // as struct is optional, we need this to see if it was initialized
@@ -101,7 +167,11 @@ typedef struct {
     string name; 
     
     //some instructions contain AST type
-    NodeType nodeType; 
+    InstructionCodeType instructionCodeType; 
+
+    //for local variables, the offset from rbp
+    //for global, the offset from rbss
+    int offset;
 
 } InstructionAdditionalDetails;
 

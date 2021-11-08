@@ -42,12 +42,13 @@ private:
     list<Parameter> pendantParameters;
     bool mainWasDeclared;
     int generateLabelForFunction(string functionName);
-    int geSizeOfParametersLastDeclaredFunction();
+    
 
 
 public:
     SymbolTableStack();
     void beginNewScope();
+    string getLastDeclaredFunction();
     SymbolTable getLastScope();
     SearchResult find(string element);
     SearchResult findInScope(string element);
@@ -55,7 +56,7 @@ public:
     void endAllScopes();
     OffsetAndScope getOffsetAndScopeNewScope();
     int getLastFunctionOffset();
-    OffsetAndScope getUpdatedOffsetAndScopeForVariable(AST *variableNode);
+    OffsetAndScope getOffsetAndScopeForVariable(AST *variableNode);
     int getReturnValueOffsetForFunction(string functionName);
     int getReturnValueOffsetForLastDeclaredFunction();
     int getLabelForFunction(AST *functionNode);
@@ -92,6 +93,7 @@ public:
     SyntacticalType getInferenceBinaryOperation(SyntacticalType type1, SyntacticalType type2);
     int countNumberOfGivenParameters(AST *functionCallNode);
     void checkStringCharOperation(AST *exp1Node);
+    int geSizeOfParametersLastDeclaredFunction();
     
     /*
         This function receiver a AST node which contains an lexical value of an identificator

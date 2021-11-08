@@ -451,15 +451,6 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue) {
     };
     appendCode(functionNode, {loadRFPCode}); 
 
-    //store old rsp in rsp
-    InstructionCode storeRSPCode = {
-        .prefixLabel=-1,
-        .instructionType=i2i,
-        .leftOperands= {{.operandType=_register, .numericalValue=oldRSPRegister}},
-        .rightOperands= {registerPointerOperands.rspOperand}
-    };
-    appendCode(functionNode, {storeRSPCode});
-
     //store old rfp in rfp
     InstructionCode storeRFPCode = {
         .prefixLabel=-1,
@@ -468,6 +459,15 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue) {
         .rightOperands={registerPointerOperands.rfpOperand}
     };
     appendCode(functionNode, {storeRFPCode});
+    
+    //store old rsp in rsp
+    InstructionCode storeRSPCode = {
+        .prefixLabel=-1,
+        .instructionType=i2i,
+        .leftOperands= {{.operandType=_register, .numericalValue=oldRSPRegister}},
+        .rightOperands= {registerPointerOperands.rspOperand}
+    };
+    appendCode(functionNode, {storeRSPCode});
 
     //jump to returnAddressRegister
     InstructionCode jumpCode = {

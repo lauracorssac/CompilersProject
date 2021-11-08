@@ -45,6 +45,10 @@ SymbolTable SymbolTableStack::getLastScope() {
     return this->listOfTables.back();
 }
 
+string SymbolTableStack::getLastDeclaredFunction() {
+    return this->lastDeclaredFunction;
+}
+
 void SymbolTableStack::beginNewScope() {
 
     SymbolTable newSymbolTable = SymbolTable(this->getOffsetAndScopeNewScope());
@@ -116,7 +120,7 @@ int SymbolTableStack::geSizeOfParametersLastDeclaredFunction() {
     return this->getSizeOfParametersForFunction(this->lastDeclaredFunction);
 }
 
-OffsetAndScope SymbolTableStack::getUpdatedOffsetAndScopeForVariable(AST *variableNode) {
+OffsetAndScope SymbolTableStack::getOffsetAndScopeForVariable(AST *variableNode) {
 
     string variableName = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
     SearchResult searchResult = this->find(variableName);
@@ -124,13 +128,13 @@ OffsetAndScope SymbolTableStack::getUpdatedOffsetAndScopeForVariable(AST *variab
         ErrorManager::errorElementNotFound(variableName);
     }
 
-    if (searchResult.valueFound.variableScope.scope == global) {
-        return searchResult.valueFound.variableScope;
-    } else {
-        int variableDeclarationOffset = searchResult.valueFound.variableScope.offset;
-        int sizeOfParameters = this->geSizeOfParametersLastDeclaredFunction();
-        return {.scope=local, .offset= sizeOfParameters + variableDeclarationOffset + 16};
-    }
+   // if (searchResult.valueFound.variableScope.scope == global) {
+    return searchResult.valueFound.variableScope;
+    // } else {
+    //     int variableDeclarationOffset = searchResult.valueFound.variableScope.offset;
+    //     int sizeOfParameters = this->geSizeOfParametersLastDeclaredFunction();
+    //     return {.scope=local, .offset= sizeOfParameters + variableDeclarationOffset + 16};
+    // }
 
 }
 

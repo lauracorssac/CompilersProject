@@ -101,5 +101,7 @@ const RegisterPointerOperands registerPointerOperands;
 int getRSPIncrement(int sizeOfLocalVariables, int quantityOfParameters);
 int getOffsetLocalVariables(int quantityOfParameters);
 int getReturnValueOffset(int sizeOfParameters);
+int getUpdatedOffsetForVariable(int sizeOfParameters, OffsetAndScope variableScope);
+
 
 #endif

@@ -35,3 +35,27 @@ returns the offset relative to the RFP in which the return value is located
 int getReturnValueOffset(int sizeOfParameters) {
 	return 12 + sizeOfParameters;
 }
+
+/*
+returns the offset relative to the RFP in which a local variable is located
+
+or
+returns the offset relative to the RBSS in which a global variable is located
+*/
+int getUpdatedOffsetForVariable(int sizeOfParameters, OffsetAndScope variableScope) {
+
+    // string variableName = stringFromLiteralValue(variableNode->value->literalTokenValueAndType);
+    // SearchResult searchResult = this->find(variableName);
+    // if (!searchResult.found) {
+    //     ErrorManager::errorElementNotFound(variableName);
+    // }
+
+    if (variableScope.scope == global) {
+        return variableScope.offset;
+    } else {
+        int variableDeclarationOffset = variableScope.offset;
+        //int sizeOfParameters = this->geSizeOfParametersLastDeclaredFunction();
+        return sizeOfParameters + variableDeclarationOffset + 16;
+    }
+
+}

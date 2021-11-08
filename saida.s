@@ -2,27 +2,57 @@
 	.text
 	.globl	main
 	.type	main, @function
-L0:
 main:
-	movl	(%rsp), %eax
-	addq	$4, %rsp
-	movl	%eax, -16(%rbp)
-	movl	(%rsp), %eax
-	addq	$4, %rsp
-	movl	%eax, -20(%rbp)
-	movl	-5(%rbp), %eax
+	pushq	%rbp
+	movq	%rsp, %rbp
+	subq	$12, %rsp
+# load I
+# push
 	subq	$4, %rsp
-	mov	(%eax), %rsp
-	movl	-6(%rbp), %eax
-	subq	$4, %rsp
-	mov	(%eax), %rsp
+	movl	$2, (%rsp)
+# pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp
+	movl	%eax, -4(%rbp)
+# load I
+# push
+	subq	$4, %rsp
+	movl	$3, (%rsp)
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+	movl	%eax, -8(%rbp)
+	movl	-4(%rbp), %eax
+# push
+	subq	$4, %rsp
+	movl	%eax, (%rsp)
+	subq	$0, %rsp
+	movl	-8(%rbp), %eax
+# push
+	subq	$4, %rsp
+	movl	%eax, (%rsp)
+	subq	$4, %rsp
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+# pop
 	movl	(%rsp), %edx
 	addq	$4, %rsp
 	addl	%edx, %eax
+# push
 	subq	$4, %rsp
-	mov	(%eax), %rsp
+	movl	%eax, (%rsp)
+# pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp
-	movl	%eax, -24(%rbp)
+	movl	%eax, -12(%rbp)
+# load I
+# push
+	subq	$4, %rsp
+	movl	$10, (%rsp)
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+	movq	%rbp, %rsp
+	popq	%rbp
+	ret	

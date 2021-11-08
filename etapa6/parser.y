@@ -206,8 +206,9 @@ LITERALBOOL: TK_LIT_TRUE { $$ = createNodeNoTypeWithSType($1, boolSType); tableS
 DECIDENTIFIER: TK_IDENTIFICADOR { 
 	$$ = createNodeWithLexicalTypeAndValue(identifierNodeType, $1); 
 	tableStack.verifyIdentificatorNode($$);
-	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable($$);
-	codeGenerator.makeDeclaredVariable($$, offsetAndScope);
+	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable($$);
+	int sizeOfParameters = tableStack.geSizeOfParametersLastDeclaredFunction();
+	codeGenerator.makeDeclaredVariable($$, offsetAndScope, sizeOfParameters);
 }
 
 /* Definição de um vetor declarado */
@@ -457,7 +458,8 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	//in case the function doesnt contain any return expression
 	if (($4 == NULL || $4->numberOfReturnStatements == 0)) {
 		int offsetRetValue = tableStack.getReturnValueOffsetForLastDeclaredFunction();
-		codeGenerator.makeEmptyReturn($1, offsetRetValue);
+		string functionName = tableStack.getLastDeclaredFunction();
+		codeGenerator.makeEmptyReturn($1, offsetRetValue, functionName);
 	} 
 
 }
@@ -478,7 +480,8 @@ FUNC1: FUNC_HEADER '(' ')' BLOCK  {
 	//in case the function doesnt contain any return expression
 	if (($5 == NULL || $5->numberOfReturnStatements == 0)) {
 		int offsetRetValue = tableStack.getReturnValueOffsetForLastDeclaredFunction();
-		codeGenerator.makeEmptyReturn($1, offsetRetValue);
+		string functionName = tableStack.getLastDeclaredFunction();
+		codeGenerator.makeEmptyReturn($1, offsetRetValue, functionName);
 	} 
 
 };
@@ -575,8 +578,10 @@ LOCAL1: TYPE LOCAL2 {
 
 	tableStack.makeInitialization(identNode, root, $4);
 	
-	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable(identNode);
-	codeGenerator.makeAttributionLocalVariable(root, $4, offsetAndScope, identNode);
+	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable(identNode);
+	int sizeOfParameters = tableStack.geSizeOfParametersLastDeclaredFunction();
+
+	codeGenerator.makeAttributionLocalVariable(root, $4, offsetAndScope, sizeOfParameters, identNode);
 
 };
 
@@ -612,9 +617,10 @@ DECIDENTIFIER '=' ATT1 {
 
 	tableStack.makeAttributionVariable($1, rootNode, $3);
 
-	OffsetAndScope offsetAndScope = tableStack.getUpdatedOffsetAndScopeForVariable($1);
+	OffsetAndScope offsetAndScope = tableStack.getOffsetAndScopeForVariable($1);
+	int sizeOfParameters = tableStack.geSizeOfParametersLastDeclaredFunction();
 	
-	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope, $1);
+	codeGenerator.makeAttributionLocalVariable(rootNode, $3, offsetAndScope, sizeOfParameters, $1);
 
 }
 | DECVECTOR '=' ATT1 { 
@@ -749,8 +755,9 @@ RBC: TK_PR_RETURN EXPRESSION {
 
 	// function main doesnt have to have a return statement
 	//if (functionLabel != 0) {
+		string functionName = tableStack.getLastDeclaredFunction();
 		int offset = tableStack.getReturnValueOffsetForLastDeclaredFunction();
-		codeGenerator.makeReturn(rootNode, $2, offset);
+		codeGenerator.makeReturn(rootNode, $2, offset, functionName);
 		$$->numberOfReturnStatements = 1;
 	//}
 	

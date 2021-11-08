@@ -14,6 +14,8 @@ using namespace std;
 class ASMGenerator {
 
 private:
+    int lastIncrementLocalVariableOffsetRSP;
+
     void generateDataSegment(SymbolTable globalScope);
     void generateGlobalVariable(string variableName);
     void generateInitialLines();
@@ -30,6 +32,28 @@ private:
     void pushValue();
     void popValue(string destinationRegister);
     string registerAuxCorrespondent(list<CodeOperand> operands, InstructionAdditionalDetails details);
+    void generateLoadI(InstructionCode code);
+    void pushNumber(int number);
+    void generatei2i(InstructionCode code);
+    void generateJumpI(InstructionCode code);
+    void generateJump(InstructionCode code);
+    string registerAuxCorrespondent(CodeOperand operand);
+    void verifyPrefixLabel(InstructionCode code);
+    void generateNop(int labelNumber);
+    void generateAddI(InstructionCode code);
+    void generateSubI(InstructionCode code);
+    void generateHalt();
+    void generateFunctionCall(string functionName);
+    void generateFunctionReturn();
+    void generateFunctionPrologue(InstructionCode code);
+    void generatePushRBP();
+    void movRBPToRSP();
+    void movRSPToRBP();
+    void generatePopRBP();
+    void generateIncrementRSP(InstructionCode code);
+    void popReturnValue();
+
+
 public: 
     ASMGenerator();
     void generateAsm(SymbolTable globalScope, list<InstructionCode> code);
