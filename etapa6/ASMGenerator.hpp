@@ -52,6 +52,7 @@ private:
     void generatePopRBP();
     void generateIncrementRSP(InstructionCode code);
     void popReturnValue();
+    void pushReturnValue();
 
 
 public: 

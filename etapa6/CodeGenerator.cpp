@@ -784,7 +784,7 @@ void CodeGenerator::makeFunctionCall(AST* functionCallNode, AST *firstParameterN
         .instructionType=jumpI,
         .leftOperands={},
         .rightOperands={{.operandType=label, .numericalValue=functionLabel}},
-        .details={.notEmpty=true, .instructionCodeType=cpJumpFunctionType}
+        .details={.notEmpty=true, .name= functionName, .instructionCodeType=cpJumpFunctionType}
     };
     appendCode(functionCallNode, {jumpICode});
 

@@ -452,6 +452,9 @@ void ASMGenerator::generateIncrementRSP(InstructionCode code) {
 void ASMGenerator::popReturnValue() {
     popValue("%eax");
 }
+void ASMGenerator::pushReturnValue() {
+    pushValue();
+}
 
 // Generates ASM for InstructionCode with details
 void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
@@ -483,7 +486,9 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
     case cpStoreRSPType:
     case cpStoreRFPType:
     case cpStoreParameterType:
+        break;
     case cpLoadReturnValueType:
+        pushReturnValue();
         break;
     case cpJumpFunctionType:
         generateFunctionCall(code.details.name);
