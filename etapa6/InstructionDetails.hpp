@@ -156,6 +156,11 @@ typedef enum {
 
     stackInitialization,
 
+    //instructions for bool flow bf = bool flow
+    // bfLoadZero,
+    // bfCompareNE,
+    // bfCBR
+
 } InstructionCodeType;
 
 typedef struct {

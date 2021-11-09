@@ -37,7 +37,6 @@ private:
     void pushNumber(int number);
     void generatei2i(InstructionCode code);
     void generateJumpI(InstructionCode code);
-    void generateJump(InstructionCode code);
     string registerAuxCorrespondent(CodeOperand operand);
     void verifyPrefixLabel(InstructionCode code);
     void generateNop(int labelNumber);

@@ -185,19 +185,6 @@ void ASMGenerator::generateJumpI(InstructionCode code) {
 
 }
 
-// Example
-// From:    jump => r1
-// To:      pop Instruction + jmp   *%eax 
-void ASMGenerator::generateJump(InstructionCode code) {
-
-   
-    this->popValue("%eax");
-    cout << "\t" << "jmp" << "\t";
-    cout << "*(%eax)";
-    cout << endl;
-
-}
-
 string ASMGenerator::registerAuxCorrespondent(CodeOperand operand) { 
 
     if (operand.numericalValue == rsp) {
@@ -493,6 +480,37 @@ void ASMGenerator::pushReturnValue() {
     pushValue();
 }
 
+// From: cmp_NE r1, r2 => r3
+// To:   cmp %edx, %eax
+void ASMGenerator::generateCMPNE(InstructionCode code) {
+
+    cout << "#"
+    popValue("%eax");
+    popValue("%edx");
+
+    cout << "\t" << "cmp" << "\t";
+    cout << "%edx";
+    cout << ", ";
+    cout << "%eax";
+    cout << endl;
+
+}
+
+// From: cbr r3 => labelT, labelF
+// To:   JE labelF
+//      JMP labelT
+void ASMGenerator::generateCBR(InstructionCode code) {
+
+    cout << "\t" << "JE" << "\t";
+    cout << "L" << code.rightOperands.back().numericalValue;
+    cout << endl;
+
+    cout << "\t" << "JMP" << "\t";
+    cout << "L" << code.rightOperands.front().numericalValue;
+    cout << endl;
+
+}
+
 // Generates ASM for InstructionCode with details
 void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
 
@@ -585,17 +603,14 @@ void ASMGenerator::generateASMNormalCode(InstructionCode code) {
         case jumpI:
             generateJumpI(code);
             break;
-        case jump:
-            generateJump(code);
-            break;
         case addI:
             generateAddI(code);
             break;
         case subI:
             generateSubI(code);
             break;
-        case halt:
-            //generateHalt();
+        case cmp_NE:
+            generateCMPNE(code);
             break;
         default:
         break;
@@ -610,7 +625,7 @@ void ASMGenerator::generateCodeSegment(list<InstructionCode> code) {
     for (it = code.begin(); it != code.end(); ++it) {
         //cout << "# inst" << it->instructionType << endl;
 
-        //verifyPrefixLabel(*it);
+        verifyPrefixLabel(*it);
 
         if (it->details.notEmpty) {
             generateASMSpecialCode(*it);
