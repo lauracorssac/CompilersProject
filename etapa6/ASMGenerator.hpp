@@ -54,6 +54,8 @@ private:
     void popReturnValue();
     void pushReturnValue();
     void makeParameterCopy(int quantityOfParameters);
+    void generateCBR(InstructionCode code);
+    void generateCMPNE(InstructionCode code);
 
 
 public: 

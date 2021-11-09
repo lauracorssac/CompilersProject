@@ -484,11 +484,11 @@ void ASMGenerator::pushReturnValue() {
 // To:   cmp %edx, %eax
 void ASMGenerator::generateCMPNE(InstructionCode code) {
 
-    cout << "#"
+    cout << "# CMNE" << endl;
     popValue("%eax");
     popValue("%edx");
 
-    cout << "\t" << "cmp" << "\t";
+    cout << "\t" << "cmpl" << "\t";
     cout << "%edx";
     cout << ", ";
     cout << "%eax";
@@ -501,11 +501,12 @@ void ASMGenerator::generateCMPNE(InstructionCode code) {
 //      JMP labelT
 void ASMGenerator::generateCBR(InstructionCode code) {
 
-    cout << "\t" << "JE" << "\t";
+    cout << "# CBR" << endl;
+    cout << "\t" << "je" << "\t";
     cout << "L" << code.rightOperands.back().numericalValue;
     cout << endl;
 
-    cout << "\t" << "JMP" << "\t";
+    cout << "\t" << "jmp" << "\t";
     cout << "L" << code.rightOperands.front().numericalValue;
     cout << endl;
 
@@ -611,6 +612,9 @@ void ASMGenerator::generateASMNormalCode(InstructionCode code) {
             break;
         case cmp_NE:
             generateCMPNE(code);
+            break;
+        case cbr:
+            generateCBR(code);
             break;
         default:
         break;

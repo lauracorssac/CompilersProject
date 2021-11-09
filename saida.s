@@ -10,7 +10,7 @@ main:
 # load I
 # push
 	subq	$4, %rsp
-	movl	$2000, (%rsp)
+	movl	$10, (%rsp)
 # pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp
@@ -23,30 +23,32 @@ main:
 # push
 	subq	$4, %rsp
 	movl	$0, (%rsp)
+# CMNE
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+# pop
+	movl	(%rsp), %edx
+	addq	$4, %rsp
+	cmpl	%edx, %eax
+# CBR
+	je	L3
+	jmp	L1
 L1:
 # load I
 # push
 	subq	$4, %rsp
-	movl	$2, (%rsp)
-# load I
-# push
-	subq	$4, %rsp
-	movl	$0, (%rsp)
-L4:
-# load I
-# push
-	subq	$4, %rsp
-	movl	$1000, (%rsp)
+	movl	$100, (%rsp)
 # pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp
 	movl	%eax, -4(%rbp)
-L6:
+L3:
 	movl	-4(%rbp), %eax
 # push
 	subq	$4, %rsp
 	movl	%eax, (%rsp)
-L7:
+L5:
 # pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp
