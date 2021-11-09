@@ -14,6 +14,7 @@ using namespace std;
 class ASMGenerator {
 
 private:
+    int quantityOfParametersNextCall;
     int lastIncrementLocalVariableOffsetRSP;
 
     void generateDataSegment(SymbolTable globalScope);
@@ -53,6 +54,7 @@ private:
     void generateIncrementRSP(InstructionCode code);
     void popReturnValue();
     void pushReturnValue();
+    void makeParameterCopy(int quantityOfParameters);
 
 
 public: 

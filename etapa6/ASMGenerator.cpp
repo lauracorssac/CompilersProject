@@ -15,6 +15,7 @@ using namespace std;
 
 ASMGenerator::ASMGenerator() {
     lastIncrementLocalVariableOffsetRSP = 0;
+    quantityOfParametersNextCall = 0;
  }
 
 // Example:
@@ -412,10 +413,46 @@ void ASMGenerator::generatePushRBP() {
     cout << endl;
 }
 
+void ASMGenerator::makeParameterCopy(int quantityOfParameters) {
+
+    int i=0;
+    int offsetParameter; // in relation to rbp
+    int indexOfParameter; // From quant to 1
+    int offsetLocalVar; // From -4 to -4*quant
+
+    while ( i < quantityOfParameters) {
+
+        cout << "# mov parameter" << endl;
+        indexOfParameter = quantityOfParameters - i - 1;
+        
+        // 16 = size(rbp) + size(ret add)
+        // last pushed param is 16 bytes from rbp
+        offsetParameter = 4 * indexOfParameter + 16; 
+        offsetLocalVar = -4 * (i+1);
+
+        cout << "\t" << "movl" << "\t";
+        cout << offsetParameter << "(%rbp)";
+        cout << ", ";
+        cout << "%eax";
+        cout << endl;
+
+        cout << "\t" << "movl" << "\t";
+        cout << "%eax";
+        cout << ", ";
+        cout << offsetLocalVar << "(%rbp)";
+        cout << endl;
+       
+        i++;
+    }
+
+}
+
 void ASMGenerator::generateFunctionPrologue(InstructionCode code) {
+
     generateFunctionBegin(code);
     generatePushRBP();
     movRSPToRBP();
+
 }
 
 void ASMGenerator::generateFunctionReturn() {
@@ -485,6 +522,7 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
     case cpStoreRPCType:
     case cpStoreRSPType:
     case cpStoreRFPType:
+        break;
     case cpStoreParameterType:
         break;
     case cpLoadReturnValueType:
@@ -496,6 +534,8 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
 
     //instructions for function prologue fp = function procedure
     case fpFunctionNopType:
+        // offset here contains quantity of parameters
+        quantityOfParametersNextCall = code.details.offset;
         generateFunctionPrologue(code);
         break;    
     case fpi2iRSPRFP:
@@ -509,9 +549,12 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
     
     case loadIdentifierType:
         generateLoadAI(code);
+        break;
 
     case fpIncrementLocalVariableOffsetRSPType:
         generateIncrementRSP(code);
+        makeParameterCopy(quantityOfParametersNextCall);
+        break;
     default:
         break;
     }

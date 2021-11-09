@@ -319,7 +319,7 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
         .instructionType=nop, 
         .leftOperands= {}, 
         .rightOperands= {},
-        .details= {.notEmpty=true, .name=functionName, .instructionCodeType=fpFunctionNopType},
+        .details= {.notEmpty=true, .name=functionName, .instructionCodeType=fpFunctionNopType, .offset=quantityOfParameters},
     };
     appendCode(functionNode, {nopCode});
 
@@ -938,7 +938,8 @@ void CodeGenerator::pushParameters(AST* functionCallNode, AST *firstParameterNod
             .rightOperands = {
                 registerPointerOperands.rspOperand,
                 {.operandType=number, .numericalValue=offset}
-            }
+            },
+            .details={.notEmpty=true, .instructionCodeType=cpStoreParameterType}
         };
         appendCode(functionCallNode, {storeCode});
         
