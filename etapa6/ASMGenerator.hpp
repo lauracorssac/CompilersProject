@@ -45,7 +45,6 @@ private:
     void generateNop(int labelNumber);
     void generateAddI(InstructionCode code);
     void generateSubI(InstructionCode code);
-    void generateHalt();
     void generateFunctionCall(string functionName);
     void generateFunctionReturn();
     void generateFunctionPrologue(InstructionCode code);

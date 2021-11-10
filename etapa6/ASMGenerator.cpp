@@ -651,10 +651,6 @@ void ASMGenerator::pushComparissonResult(InstructionCode code) {
 
 }
 
-void ASMGenerator::generateHalt() {
-    cout << "\t" << "hlt" << "\t" << endl;
-}
-
 void ASMGenerator::generateUnaryMinus(InstructionCode code) {
 
     popValue("%eax");
