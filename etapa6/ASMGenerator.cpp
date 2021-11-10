@@ -158,40 +158,6 @@ void ASMGenerator::pushNumber(int number) {
 
 }
 
-// Example 0
-// From:    i2i rsp => rfp
-// To:      movq %rsp, %rbp
-// Example 1
-// From:    i2i r1 => rsp
-// To:      pop(%eax) + movq %eax, %rsp
-void ASMGenerator::generatei2i(InstructionCode code) {
-
-    if (code.leftOperands.front().numericalValue == rsp) { 
-
-        cout << "\t" << "movq" << "\t";
-        cout << "%rsp";
-        cout << ", ";
-        cout << registerAuxCorrespondent(code.rightOperands.front());
-        cout << endl;
-
-    } else if (code.rightOperands.front().numericalValue == rsp || 
-    code.rightOperands.front().numericalValue == rfp) {
-        
-        //popValue("%rax");
-
-        cout << "\t" << "popq" << "\t";
-        //cout << "%rax";
-        //cout << ", ";
-        cout << registerAuxCorrespondent(code.rightOperands.front());
-        cout << endl;
-
-    } else {
-        // i2i r1 => r2 ???
-
-    }
-
-}
-
 // Example
 // From:    jumpI => L1
 // To:      jmp L1
@@ -348,11 +314,13 @@ void ASMGenerator::generateLoadI(InstructionCode code) {
 }
 
 // Example
-//  addl %edx, %eax
+// addl %edx, %eax
+// result will be on %eax
+// does %eax op %edx
 void ASMGenerator::generateBinaryOperation(InstructionCode code) {
 
-    popValue("%eax");
     popValue("%edx");
+    popValue("%eax");
 
     cout << "\t";
     cout << binaryOperationCorrespondent(code);
@@ -691,9 +659,6 @@ void ASMGenerator::generateASMNormalCode(InstructionCode code) {
         case loadI:
             generateLoadI(code);
             break;
-        case i2i:
-            generatei2i(code);
-            break;
         case jumpI:
             generateJumpI(code);
             break;
@@ -706,6 +671,7 @@ void ASMGenerator::generateASMNormalCode(InstructionCode code) {
         case cbr:
             generateCBR(code);
             break;
+        
         default:
         break;
     }

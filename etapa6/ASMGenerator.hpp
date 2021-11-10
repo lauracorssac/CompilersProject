@@ -38,7 +38,6 @@ private:
     string registerAuxCorrespondent(list<CodeOperand> operands, InstructionAdditionalDetails details);
     void generateLoadI(InstructionCode code);
     void pushNumber(int number);
-    void generatei2i(InstructionCode code);
     void generateJumpI(InstructionCode code);
     string registerAuxCorrespondent(CodeOperand operand);
     void verifyPrefixLabel(InstructionCode code);
