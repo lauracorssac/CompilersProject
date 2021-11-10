@@ -15,7 +15,8 @@ class ASMGenerator {
 
 private:
     int quantityOfParametersNextCall;
-    int lastIncrementLocalVariableOffsetRSP;
+    int labelNumber;
+    int getLabel();
 
     void generateDataSegment(SymbolTable globalScope);
     void generateGlobalVariable(string variableName);
@@ -28,6 +29,8 @@ private:
     void generateReturn();
     void generateASMNormalCode(InstructionCode code);
     void generateBinaryOperation(InstructionCode code);
+    void generateDivisionOperation(InstructionCode code);
+    void generateUnaryMinus(InstructionCode code);
     string binaryOperationCorrespondent(InstructionCode code);
     void generateLoadAI(InstructionCode code);
     void pushValue();
@@ -55,9 +58,9 @@ private:
     void pushReturnValue();
     void makeParameterCopy(int quantityOfParameters);
     void generateCBR(InstructionCode code);
-    void generateCMPNE(InstructionCode code);
-
-
+    void generateCompare(InstructionCode code, bool inverted=false);
+    void pushComparissonResult(InstructionCode code);
+    
 public: 
     ASMGenerator();
     void generateAsm(SymbolTable globalScope, list<InstructionCode> code);

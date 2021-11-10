@@ -158,7 +158,7 @@ typedef enum {
 
     //instructions for bool flow bf = bool flow
     // bfLoadZero,
-    // bfCompareNE,
+    bfCompareNE,
     // bfCBR
 
 } InstructionCodeType;

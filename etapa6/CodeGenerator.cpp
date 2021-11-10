@@ -451,7 +451,8 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue, strin
         .rightOperands={
             {registerPointerOperands.rfpOperand},
             {.operandType=number, .numericalValue=offsetRetValue}
-        }
+        },
+        .details={.notEmpty=true, .name=functionName, .instructionCodeType=rpStoreReturnValueType}
     };
     appendCode(functionNode, {storeZeroCode}); 
 
@@ -463,7 +464,8 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue, strin
             registerPointerOperands.rfpOperand,
             {.operandType=number, .numericalValue=constantOffsetsRFP.returnAddress}
         },
-        .rightOperands= {{.operandType=_register, .numericalValue=returnAddressRegister}}
+        .rightOperands= {{.operandType=_register, .numericalValue=returnAddressRegister}},
+        .details={.notEmpty=true, .name=functionName, .instructionCodeType=rpLoadReturnAddressType}
     };
     appendCode(functionNode, {loadRetCode}); 
 
@@ -477,7 +479,8 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue, strin
         },
         .rightOperands= {
             {.operandType=_register, .numericalValue=oldRSPRegister}
-        }
+        },
+        .details={.notEmpty=true, .instructionCodeType= rpLoadRSPType}
     };
     appendCode(functionNode, {loadRSPCode}); 
 
@@ -489,7 +492,8 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue, strin
             registerPointerOperands.rfpOperand, 
             {.operandType=number, .numericalValue=constantOffsetsRFP.oldRFP}
         },
-        .rightOperands= {{.operandType=_register, .numericalValue=oldRFPRegister}}
+        .rightOperands= {{.operandType=_register, .numericalValue=oldRFPRegister}},
+        .details={.notEmpty=true, .instructionCodeType= rploadRFPType}
     };
     appendCode(functionNode, {loadRFPCode}); 
 
@@ -498,17 +502,18 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue, strin
         .prefixLabel=-1,
         .instructionType=i2i,
         .leftOperands={{.operandType=_register, .numericalValue=oldRFPRegister}},
-        .rightOperands={registerPointerOperands.rfpOperand}
+        .rightOperands={registerPointerOperands.rfpOperand},
+        .details={.notEmpty=true, .instructionCodeType= rpStoreRFPType}
     };
     appendCode(functionNode, {storeRFPCode});
-
 
     //store old rsp in rsp
     InstructionCode storeRSPCode = {
         .prefixLabel=-1,
         .instructionType=i2i,
         .leftOperands= {{.operandType=_register, .numericalValue=oldRSPRegister}},
-        .rightOperands= {registerPointerOperands.rspOperand}
+        .rightOperands= {registerPointerOperands.rspOperand},
+        .details={.notEmpty=true, .instructionCodeType= rpStoreRSPType}
     };
     appendCode(functionNode, {storeRSPCode});
 
@@ -520,11 +525,11 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue, strin
         .rightOperands={{
             .operandType=_register, 
             .numericalValue= returnAddressRegister
-        }}
+        }},
+        .details={.notEmpty=true, .instructionCodeType= rpJumpReturnAddressType}
     };
     appendCode(functionNode, {jumpCode});
     
-
 }
 
 // loadI 73 => r0 
@@ -536,15 +541,6 @@ void CodeGenerator::makeEmptyReturn(AST *functionNode, int offsetRetValue, strin
 // store r2 => rfp
 // jump => r0
 
-  //instructions for return rp = return procedure  
-    // rpLoadReturnValueType,
-    // rpStoreReturnValueType,
-    // rpLoadReturnAddressType,
-    // rpLoadRSPType,
-    // rploadRFPType,
-    // rpStoreRSPType,
-    // rpStoreRFPType,
-    // rpJumpReturnAddressType,
 void CodeGenerator::makeReturn(AST* returnNode, AST *expNode, int offsetReturnValue, string functionName) {
 
     CodeOperand r0Operand;
@@ -658,9 +654,6 @@ void CodeGenerator::makeReturn(AST* returnNode, AST *expNode, int offsetReturnVa
         .details={.notEmpty=true, .instructionCodeType=rpJumpReturnAddressType}
     };
     appendCode(returnNode, {jumpCode});
-   // returnNode->code.front().details = {.notEmpty=true, .name=functionName, .instructionCodeType=rpLoadReturnValueType};
-
-
 }
 
 //StoreAI r0 => rsp, 12 // Empilha registrador * quantityOfRegisters
@@ -981,7 +974,9 @@ list<InstructionCode> CodeGenerator::makeCMPNE(CodeOperand r1Operand, CodeOperan
     InstructionCode compareCode = {.prefixLabel= -1,
     .instructionType=cmp_NE, 
     .leftOperands= leftList, 
-    .rightOperands= rightList};
+    .rightOperands= rightList,
+    .details={.notEmpty=true, .instructionCodeType=bfCompareNE}
+    };
 
     code.push_back(compareCode);
 

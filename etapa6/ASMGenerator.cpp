@@ -14,9 +14,15 @@
 using namespace std;
 
 ASMGenerator::ASMGenerator() {
-    lastIncrementLocalVariableOffsetRSP = 0;
+    this->labelNumber = 0;
     quantityOfParametersNextCall = 0;
- }
+}
+
+int ASMGenerator::getLabel() {
+    
+    // increment labelNumber after use
+    return this->labelNumber++;
+}
 
 // Example:
 //  .comm   variableName,4
@@ -99,11 +105,23 @@ string ASMGenerator::binaryOperationCorrespondent(InstructionCode code) {
         case add:
             return "addl";
         case mult:
-            return "mull";
+            return "imull";
         case _div: 
-            return "divl";
+            return "idivl";
         case sub:
             return "subl";
+        case cmp_EQ:
+            return "je";
+        case cmp_GE:
+            return "jge";
+        case cmp_LE:
+            return "jle";
+        case cmp_NE:
+            return "jne";
+        case cmp_GT:
+            return "jg";
+        case cmp_LT:
+            return "jl";
         default:
             return "";
     }
@@ -348,6 +366,32 @@ void ASMGenerator::generateBinaryOperation(InstructionCode code) {
 
 }
 
+// Example
+//  addl %edx, %eax
+void ASMGenerator::generateDivisionOperation(InstructionCode code) {
+
+    //divisor
+    popValue("%ecx");
+    //dividend
+    popValue("%eax");
+    
+    // expands dividend
+    cout << "\t" << "cltd";
+    cout << endl;
+
+    // divides dividend by divisor
+    cout << "\t";
+    cout << binaryOperationCorrespondent(code);
+    cout << "\t";
+    cout << "%ecx";
+    cout << endl;
+    
+    //result in dividend %eax
+    pushValue();
+
+}
+
+
 // Local
 // storeAI r0 => rfp, 8 ----> movl    %eax, -8(%rbp)
 // Global
@@ -482,11 +526,11 @@ void ASMGenerator::pushReturnValue() {
 
 // From: cmp_NE r1, r2 => r3
 // To:   cmp %edx, %eax
-void ASMGenerator::generateCMPNE(InstructionCode code) {
+void ASMGenerator::generateCompare(InstructionCode code, bool inverted) {
 
-    cout << "# CMNE" << endl;
-    popValue("%eax");
-    popValue("%edx");
+    cout << "# compare" << endl;
+    popValue(inverted ? "%edx" : "%eax");
+    popValue(inverted ? "%eax" : "%edx");
 
     cout << "\t" << "cmpl" << "\t";
     cout << "%edx";
@@ -523,6 +567,8 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
         popReturnValue();
         break;
     case rpLoadReturnValueType:
+        generateLoadI(code);
+        break;
     case rpLoadReturnAddressType:
     case rpLoadRSPType:
     case rploadRFPType:
@@ -574,14 +620,50 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
         generateIncrementRSP(code);
         makeParameterCopy(quantityOfParametersNextCall);
         break;
+    
+    case bfCompareNE:
+        generateCompare(code);
+        break;
     default:
         break;
     }
 
 }
 
+void ASMGenerator::pushComparissonResult(InstructionCode code) {
+
+    int labelTrue = getLabel();
+    int labelEnd = getLabel();
+
+    cout << "\t" << binaryOperationCorrespondent(code) << "\t";
+    cout << "AL" << labelTrue;
+    cout << endl;
+    
+    pushNumber(0);
+    cout << "\t" << "jmp" << "\t";
+    cout << "AL" << labelEnd;
+    cout << endl;
+    
+    cout << "AL" << labelTrue << ":" << endl;
+    pushNumber(1);
+
+    cout << "AL" << labelEnd << ":" << endl;
+
+}
+
 void ASMGenerator::generateHalt() {
     cout << "\t" << "hlt" << "\t" << endl;
+}
+
+void ASMGenerator::generateUnaryMinus(InstructionCode code) {
+
+    popValue("%eax");
+    cout << "\t" << "negl" << "\t";
+    cout << "%eax";
+    cout << endl;
+
+    pushValue();
+
 }
 
 // 1 to 1 instructions
@@ -590,11 +672,26 @@ void ASMGenerator::generateASMNormalCode(InstructionCode code) {
     switch(code.instructionType) {
 
         case _div:
+            generateDivisionOperation(code);
+            break;
         case mult:
         case add:
         case sub:
             generateBinaryOperation(code);
             break;
+        case rsubI:
+            generateUnaryMinus(code);
+            break;
+        case cmp_EQ:
+        case cmp_NE:
+        case cmp_GE:
+        case cmp_LE:
+        case cmp_GT:
+        case cmp_LT:
+            generateCompare(code, true);
+            pushComparissonResult(code);
+            break;
+        
         case loadI:
             generateLoadI(code);
             break;
@@ -609,9 +706,6 @@ void ASMGenerator::generateASMNormalCode(InstructionCode code) {
             break;
         case subI:
             generateSubI(code);
-            break;
-        case cmp_NE:
-            generateCMPNE(code);
             break;
         case cbr:
             generateCBR(code);
