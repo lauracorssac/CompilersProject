@@ -2,7 +2,8 @@ import os
 import subprocess
 import sys
 
-os.system("cd etapa6 && make --silent")
+#os.system("cd etapa6 && make --silent")
+failed = []
 
 def execute(fileName):
     print("FileName = ", fileName)
@@ -11,7 +12,9 @@ def execute(fileName):
         return
     f = open(fileName, "r")
     line = f.readline().strip()
-
+    expectedExitCode = int(line[2:])
+    print("expected = ", expectedExitCode)
+    
     command = "./etapa6/etapa6 < " + fileName + " > saida.s"
     exitCode = subprocess.call(command, shell=True)
     print("ExitCode = ", str(exitCode))
@@ -23,9 +26,22 @@ def execute(fileName):
     command = "./ex3"
     exitCode = subprocess.call(command, shell=True)
     print("ExitCode = ", str(exitCode))
+    
+    if exitCode != expectedExitCode:
+        failed.append(fileName)
+        print("FALHOU!")
+    else:
+        print("Esse aqui PASSOU!")
 
-fileName = "testeE6Lau/" + sys.argv[1]
-execute(fileName)
+
+for i in range(0,33):
+    fileName = "testeE56/ijk"
+    if i < 10:
+        fileName += "0"
+    fileName += str(i)
+    execute(fileName)
+    
+print("TESTS THAT FAILED:", failed)
 
 
         

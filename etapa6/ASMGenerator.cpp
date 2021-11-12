@@ -489,7 +489,18 @@ void ASMGenerator::popReturnValue() {
     popValue("%eax");
 }
 void ASMGenerator::pushReturnValue() {
+    cout << "# push return value" << endl;
     pushValue();
+}
+
+void ASMGenerator::popParameters(int quantityOfParameters) {
+    cout << "# pop " << quantityOfParameters << " parameters"  << endl;
+    int i =0;
+    while (i < quantityOfParameters) {
+        popValue("%edx");
+        i+=1;
+    }
+ 
 }
 
 // From: cmp_NE r1, r2 => r3
@@ -563,6 +574,8 @@ void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
         break;
     case cpJumpFunctionType:
         generateFunctionCall(code.details.name);
+        //offser here contains the 
+        popParameters(code.details.offset);
         break;
 
     //instructions for function prologue fp = function procedure

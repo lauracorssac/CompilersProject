@@ -2,6 +2,7 @@
 	.text
 	.globl	main
 	.type	main, @function
+# pop 0 parameters
 L0:
 main:
 	pushq	%rbp
@@ -10,7 +11,15 @@ main:
 # load I
 # push
 	subq	$4, %rsp
-	movl	$2, (%rsp)
+	movl	$3, (%rsp)
+L1:
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+	negl	%eax
+# push
+	subq	$4, %rsp
+	movl	%eax, (%rsp)
 # pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp
@@ -18,102 +27,77 @@ main:
 # load I
 # push
 	subq	$4, %rsp
-	movl	$1, (%rsp)
-# load I
-# push
-	subq	$4, %rsp
-	movl	$0, (%rsp)
-# compare
-# pop
-	movl	(%rsp), %eax
-	addq	$4, %rsp
-# pop
-	movl	(%rsp), %edx
-	addq	$4, %rsp
-	cmpl	%edx, %eax
-# CBR
-	je	L2
-	jmp	L1
-L1:
-# load I
-# push
-	subq	$4, %rsp
-	movl	$10, (%rsp)
-# load I
-# push
-	subq	$4, %rsp
-	movl	$3, (%rsp)
-# pop
-	movl	(%rsp), %edx
-	addq	$4, %rsp
-# pop
-	movl	(%rsp), %eax
-	addq	$4, %rsp
-	addl	%edx, %eax
-# push
-	subq	$4, %rsp
-	movl	%eax, (%rsp)
-L5:
-	jmp	L3
-L2:
-# load I
-# push
-	subq	$4, %rsp
-	movl	$3, (%rsp)
-L6:
-L3:
-# load I
-# push
-	subq	$4, %rsp
-	movl	$0, (%rsp)
-# load I
-# push
-	subq	$4, %rsp
-	movl	$0, (%rsp)
-# compare
-# pop
-	movl	(%rsp), %eax
-	addq	$4, %rsp
-# pop
-	movl	(%rsp), %edx
-	addq	$4, %rsp
-	cmpl	%edx, %eax
-# CBR
-	je	L8
-	jmp	L7
-L7:
-# load I
-# push
-	subq	$4, %rsp
-	movl	$10, (%rsp)
-L11:
-	jmp	L9
-L8:
-# load I
-# push
-	subq	$4, %rsp
-	movl	$2, (%rsp)
-L12:
-L9:
-# pop
-	movl	(%rsp), %edx
-	addq	$4, %rsp
-# pop
-	movl	(%rsp), %eax
-	addq	$4, %rsp
-	subl	%edx, %eax
-# push
-	subq	$4, %rsp
-	movl	%eax, (%rsp)
+	movl	$234, (%rsp)
 # pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp
 	movl	%eax, -8(%rbp)
+	movl	-4(%rbp), %eax
+# push
+	subq	$4, %rsp
+	movl	%eax, (%rsp)
+# load I
+# push
+	subq	$4, %rsp
+	movl	$0, (%rsp)
+# compare
+# pop
+	movl	(%rsp), %edx
+	addq	$4, %rsp
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+	cmpl	%edx, %eax
+	jg	AL0
+# push
+	subq	$4, %rsp
+	movl	$0, (%rsp)
+	jmp	AL1
+AL0:
+# push
+	subq	$4, %rsp
+	movl	$1, (%rsp)
+AL1:
+# load I
+# push
+	subq	$4, %rsp
+	movl	$0, (%rsp)
+# compare
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+# pop
+	movl	(%rsp), %edx
+	addq	$4, %rsp
+	cmpl	%edx, %eax
+# CBR
+	je	L3
+	jmp	L2
+L2:
+# load I
+# push
+	subq	$4, %rsp
+	movl	$393, (%rsp)
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+	movl	%eax, -8(%rbp)
+	jmp	L4
+L3:
+# load I
+# push
+	subq	$4, %rsp
+	movl	$432, (%rsp)
+# pop
+	movl	(%rsp), %eax
+	addq	$4, %rsp
+	movl	%eax, -8(%rbp)
+L4:
 	movl	-8(%rbp), %eax
 # push
 	subq	$4, %rsp
 	movl	%eax, (%rsp)
-L13:
+L6:
 # pop
 	movl	(%rsp), %eax
 	addq	$4, %rsp

@@ -58,7 +58,8 @@ private:
     void generateCBR(InstructionCode code);
     void generateCompare(InstructionCode code, bool inverted=false);
     void pushComparissonResult(InstructionCode code);
-    
+    void popParameters(int quantityOfParameters);
+
 public: 
     ASMGenerator();
     void generateAsm(SymbolTable globalScope, list<InstructionCode> code);
