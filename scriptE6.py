@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-#os.system("cd etapa6 && make --silent")
+os.system("cd etapa6 && make --silent")
 failed = []
 
 def execute(fileName):
@@ -34,12 +34,16 @@ def execute(fileName):
         print("Esse aqui PASSOU!")
 
 
-for i in range(0,33):
-    fileName = "testeE56/ijk"
-    if i < 10:
-        fileName += "0"
-    fileName += str(i)
+if len(sys.argv) == 2:
+    fileName = "testeE56/" + sys.argv[1]
     execute(fileName)
+else:
+    for i in range(0,33):
+        fileName = "testeE56/ijk"
+        if i < 10:
+            fileName += "0"
+        fileName += str(i)
+        execute(fileName)
     
 print("TESTS THAT FAILED:", failed)
 

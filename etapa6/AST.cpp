@@ -93,6 +93,7 @@ void appendChild(AST *rootNode, AST *newChild) {
 
 }
 
+
 AST *getLastChild(AST *rootNode) {
 
     if (rootNode == NULL) { return NULL; }

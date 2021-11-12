@@ -703,10 +703,10 @@ FCALL: TK_IDENTIFICADOR '(' FCALL1 ')' {
 
 };
 FCALL1: EXPRESSION { $$ = $1; $$->numberOfParameters = 1;}
-| FCALL1 ',' EXPRESSION {
-	appendChild($1, $3);
+| EXPRESSION ',' FCALL1 {
 	$$ = $1;
-	$$->numberOfParameters += 1;
+	appendChild($$, $3);
+	$$->numberOfParameters = $3->numberOfParameters + 1;
 };
 
  /*    def shift    
