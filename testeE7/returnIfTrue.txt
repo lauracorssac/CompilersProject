@@ -1,0 +1,14 @@
+//10
+int main() {
+
+	if(true) {
+		return 10;
+		return 30;
+	} else {
+		return 20;
+		return 50;
+	};
+	return 40;
+	return 60;
+	
+}

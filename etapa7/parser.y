@@ -35,6 +35,7 @@ extern int get_line_number(void);
 extern void *arvore;
 extern SymbolTableStack tableStack;
 extern SyntacticalType lastDeclaredType;
+extern bool optimized;
 
 %}
 
@@ -533,7 +534,9 @@ CMDLIST SIMPLECMD {
 	// both nodes not null
 	else if ($2 != NULL && $1 != NULL) { 
 		appendChild($1, $2);
-		codeGenerator.appendCode($1, $2);
+		if (!optimized || $1->numberOfReturnStatements == 0) {
+			codeGenerator.appendCode($1, $2);
+		}
 		$$ = $1;		
 		$$->numberOfReturnStatements += $2->numberOfReturnStatements;
 	} 
@@ -791,6 +794,12 @@ IF: TK_PR_IF '(' EXPRESSION ')' BLOCK {
 	$$ = rootNode;
 
 	codeGenerator.makeIf(rootNode, $3, $5, $6);
+
+	//if both blocks have return, the root should have return 
+	if ($5->numberOfReturnStatements > 0 && $6->numberOfReturnStatements > 0) {
+		$$->numberOfReturnStatements = 1;
+	}
+
 };
 IF1: TK_PR_ELSE BLOCK {
 	$$ = $2;
@@ -810,6 +819,7 @@ WHILE: TK_PR_WHILE '(' EXPRESSION ')' TK_PR_DO BLOCK {
 	$$ = rootNode;
 
 	codeGenerator.makeWhile(rootNode, $3, $6);
+	$$->numberOfReturnStatements = $6->numberOfReturnStatements;
 };
 
  /*    def FOR    
@@ -828,6 +838,7 @@ FOR: TK_PR_FOR '(' ATT ':' EXPRESSION ':' ATT ')' BLOCK {
 	$$ = rootNode;
 
 	codeGenerator.makeFor(rootNode, $3, $5, $7, $9);
+	$$->numberOfReturnStatements = $9->numberOfReturnStatements;
 };
 
 %%

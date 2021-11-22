@@ -1,0 +1,15 @@
+//5
+//esse não é para mudar
+int main() {
+	int x <= 0;
+	int i <= 0;
+	for (i = 0 : i < 15 : i = i + 1) {
+		x = x + 1;
+		if (x == 5) {
+			return x;
+		};
+		x = x + 1;
+
+	};
+	return x;
+}
