@@ -102,7 +102,7 @@ SymbolTableValue createLiteral(int line, int column, LexicalValue *lexicalValue,
     }
 
     SymbolTableValue value = {.line= line, .column= column, .kind= literalKind, .type= sType,
-    .size= size, .lexicalValue= lexicalValue};
+    .size= size, .lexicalValue= lexicalValue, .numberOfReferences=0, .numberOfReturnStatements=0};
 
     lexicalValue->referenceCounter += 1;
 
@@ -112,7 +112,8 @@ SymbolTableValue createLiteral(int line, int column, LexicalValue *lexicalValue,
 SymbolTableValue createVariableWithPendantType(int line, int column, LexicalValue *lexicalValue, OffsetAndScope scope) {
 
     SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= undefinedSType,
-    .size= 0, .lexicalValue= lexicalValue, .variableScope= scope };
+    .size= 0, .lexicalValue= lexicalValue, .variableScope= scope,
+    .numberOfReferences=0, .numberOfReturnStatements=0 };
 
     lexicalValue->referenceCounter += 1;
 
@@ -124,7 +125,8 @@ SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, Lexica
     SymbolTableValue value = {
         .line= line, .column= column, .kind= functionKind, .type= sType,
         .size= getSizeForSyntacticalType(sType), 
-        .lexicalValue= lexicalValue, .functionLabel= functionLabel
+        .lexicalValue= lexicalValue, .functionLabel= functionLabel,
+        .numberOfReferences=0, .numberOfReturnStatements =0
     };
 
     lexicalValue->referenceCounter += 1;
@@ -135,7 +137,8 @@ SymbolTableValue createFunctionWithTypeNoParameters(int line, int column, Lexica
 SymbolTableValue createVariableWithType(int line, int column, LexicalValue *lexicalValue, SyntacticalType sType, OffsetAndScope scope) {
 
     SymbolTableValue value = {.line= line, .column= column, .kind= variableKind, .type= sType,
-    .size= getSizeForSyntacticalType(sType), .lexicalValue= lexicalValue, .variableScope=scope};
+    .size= getSizeForSyntacticalType(sType), .lexicalValue= lexicalValue, .variableScope=scope, 
+    .numberOfReferences=0, .numberOfReturnStatements=0};
 
     lexicalValue->referenceCounter += 1;
 
@@ -154,7 +157,7 @@ LexicalValue *lexicalValueInitialization) {
     }
 
     SymbolTableValue value = { .line= line, .column= column, .kind= variableKind, .type= type, .size= size,  
-    .lexicalValue= lexicalValueIdentifier};
+    .lexicalValue= lexicalValueIdentifier, .numberOfReferences=0, .numberOfReturnStatements=0};
 
     lexicalValueIdentifier->referenceCounter += 1;
 
@@ -165,7 +168,7 @@ SymbolTableValue createVectorWithPendantType(int line, int column,
 LexicalValue *lexicalValue, int indexerValue) {
     
     SymbolTableValue value = { .line= line, .column= column,  .kind= vectorKind, .type= undefinedSType, 
-    .size= indexerValue, .lexicalValue= lexicalValue };
+    .size= indexerValue, .lexicalValue= lexicalValue, .numberOfReferences=0, .numberOfReturnStatements=0 };
 
     lexicalValue->referenceCounter += 1;
 

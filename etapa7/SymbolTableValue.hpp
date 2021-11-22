@@ -49,6 +49,11 @@ typedef struct {
     //first: primeiro registrador usado pela funcao
     //second: ultimo 
     pair<int, int> registersUsedFunction;
+    
+    //number of times a function was called 
+    int numberOfReferences;
+
+    int numberOfReturnStatements;
 
 } SymbolTableValue;
 

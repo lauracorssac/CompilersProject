@@ -11,6 +11,9 @@
 #include <iostream>
 #include <utility>
 
+SymbolTable::SymbolTable() {
+}
+
 SymbolTable::SymbolTable(OffsetAndScope scope) {
 	this->scope = scope;
 }
@@ -80,4 +83,22 @@ void SymbolTable::updateParameters(list<Parameter> parameters, string functionId
 
 void SymbolTable::updateRegisters(pair<int, int> registersUsedFunction, string functionIdentifier) {
 	this->symbolTableVariables[functionIdentifier].registersUsedFunction = registersUsedFunction;
+}
+
+void SymbolTable::incrementReferences(string key) {
+	this->symbolTableVariables[key].numberOfReferences += 1;
+}
+
+int SymbolTable::getReferences(string key) {
+	return this->symbolTableVariables[key].numberOfReferences;
+}
+
+int SymbolTable::getLabelForFunction(string functionKey) {
+	return this->symbolTableVariables[functionKey].functionLabel;
+}
+int SymbolTable::getReturnStatementsForFunction(string functionKey) {
+	return this->symbolTableVariables[functionKey].numberOfReturnStatements;
+}
+void SymbolTable::updateReturnStatementsForFunction(string functionKey, int returnStatements) {
+	this->symbolTableVariables[functionKey].numberOfReturnStatements = returnStatements;
 }

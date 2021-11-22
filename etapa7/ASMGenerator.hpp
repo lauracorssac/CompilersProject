@@ -16,12 +16,15 @@ class ASMGenerator {
 private:
     int quantityOfParametersNextCall;
     int labelNumber;
+    bool skipCodeGeneration;
+    SymbolTable globalScope;
+    
     int getLabel();
 
     void generateDataSegment(SymbolTable globalScope);
     void generateGlobalVariable(string variableName);
     void generateInitialLines();
-    void generateFunctionDeclaration(string functionName);
+    void generateFunctionDeclaration(string functionName, SymbolTable globalScope);
     void generateCodeSegment(list<InstructionCode> code);
     void generateFunctionBegin(InstructionCode code);
     void generateASMSpecialCode(InstructionCode code);

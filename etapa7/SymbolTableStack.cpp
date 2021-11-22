@@ -49,6 +49,10 @@ string SymbolTableStack::getLastDeclaredFunction() {
     return this->lastDeclaredFunction;
 }
 
+void SymbolTableStack::updateReturnStatementsForFunction(string functionName, int numberOfReturnStatements) {
+    this->listOfTables.back().updateReturnStatementsForFunction(functionName, numberOfReturnStatements);
+}
+
 void SymbolTableStack::beginNewScope() {
 
     SymbolTable newSymbolTable = SymbolTable(this->getOffsetAndScopeNewScope());
@@ -396,10 +400,18 @@ void SymbolTableStack::makeShift(AST *shiftSumbolNode, AST *shiftLiteralNode) {
     shiftSumbolNode->sType = intSType;
 }
 
+int SymbolTableStack::getNumberOfReferences(AST *node) {
+
+    string variableKey = string(node->value->literalTokenValueAndType.value.charSequenceValue);
+    int references = this->listOfTables.back().getReferences(variableKey);
+    return references;
+}
+
 void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersNode) {
 
     string variableKey = string(identificatorNode->value->literalTokenValueAndType.value.charSequenceValue);
     SearchResult resultVariable = this->find(variableKey);
+
 
     //Verifies ERR_UNDECLARED
     if (!resultVariable.found) {
@@ -443,6 +455,7 @@ void SymbolTableStack::makeFunctionCall(AST *identificatorNode, AST *parametersN
         position += 1;
     }
 
+    this->listOfTables.back().incrementReferences(variableKey);
     identificatorNode->sType = resultVariable.valueFound.type;
     
 }

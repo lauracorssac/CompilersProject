@@ -28,6 +28,7 @@ class SymbolTable {
     OffsetAndScope scope;
     
     public:
+    SymbolTable();
     OffsetAndScope getScopeAndOffset();
     void updateOffset(string key, int offset);
     void incrementOffset(int increment);
@@ -43,6 +44,11 @@ class SymbolTable {
     void updateSizeString(string key, char *initializationString);
     void updateParameters(list<Parameter> parameters, string functionIdentifier);
     void updateRegisters(pair<int, int> registersUsedFunction, string functionIdentifier);
+    void incrementReferences(string key);
+    int getReferences(string key);
+    int getLabelForFunction(string functionKey);
+    int getReturnStatementsForFunction(string functionKey);
+    void updateReturnStatementsForFunction(string functionKey, int returnStatements);
 };
 
 

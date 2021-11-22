@@ -361,6 +361,14 @@ void CodeGenerator::makeFunction(AST *functionNode, int offsetLocalVarFunction, 
     appendCode(functionNode, makeParameterCopy(quantityOfParameters, offsetLocalVariable));
 
     appendCode(functionNode, fuctionBlockNode);
+    InstructionCode finalNop = {
+        .prefixLabel=getLabel(),
+        .instructionType=nop,
+        .leftOperands={},
+        .rightOperands={},
+        .details={.notEmpty=true, .name=functionName, .instructionCodeType=functionEnd, }
+    };
+    appendCode(functionNode, {finalNop});
 
 }
 

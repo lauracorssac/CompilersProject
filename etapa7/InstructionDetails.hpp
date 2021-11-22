@@ -161,6 +161,8 @@ typedef enum {
     bfCompareNE,
     // bfCBR
 
+    functionEnd
+
 } InstructionCodeType;
 
 typedef struct {

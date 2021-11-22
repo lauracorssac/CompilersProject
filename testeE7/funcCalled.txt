@@ -1,0 +1,8 @@
+//10
+int funcCalled() {
+	return 10;
+}
+int main() {
+
+	return funcCalled();
+}

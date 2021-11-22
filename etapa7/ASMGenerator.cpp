@@ -12,10 +12,12 @@
 #include <iostream>
 
 using namespace std;
+extern bool optimized;
 
 ASMGenerator::ASMGenerator() {
     this->labelNumber = 0;
     quantityOfParametersNextCall = 0;
+    this->skipCodeGeneration = false;
 }
 
 int ASMGenerator::getLabel() {
@@ -36,15 +38,22 @@ void ASMGenerator::generateGlobalVariable(string variableName) {
 // Example:
 //  .globl	functionName
 //  .type   functionName, @function
-void ASMGenerator::generateFunctionDeclaration(string functionName) {
-    cout << "\t" << ".globl" << "\t";
-    cout << functionName;
-    cout << endl;
+void ASMGenerator::generateFunctionDeclaration(string functionName, SymbolTable globalScope) {
+
+    bool isMain = globalScope.getLabelForFunction(functionName) == 0;
+    bool hasReferences = globalScope.getReferences(functionName) > 0;
+
+    if (!optimized || hasReferences || isMain) {
+        cout << "\t" << ".globl" << "\t";
+        cout << functionName;
+        cout << endl;
+        
+        cout << "\t" << ".type" << "\t";
+        cout << functionName;
+        cout << ", @function";
+        cout << endl;
+    }
     
-    cout << "\t" << ".type" << "\t";
-    cout << functionName;
-    cout << ", @function";
-    cout << endl;
 }
 
 
@@ -72,7 +81,7 @@ void ASMGenerator::generateDataSegment(SymbolTable globalScope) {
             break;
         
         case functionKind:
-            this->generateFunctionDeclaration(key);
+            this->generateFunctionDeclaration(key, globalScope);
             break;
         default:
             break;
@@ -448,6 +457,14 @@ void ASMGenerator::makeParameterCopy(int quantityOfParameters) {
 
 void ASMGenerator::generateFunctionPrologue(InstructionCode code) {
 
+    int numberOfCalls = globalScope.getReferences(code.details.name);
+    bool isMain = globalScope.getLabelForFunction(code.details.name) == 0;
+    
+    this->skipCodeGeneration = optimized && numberOfCalls == 0 && !isMain;
+
+    if (skipCodeGeneration) {
+        return; 
+    }
     generateFunctionBegin(code);
     generatePushRBP();
     movRSPToRBP();
@@ -455,12 +472,11 @@ void ASMGenerator::generateFunctionPrologue(InstructionCode code) {
 }
 
 void ASMGenerator::generateFunctionReturn() {
-
+    
     movRBPToRSP();
     generatePopRBP();
     cout << "\t" << "ret" << "\t";
     cout << endl;
-    
 }
 
 //call	d
@@ -537,6 +553,14 @@ void ASMGenerator::generateCBR(InstructionCode code) {
 
 // Generates ASM for InstructionCode with details
 void ASMGenerator::generateASMSpecialCode(InstructionCode code) {
+
+    if (this->skipCodeGeneration) {
+        if (code.details.instructionCodeType == functionEnd) {
+            this->skipCodeGeneration = false;
+        }
+        return;
+    }
+    verifyPrefixLabel(code);
 
     switch (code.details.instructionCodeType)
     {
@@ -646,6 +670,9 @@ void ASMGenerator::generateUnaryMinus(InstructionCode code) {
 // 1 to 1 instructions
 void ASMGenerator::generateASMNormalCode(InstructionCode code) {
 
+    if (this->skipCodeGeneration) { return; }
+    verifyPrefixLabel(code);
+
     switch(code.instructionType) {
 
         case _div:
@@ -691,14 +718,11 @@ void ASMGenerator::generateASMNormalCode(InstructionCode code) {
 }
 
 
-
 void ASMGenerator::generateCodeSegment(list<InstructionCode> code) {
 
     list<InstructionCode>::iterator it;
     for (it = code.begin(); it != code.end(); ++it) {
         //cout << "# inst" << it->instructionType << endl;
-
-        verifyPrefixLabel(*it);
 
         if (it->details.notEmpty) {
             generateASMSpecialCode(*it);
@@ -711,6 +735,7 @@ void ASMGenerator::generateCodeSegment(list<InstructionCode> code) {
 } 
 
 void ASMGenerator::generateAsm(SymbolTable globalScope, list<InstructionCode> code) {
+    this->globalScope = globalScope;
     this->generateInitialLines();
     this->generateDataSegment(globalScope);
     this->generateCodeSegment(code);
