@@ -2,7 +2,7 @@
 
 ## Otimizações Implementadas
 
-### Código após return 
+### 1. Código após return 
 
 Quando há comandos após um comando de return em uma função, esses são ignorados. Isso foi implementado impedindo com que os comandos fossem introduzidos na AST, então a diferença de tamanho no código final otimizado já pode ser percebida no código intermediário. Funções que possuem um comando de if com else, ambos com algum retorno em seus blocos, ou blocos de while ou for contendo retorno em seus blocos têm todo seu código que procede o comando if-else ignorado. Entretanto, se há um if sem else ou um if com else, mas algum desses blocos sem um retorno, o resto do corpo da função, que procede o comando de if ou if-else, conforme o caso, permanece. A otimização também é feita dentro dos blocos desses comandos if, if-else, while e for. Dessa forma, quando há, por exemplo, apenas dois comandos dentro de um while, sendo o primeiro deles um retorno, ignoramos o segundo.
 
@@ -17,7 +17,7 @@ Os arquivos de entrada que usamos para testar o programa contêm em sua primeira
 - returnForIf.txt
 - returnForIfElse.txt
 
-### Funções não chamadas
+### 2. Funções não chamadas
 
 Quando há alguma função não chamada, todo o código intermediário referente ao seu corpo não é traduzido a assembly.
 
