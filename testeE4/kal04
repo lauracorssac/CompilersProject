@@ -1,0 +1,5 @@
+//ERR_UNDECLARED
+int main() {
+    char a <= 'b';
+    a = b;
+}

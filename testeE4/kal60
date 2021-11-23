@@ -1,0 +1,5 @@
+//SUCCESS
+char a;
+int main() {
+    char a;
+}

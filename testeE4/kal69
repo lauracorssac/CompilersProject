@@ -1,0 +1,7 @@
+//ERR_WRONG_TYPE_ARGS
+int g(int b) { return 0; }
+int f() {
+    char a;
+    g(a);
+    return 0;
+}

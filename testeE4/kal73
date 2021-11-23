@@ -1,0 +1,7 @@
+//ERR_STRING_TO_X
+int f() {
+    int a;
+    string universo;
+    a = universo;
+    return 0;
+}

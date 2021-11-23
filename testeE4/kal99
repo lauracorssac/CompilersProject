@@ -1,0 +1,10 @@
+//ERR_WRONG_TYPE
+int f() {
+    char a;
+    char l;
+    a = l;
+    int b;
+    int c;
+    a = b + c;
+    return 0;
+}
