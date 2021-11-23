@@ -55,11 +55,12 @@ if len(sys.argv) == 2:
     fileName = "testeE7/" + sys.argv[1]
     execute(fileName)
 else:
-    for i in range(0,33):
-        fileName = "testeE56/ijk"
+    for i in range(0,12):
+        fileName = "testeE7/ijk"
         if i < 10:
             fileName += "0"
         fileName += str(i)
+        fileName += ".txt"
         execute(fileName)
     
 print("TESTS THAT FAILED:", failed)

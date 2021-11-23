@@ -53,8 +53,6 @@ typedef struct {
     //number of times a function was called 
     int numberOfReferences;
 
-    int numberOfReturnStatements;
-
 } SymbolTableValue;
 
 void printValue(SymbolTableValue symbolTableValue);

@@ -47,8 +47,7 @@ class SymbolTable {
     void incrementReferences(string key);
     int getReferences(string key);
     int getLabelForFunction(string functionKey);
-    int getReturnStatementsForFunction(string functionKey);
-    void updateReturnStatementsForFunction(string functionKey, int returnStatements);
+    
 };
 
 

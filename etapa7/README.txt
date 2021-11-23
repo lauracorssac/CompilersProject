@@ -1,1 +1,0 @@
-A geração de código foi feita em uma passagem

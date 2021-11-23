@@ -95,7 +95,6 @@ public:
     void checkStringCharOperation(AST *exp1Node);
     int geSizeOfParametersLastDeclaredFunction();
     int getNumberOfReferences(AST *node);
-    void updateReturnStatementsForFunction(string functionName, int numberOfReturnStatements);
     
     /*
         This function receiver a AST node which contains an lexical value of an identificator

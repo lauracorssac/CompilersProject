@@ -49,10 +49,6 @@ string SymbolTableStack::getLastDeclaredFunction() {
     return this->lastDeclaredFunction;
 }
 
-void SymbolTableStack::updateReturnStatementsForFunction(string functionName, int numberOfReturnStatements) {
-    this->listOfTables.back().updateReturnStatementsForFunction(functionName, numberOfReturnStatements);
-}
-
 void SymbolTableStack::beginNewScope() {
 
     SymbolTable newSymbolTable = SymbolTable(this->getOffsetAndScopeNewScope());

@@ -1,4 +1,7 @@
 //40
+int funcNotCalled() {
+	return 400;
+}
 int funcCalled() {
 	return 10;
 	int x <= 3;

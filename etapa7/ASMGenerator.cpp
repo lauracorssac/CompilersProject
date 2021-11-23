@@ -462,9 +462,8 @@ void ASMGenerator::generateFunctionPrologue(InstructionCode code) {
     
     this->skipCodeGeneration = optimized && numberOfCalls == 0 && !isMain;
 
-    if (skipCodeGeneration) {
-        return; 
-    }
+    if (skipCodeGeneration) { return; }
+    
     generateFunctionBegin(code);
     generatePushRBP();
     movRSPToRBP();

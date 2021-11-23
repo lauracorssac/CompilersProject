@@ -96,9 +96,3 @@ int SymbolTable::getReferences(string key) {
 int SymbolTable::getLabelForFunction(string functionKey) {
 	return this->symbolTableVariables[functionKey].functionLabel;
 }
-int SymbolTable::getReturnStatementsForFunction(string functionKey) {
-	return this->symbolTableVariables[functionKey].numberOfReturnStatements;
-}
-void SymbolTable::updateReturnStatementsForFunction(string functionKey, int returnStatements) {
-	this->symbolTableVariables[functionKey].numberOfReturnStatements = returnStatements;
-}
