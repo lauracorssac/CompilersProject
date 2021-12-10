@@ -14,7 +14,7 @@ main:
 	LexicalValue.o AST.o SymbolTable.o SymbolTableStack.o SymbolTableValue.o \
 	CodePrinter.o Code.o CodeGenerator.o \
 	ErrorManager.o SyntacticalType.o Utils.o \
-	ASMGenerator.o ReleaseManager.o -ll
+	ASMGenerator.o ReleaseManager.o -lfl
 
 clean:
 	rm -f -r .vscode
